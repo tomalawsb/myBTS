@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f7f9fc" />
+  <title>myBTS Web Pro</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon">BTS</div>
+        <div>
+          <h1>myBTS Web Pro</h1>
+          <p id="statusText">Ładowanie aplikacji…</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button id="installBtn" class="btn ghost hidden" type="button">Zainstaluj</button>
+        <button id="themeBtn" class="btn ghost" type="button">Motyw</button>
+        <button id="locateBtn" class="btn primary" type="button">Moja pozycja</button>
+      </div>
+    </header>
+
+    <main class="main-grid">
+      <section class="map-card">
+        <div id="map" class="map" aria-label="Mapa stacji BTS">
+          <div id="tileLayer" class="tile-layer"></div>
+          <canvas id="overlayCanvas" class="overlay-canvas"></canvas>
+          <div id="measureMarker" class="measure-marker hidden" title="Punkt pomiarowy"></div>
+          <div class="map-tools top-left">
+            <button id="zoomInBtn" class="map-btn" type="button">+</button>
+            <button id="zoomOutBtn" class="map-btn" type="button">−</button>
+          </div>
+          <div class="map-tools bottom-left">
+            <button id="setPointBtn" class="map-btn wide" type="button">Ustaw punkt z mapy</button>
+            <button id="clearPointBtn" class="map-btn wide" type="button">Wyczyść pomiar</button>
+          </div>
+          <div id="mapHint" class="map-hint">Przeciągnij mapę • kliknij BTS • tryb punktu ustawia pomiar</div>
+        </div>
+      </section>
+
+      <aside class="side-panel">
+        <section class="panel-card filters-card">
+          <div class="panel-title-row">
+            <div>
+              <h2>Filtry</h2>
+              <p id="datasetInfo">Baza: —</p>
+            </div>
+            <div class="mini-actions"><button id="importJsonBtn" class="btn ghost" type="button">Wczytaj JSON</button><button id="refreshBtn" class="btn ghost" type="button">Odśwież</button></div>
+          </div>
+
+          <label class="field-label" for="searchInput">Szukaj</label>
+          <input id="searchInput" class="input" type="search" placeholder="Miejscowość, adres, ID stacji" autocomplete="off" />
+
+          <div class="field-grid">
+            <label>
+              <span class="field-label">Operator</span>
+              <select id="operatorSelect" class="select"></select>
+            </label>
+            <label>
+              <span class="field-label">Pasmo</span>
+              <select id="bandSelect" class="select"></select>
+            </label>
+          </div>
+
+          <label class="field-label" for="radiusSelect">Odległość</label>
+          <select id="radiusSelect" class="select">
+            <option value="">Wszędzie</option>
+            <option value="1">1 km</option>
+            <option value="3">3 km</option>
+            <option value="5">5 km</option>
+            <option value="10">10 km</option>
+            <option value="20">20 km</option>
+            <option value="50">50 km</option>
+          </select>
+
+          <div class="toggle-row">
+            <button id="mapPlanBtn" class="btn seg active" type="button">Plan</button>
+            <button id="mapSatBtn" class="btn seg" type="button">Satelita</button>
+            <button id="nearestBtn" class="btn seg" type="button">Najbliższe</button>
+          </div>
+        </section>
+
+        <section class="stats-grid">
+          <div class="stat"><span>Wszystkie</span><strong id="totalCount">0</strong></div>
+          <div class="stat"><span>Widoczne</span><strong id="visibleCount">0</strong></div>
+          <div class="stat"><span>Zoom</span><strong id="zoomValue">—</strong></div>
+        </section>
+
+        <section id="detailCard" class="panel-card detail-card hidden">
+          <div class="panel-title-row">
+            <div>
+              <h2 id="detailTitle">Stacja</h2>
+              <p id="detailSubtitle">—</p>
+            </div>
+            <button id="closeDetailBtn" class="btn ghost" type="button">×</button>
+          </div>
+          <div id="detailBody" class="detail-body"></div>
+        </section>
+
+        <section class="panel-card list-card">
+          <div class="panel-title-row">
+            <div>
+              <h2>Stacje w widoku</h2>
+              <p id="listSubtitle">Najbliższe względem środka mapy</p>
+            </div>
+          </div>
+          <div id="stationList" class="station-list"></div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <input id="jsonFileInput" class="hidden" type="file" accept="application/json,.json" />
+  <script src="app.js" defer></script>
+</body>
+</html>
