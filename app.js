@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '1.0.0-web';
+const APP_VERSION = '2.0.0-web';
 const TILE_SIZE = 256;
 const DEFAULT_CENTER = { lat: 50.2872, lon: 21.4231 };
 const DEFAULT_ZOOM = 10;
@@ -10,7 +10,13 @@ const MAX_LIST_ROWS = 120;
 const MAX_MARKERS = 260;
 const MOBILE_MAX_MARKERS = 120;
 const SEARCH_MIN_CHARS = 2;
-const SETTINGS_KEY = 'mybts-web-settings-v1';
+const SETTINGS_KEY = 'mybts-web-settings-v2';
+const DB_NAME = 'mybts-web-db';
+const DB_VERSION = 1;
+const DATASET_STORE = 'datasets';
+const ACTIVE_DATASET_ID = 'active';
+const SPATIAL_CELL_DEG = 0.25;
+const XLSX_CDN_NOTE = 'Import XLSX wymaga biblioteki SheetJS z CDN albo połączenia z internetem.';
 
 const OPERATOR_COLORS = {
   'Orange': '#ff7800',
@@ -45,6 +51,9 @@ const state = {
   currentList: [],
   currentVisibleTotal: 0,
   renderTimer: null,
+  spatialGrid: new Map(),
+  dataSourceName: '',
+  isSavingDataset: false,
   dataLoaded: false,
   deferredInstallPrompt: null
 };
@@ -76,8 +85,12 @@ function initElements() {
     closeDetailBtn: document.getElementById('closeDetailBtn'),
     locateBtn: document.getElementById('locateBtn'),
     refreshBtn: document.getElementById('refreshBtn'),
-    importJsonBtn: document.getElementById('importJsonBtn'),
-    jsonFileInput: document.getElementById('jsonFileInput'),
+    importFileBtn: document.getElementById('importFileBtn'),
+    dataFileInput: document.getElementById('dataFileInput'),
+    remoteUrlInput: document.getElementById('remoteUrlInput'),
+    loadUrlBtn: document.getElementById('loadUrlBtn'),
+    clearCacheBtn: document.getElementById('clearCacheBtn'),
+    storageStatus: document.getElementById('storageStatus'),
     themeBtn: document.getElementById('themeBtn'),
     installBtn: document.getElementById('installBtn'),
     zoomInBtn: document.getElementById('zoomInBtn'),
@@ -158,14 +171,297 @@ function escapeHtml(value) {
     .replace(/'/g, '&#039;');
 }
 
-function normalizeStation(raw) {
-  const lat = Number(raw.latitude ?? raw.lat);
-  const lon = Number(raw.longitude ?? raw.lon ?? raw.lng);
+
+function setStorageStatus(text) {
+  if (el.storageStatus) el.storageStatus.textContent = text;
+}
+
+function openDb() {
+  return new Promise((resolve, reject) => {
+    if (!('indexedDB' in window)) {
+      reject(new Error('IndexedDB nie jest dostępne w tej przeglądarce.'));
+      return;
+    }
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(DATASET_STORE)) db.createObjectStore(DATASET_STORE, { keyPath: 'id' });
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error('Błąd IndexedDB'));
+  });
+}
+
+function idbPut(storeName, value) {
+  return openDb().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    tx.objectStore(storeName).put(value);
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = () => { db.close(); reject(tx.error || new Error('Błąd zapisu IndexedDB')); };
+  }));
+}
+
+function idbGet(storeName, key) {
+  return openDb().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readonly');
+    const request = tx.objectStore(storeName).get(key);
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error || new Error('Błąd odczytu IndexedDB'));
+    tx.oncomplete = () => db.close();
+  }));
+}
+
+function idbDelete(storeName, key) {
+  return openDb().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    tx.objectStore(storeName).delete(key);
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = () => { db.close(); reject(tx.error || new Error('Błąd kasowania IndexedDB')); };
+  }));
+}
+
+async function saveActiveDataset(stations, sourceName) {
+  if (!stations || !stations.length) return;
+  state.isSavingDataset = true;
+  setStorageStatus('Pamięć lokalna: zapisuję bazę…');
+  try {
+    await idbPut(DATASET_STORE, {
+      id: ACTIVE_DATASET_ID,
+      sourceName,
+      savedAt: new Date().toISOString(),
+      appVersion: APP_VERSION,
+      stations
+    });
+    setStorageStatus(`Pamięć lokalna: zapisano ${compactNumber(stations.length)} stacji.`);
+  } catch (err) {
+    console.warn(err);
+    setStorageStatus(`Pamięć lokalna: nie zapisano bazy (${err.message}).`);
+  } finally {
+    state.isSavingDataset = false;
+  }
+}
+
+async function loadActiveDataset() {
+  try {
+    const saved = await idbGet(DATASET_STORE, ACTIVE_DATASET_ID);
+    if (saved && Array.isArray(saved.stations) && saved.stations.length) return saved;
+  } catch (err) {
+    console.warn(err);
+    setStorageStatus(`Pamięć lokalna: błąd odczytu (${err.message}).`);
+  }
+  return null;
+}
+
+async function clearActiveDataset() {
+  try {
+    await idbDelete(DATASET_STORE, ACTIVE_DATASET_ID);
+    setStorageStatus('Pamięć lokalna: wyczyszczona. Odświeżono bazę z pliku stations.json.');
+    await loadStationsFromUrl('stations.json', { forceNetwork: true, save: true });
+  } catch (err) {
+    setStatus(`Nie udało się wyczyścić bazy: ${err.message}`);
+  }
+}
+
+function normalizeColumnName(value) {
+  return normalizeText(value).replace(/[^a-z0-9]+/g, '');
+}
+
+function numberFromCell(value) {
+  if (typeof value === 'number') return value;
+  const text = String(value ?? '').trim().replace(',', '.');
+  const match = text.match(/-?\d+(?:\.\d+)?/);
+  return match ? Number(match[0]) : NaN;
+}
+
+function splitListCell(value) {
+  if (Array.isArray(value)) return value.map(String).map(s => s.trim()).filter(Boolean);
+  const text = String(value ?? '').trim();
+  if (!text) return [];
+  return text.split(/[;,|/]+|\s{2,}/).map(s => s.trim()).filter(Boolean);
+}
+
+function getAliased(row, aliases) {
+  for (const alias of aliases) {
+    const key = normalizeColumnName(alias);
+    if (Object.prototype.hasOwnProperty.call(row, key) && row[key] !== '') return row[key];
+  }
+  return '';
+}
+
+function normalizeImportedRow(row) {
+  const lat = numberFromCell(getAliased(row, ['latitude', 'lat', 'szerokosc', 'szerokoscgeograficzna', 'wgs84lat', 'y']));
+  const lon = numberFromCell(getAliased(row, ['longitude', 'lon', 'lng', 'dlugosc', 'dlugoscgeograficzna', 'wgs84lon', 'x']));
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-  const bands = Array.isArray(raw.bands) ? raw.bands.map(String).filter(Boolean) : [];
-  const sectorIds = Array.isArray(raw.sector_ids) ? raw.sector_ids.map(String) : [];
-  const cellNames = Array.isArray(raw.cell_names) ? raw.cell_names.map(String) : [];
-  const azimuths = Array.isArray(raw.azimuths) ? raw.azimuths.map(Number).filter(Number.isFinite) : [];
+  const bandsRaw = getAliased(row, ['bands', 'pasma', 'pasmo', 'band', 'technologia', 'technology', 'system']);
+  const azRaw = getAliased(row, ['azimuths', 'azymuty', 'azymut', 'azimuth']);
+  return normalizeStation({
+    station_id: getAliased(row, ['station_id', 'stationid', 'id', 'nrstacji', 'idstacji', 'pozwolenie', 'btssid', 'siteid']) || '—',
+    operator: getAliased(row, ['operator', 'sieć', 'siec', 'network', 'mno']) || 'Nieznany',
+    latitude: lat,
+    longitude: lon,
+    address: getAliased(row, ['address', 'adres', 'lokalizacja', 'location', 'ulica']),
+    city: getAliased(row, ['city', 'miasto', 'miejscowosc', 'miejscowość', 'gmina']),
+    bands: splitListCell(bandsRaw),
+    azimuths: splitListCell(azRaw).map(numberFromCell).filter(Number.isFinite),
+    range_km: numberFromCell(getAliased(row, ['range_km', 'rangekm', 'zasieg', 'zasiegkm', 'zasięg', 'zasięgkm'])),
+    records_count: numberFromCell(getAliased(row, ['records_count', 'recordscount', 'rekordy'])) || 1,
+    source: getAliased(row, ['source', 'zrodlo', 'źródło']) || 'import'
+  });
+}
+
+function parseCsv(text) {
+  const sample = text.slice(0, 5000);
+  const delimiters = [';', ',', '\t'];
+  let delimiter = ';';
+  let best = -1;
+  for (const d of delimiters) {
+    const score = (sample.match(new RegExp(d === '\\t' ? '\\t' : `\\${d}`, 'g')) || []).length;
+    if (score > best) { best = score; delimiter = d === '\\t' ? '\t' : d; }
+  }
+
+  const rows = [];
+  let row = [];
+  let cell = '';
+  let quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    const next = text[i + 1];
+    if (ch === '"') {
+      if (quoted && next === '"') { cell += '"'; i++; }
+      else quoted = !quoted;
+      continue;
+    }
+    if (!quoted && ch === delimiter) { row.push(cell); cell = ''; continue; }
+    if (!quoted && (ch === '\n' || ch === '\r')) {
+      if (ch === '\r' && next === '\n') i++;
+      row.push(cell); cell = '';
+      if (row.some(v => String(v).trim() !== '')) rows.push(row);
+      row = [];
+      continue;
+    }
+    cell += ch;
+  }
+  row.push(cell);
+  if (row.some(v => String(v).trim() !== '')) rows.push(row);
+  if (!rows.length) return [];
+
+  const headers = rows[0].map(normalizeColumnName);
+  return rows.slice(1).map(values => {
+    const out = {};
+    headers.forEach((key, i) => { if (key) out[key] = String(values[i] ?? '').trim(); });
+    return out;
+  });
+}
+
+function parseCsvStations(text) {
+  const rows = parseCsv(text);
+  const stations = [];
+  for (const row of rows) {
+    const station = normalizeImportedRow(row);
+    if (station) stations.push(station);
+  }
+  if (!stations.length) throw new Error('Nie znaleziono stacji z poprawnymi współrzędnymi. Sprawdź nazwy kolumn: lat/lon/operator/pasma/adres.');
+  return stations;
+}
+
+async function parseXlsxStations(fileOrBuffer) {
+  if (!window.XLSX) throw new Error(XLSX_CDN_NOTE);
+  const buffer = fileOrBuffer instanceof ArrayBuffer ? fileOrBuffer : await fileOrBuffer.arrayBuffer();
+  const workbook = XLSX.read(buffer, { type: 'array' });
+  const firstSheetName = workbook.SheetNames[0];
+  if (!firstSheetName) throw new Error('Plik XLSX nie ma arkuszy.');
+  const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName], { defval: '' });
+  const normalizedRows = rows.map(row => {
+    const out = {};
+    for (const [key, value] of Object.entries(row)) out[normalizeColumnName(key)] = value;
+    return out;
+  });
+  const stations = [];
+  for (const row of normalizedRows) {
+    const station = normalizeImportedRow(row);
+    if (station) stations.push(station);
+  }
+  if (!stations.length) throw new Error('Nie znaleziono stacji z poprawnymi współrzędnymi w XLSX.');
+  return stations;
+}
+
+function buildSpatialIndex(stations) {
+  const grid = new Map();
+  for (const station of stations) {
+    const key = spatialKey(station.latitude, station.longitude);
+    let bucket = grid.get(key);
+    if (!bucket) { bucket = []; grid.set(key, bucket); }
+    bucket.push(station);
+  }
+  state.spatialGrid = grid;
+}
+
+function spatialKey(lat, lon) {
+  return `${Math.floor(lat / SPATIAL_CELL_DEG)}:${Math.floor(lon / SPATIAL_CELL_DEG)}`;
+}
+
+function stationsFromBounds(bounds) {
+  if (!state.spatialGrid.size) return state.stations;
+  if (bounds.east < bounds.west) return state.stations;
+  const latMin = Math.floor(bounds.south / SPATIAL_CELL_DEG);
+  const latMax = Math.floor(bounds.north / SPATIAL_CELL_DEG);
+  const lonMin = Math.floor(bounds.west / SPATIAL_CELL_DEG);
+  const lonMax = Math.floor(bounds.east / SPATIAL_CELL_DEG);
+  if ((latMax - latMin) * (lonMax - lonMin) > 1200) return state.stations;
+  const out = [];
+  for (let la = latMin; la <= latMax; la++) {
+    for (let lo = lonMin; lo <= lonMax; lo++) {
+      const bucket = state.spatialGrid.get(`${la}:${lo}`);
+      if (bucket) out.push(...bucket);
+    }
+  }
+  return out;
+}
+
+function radiusBounds(center, radiusKm) {
+  const latDelta = radiusKm / 111.32;
+  const lonDelta = radiusKm / (111.32 * Math.max(0.18, Math.cos(center.lat * Math.PI / 180)));
+  return {
+    north: center.lat + latDelta,
+    south: center.lat - latDelta,
+    west: center.lon - lonDelta,
+    east: center.lon + lonDelta
+  };
+}
+
+function normalizeRemoteUrl(url) {
+  let out = String(url || '').trim();
+  if (!out) throw new Error('Wklej link do pliku JSON/CSV/XLSX.');
+  const driveFile = out.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  const driveOpen = out.match(/[?&]id=([^&]+)/);
+  const driveSheets = out.match(/docs\.google\.com\/spreadsheets\/d\/([^/]+)/);
+  if (driveSheets) {
+    const gid = out.match(/[?&#]gid=([^&#]+)/)?.[1] || '0';
+    return `https://docs.google.com/spreadsheets/d/${driveSheets[1]}/export?format=csv&gid=${gid}`;
+  }
+  if (driveFile || (out.includes('drive.google.com') && driveOpen)) {
+    const id = driveFile?.[1] || driveOpen?.[1];
+    return `https://drive.google.com/uc?export=download&id=${id}`;
+  }
+  if (out.includes('dropbox.com')) out = out.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace(/[?&]dl=0/, '').replace(/[?&]raw=1/, '');
+  return out;
+}
+
+function detectRemoteType(url, contentType) {
+  const lower = url.toLowerCase();
+  if (contentType.includes('json') || lower.includes('.json')) return 'json';
+  if (contentType.includes('spreadsheet') || lower.includes('.xlsx') || lower.includes('.xls')) return 'xlsx';
+  return 'csv';
+}
+
+function normalizeStation(raw) {
+  const lat = numberFromCell(raw.latitude ?? raw.lat);
+  const lon = numberFromCell(raw.longitude ?? raw.lon ?? raw.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+  const bands = Array.isArray(raw.bands) ? raw.bands.map(String).filter(Boolean) : splitListCell(raw.bands);
+  const sectorIds = Array.isArray(raw.sector_ids) ? raw.sector_ids.map(String) : splitListCell(raw.sector_ids);
+  const cellNames = Array.isArray(raw.cell_names) ? raw.cell_names.map(String) : splitListCell(raw.cell_names);
+  const azimuths = Array.isArray(raw.azimuths) ? raw.azimuths.map(Number).filter(Number.isFinite) : splitListCell(raw.azimuths).map(numberFromCell).filter(Number.isFinite);
   const station = {
     station_id: String(raw.station_id ?? raw.id ?? '').trim() || '—',
     operator: String(raw.operator ?? 'Nieznany').trim() || 'Nieznany',
@@ -179,7 +475,7 @@ function normalizeStation(raw) {
     records_count: Number(raw.records_count ?? 0) || 0,
     source: String(raw.source ?? '').trim(),
     azimuths,
-    range_km: Number.isFinite(Number(raw.range_km)) ? Number(raw.range_km) : null
+    range_km: Number.isFinite(numberFromCell(raw.range_km)) ? numberFromCell(raw.range_km) : null
   };
   station.key = stationKey(station);
   station.searchText = normalizeText(`${station.station_id} ${station.operator} ${station.city} ${station.address} ${station.bands.join(' ')}`);
@@ -200,19 +496,31 @@ function parseStationsPayload(payload) {
   return stations;
 }
 
-async function loadStationsFromUrl(url = 'stations.json') {
-  setStatus('Ładowanie bazy stacji…');
+async function loadStationsFromUrl(url = 'stations.json', options = {}) {
+  const normalizedUrl = url === 'stations.json' ? url : normalizeRemoteUrl(url);
+  setStatus(`Ładowanie bazy z ${normalizedUrl === 'stations.json' ? 'stations.json' : 'linku'}…`);
   el.stationList.innerHTML = '<div class="loading-box">Ładowanie danych BTS…</div>';
-  const response = await fetch(url, { cache: 'reload' });
+  const response = await fetch(normalizedUrl, { cache: options.forceNetwork ? 'reload' : 'default' });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  const payload = await response.json();
-  setStations(parseStationsPayload(payload), 'stations.json');
+  const contentType = response.headers.get('content-type') || '';
+  const type = detectRemoteType(normalizedUrl, contentType);
+  let stations;
+  if (type === 'json') {
+    stations = parseStationsPayload(await response.json());
+  } else if (type === 'xlsx') {
+    stations = await parseXlsxStations(await response.arrayBuffer());
+  } else {
+    stations = parseCsvStations(await response.text());
+  }
+  setStations(stations, normalizedUrl === 'stations.json' ? 'stations.json' : normalizedUrl, { save: options.save !== false });
 }
 
-function setStations(stations, sourceName) {
+function setStations(stations, sourceName, options = {}) {
   state.stations = stations;
+  state.dataSourceName = sourceName;
   state.dataLoaded = true;
   state.selected = null;
+  buildSpatialIndex(stations);
   state.operators = ['Wszyscy', ...Array.from(new Set(stations.map(s => s.operator).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pl'))];
   const bandSet = new Set();
   for (const station of stations) for (const band of station.bands) bandSet.add(band);
@@ -224,6 +532,7 @@ function setStations(stations, sourceName) {
   el.totalCount.textContent = compactNumber(stations.length);
   el.datasetInfo.textContent = `Baza: ${compactNumber(stations.length)} stacji • ${sourceName}`;
   setStatus(`Gotowe • ${compactNumber(stations.length)} stacji • wersja ${APP_VERSION}`);
+  if (options.save) saveActiveDataset(stations, sourceName);
   scheduleRender();
 }
 
@@ -364,9 +673,10 @@ function getFilteredStations() {
   const origin = getOrigin();
   const radius = Number.isFinite(state.radiusKm) ? state.radiusKm : null;
   const inViewOnly = !useGlobalSearch && !radius;
+  const candidates = useGlobalSearch ? state.stations : stationsFromBounds(radius ? radiusBounds(origin, radius) : bounds);
   const result = [];
 
-  for (const station of state.stations) {
+  for (const station of candidates) {
     if (state.operator !== 'Wszyscy' && station.operator !== state.operator) continue;
     if (state.band !== 'Wszystkie' && !station.bands.includes(state.band)) continue;
     if (useGlobalSearch && !station.searchText.includes(search)) continue;
@@ -737,9 +1047,11 @@ function bindEvents() {
   el.radiusSelect.addEventListener('change', () => { state.radiusKm = el.radiusSelect.value ? Number(el.radiusSelect.value) : null; scheduleRender(); });
   el.themeBtn.addEventListener('click', () => { state.theme = state.theme === 'dark' ? 'light' : 'dark'; applyTheme(); saveSettings(); });
   el.closeDetailBtn.addEventListener('click', hideDetails);
-  el.refreshBtn.addEventListener('click', () => loadStationsFromUrl().catch(showLoadError));
-  el.importJsonBtn.addEventListener('click', () => el.jsonFileInput.click());
-  el.jsonFileInput.addEventListener('change', importJsonFile);
+  el.refreshBtn.addEventListener('click', () => loadStationsFromUrl('stations.json', { forceNetwork: true, save: true }).catch(showLoadError));
+  el.importFileBtn.addEventListener('click', () => el.dataFileInput.click());
+  el.dataFileInput.addEventListener('change', importDataFile);
+  el.loadUrlBtn.addEventListener('click', loadRemoteInput);
+  el.clearCacheBtn.addEventListener('click', clearActiveDataset);
   el.locateBtn.addEventListener('click', locateUser);
   el.zoomInBtn.addEventListener('click', () => zoomTo(state.zoom + 1));
   el.zoomOutBtn.addEventListener('click', () => zoomTo(state.zoom - 1));
@@ -819,18 +1131,34 @@ function locateUser() {
   );
 }
 
-async function importJsonFile() {
-  const file = el.jsonFileInput.files && el.jsonFileInput.files[0];
+async function importDataFile() {
+  const file = el.dataFileInput.files && el.dataFileInput.files[0];
   if (!file) return;
   try {
     setStatus(`Wczytuję ${file.name}…`);
-    const text = await file.text();
-    const payload = JSON.parse(text);
-    setStations(parseStationsPayload(payload), file.name);
+    const name = file.name.toLowerCase();
+    let stations;
+    if (name.endsWith('.json') || file.type.includes('json')) {
+      stations = parseStationsPayload(JSON.parse(await file.text()));
+    } else if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+      stations = await parseXlsxStations(file);
+    } else {
+      stations = parseCsvStations(await file.text());
+    }
+    setStations(stations, file.name, { save: true });
   } catch (err) {
-    setStatus(`Błąd importu JSON: ${err.message}`);
+    setStatus(`Błąd importu pliku: ${err.message}`);
   } finally {
-    el.jsonFileInput.value = '';
+    el.dataFileInput.value = '';
+  }
+}
+
+async function loadRemoteInput() {
+  try {
+    const url = el.remoteUrlInput.value.trim();
+    await loadStationsFromUrl(url, { forceNetwork: true, save: true });
+  } catch (err) {
+    setStatus(`Błąd pobierania z linku: ${err.message}`);
   }
 }
 
@@ -917,8 +1245,9 @@ function handleMapClick(clientX, clientY) {
 
 function showLoadError(err) {
   console.error(err);
-  setStatus(`Nie udało się wczytać stations.json: ${err.message}. Uruchom przez serwer lokalny albo wczytaj JSON ręcznie.`);
-  el.stationList.innerHTML = '<div class="loading-box">Nie udało się wczytać bazy. Kliknij „Wczytaj JSON” albo uruchom przez serwer HTTP.</div>';
+  setStatus(`Nie udało się wczytać bazy: ${err.message}. Uruchom przez serwer lokalny albo zaimportuj JSON/CSV/XLSX.`);
+  el.stationList.innerHTML = '<div class="loading-box">Nie udało się wczytać bazy. Kliknij „Import pliku” albo uruchom przez serwer HTTP.</div>';
+  setStorageStatus('Pamięć lokalna: brak działającej bazy.');
 }
 
 function registerServiceWorker() {
@@ -927,7 +1256,7 @@ function registerServiceWorker() {
   }
 }
 
-function boot() {
+async function boot() {
   initElements();
   loadSettings();
   applyTheme();
@@ -936,7 +1265,16 @@ function boot() {
   el.radiusSelect.value = state.radiusKm ?? '';
   registerServiceWorker();
   renderTiles();
-  loadStationsFromUrl().catch(showLoadError);
+  setStorageStatus('Pamięć lokalna: sprawdzanie…');
+  const saved = await loadActiveDataset();
+  if (saved) {
+    const date = saved.savedAt ? new Date(saved.savedAt).toLocaleString('pl-PL') : 'brak daty';
+    setStations(saved.stations.map(normalizeStation).filter(Boolean), `${saved.sourceName || 'zapisana baza'} • zapis ${date}`, { save: false });
+    setStorageStatus(`Pamięć lokalna: użyto zapisanej bazy z ${date}.`);
+    return;
+  }
+  setStorageStatus('Pamięć lokalna: brak zapisanej bazy, wczytuję stations.json…');
+  loadStationsFromUrl('stations.json', { forceNetwork: false, save: true }).catch(showLoadError);
 }
 
 document.addEventListener('DOMContentLoaded', boot);

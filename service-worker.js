@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_NAME = 'mybts-web-pro-v1';
+const CACHE_NAME = 'mybts-web-pro-v2';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -36,7 +36,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  event.respondWith(fetch(request).catch(() => caches.match(request)));
+  event.respondWith(networkThenCache(request));
 });
 
 async function cacheFirst(request) {
@@ -44,7 +44,7 @@ async function cacheFirst(request) {
   if (cached) return cached;
   const response = await fetch(request);
   const cache = await caches.open(CACHE_NAME);
-  cache.put(request, response.clone());
+  if (response.ok) cache.put(request, response.clone());
   return response;
 }
 
@@ -54,9 +54,9 @@ async function networkThenCache(request) {
     const response = await fetch(request);
     if (response.ok) cache.put(request, response.clone());
     return response;
-  } catch (_) {
+  } catch (err) {
     const cached = await cache.match(request);
     if (cached) return cached;
-    throw _;
+    throw err;
   }
 }

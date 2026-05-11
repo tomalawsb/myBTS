@@ -1,7 +1,7 @@
 {
-  "name": "myBTS Web Pro",
+  "name": "myBTS Web Pro v2",
   "short_name": "myBTS",
-  "description": "Webowa wersja aplikacji do przeglądania stacji BTS na mapie.",
+  "description": "Webowa PWA do przeglądania stacji BTS z importem JSON/CSV/XLSX i lokalną bazą IndexedDB.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

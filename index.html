@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#f7f9fc" />
-  <title>myBTS Web Pro</title>
+  <title>myBTS Web Pro v2</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -14,12 +14,13 @@
       <div class="brand">
         <div class="brand-icon">BTS</div>
         <div>
-          <h1>myBTS Web Pro</h1>
+          <h1>myBTS Web Pro <span class="version-pill">v2</span></h1>
           <p id="statusText">Ładowanie aplikacji…</p>
         </div>
       </div>
       <div class="top-actions">
         <button id="installBtn" class="btn ghost hidden" type="button">Zainstaluj</button>
+        <button id="clearCacheBtn" class="btn ghost" type="button">Wyczyść bazę</button>
         <button id="themeBtn" class="btn ghost" type="button">Motyw</button>
         <button id="locateBtn" class="btn primary" type="button">Moja pozycja</button>
       </div>
@@ -50,8 +51,19 @@
               <h2>Filtry</h2>
               <p id="datasetInfo">Baza: —</p>
             </div>
-            <div class="mini-actions"><button id="importJsonBtn" class="btn ghost" type="button">Wczytaj JSON</button><button id="refreshBtn" class="btn ghost" type="button">Odśwież</button></div>
+            <div class="mini-actions">
+              <button id="importFileBtn" class="btn ghost" type="button">Import pliku</button>
+              <button id="refreshBtn" class="btn ghost" type="button">Odśwież JSON</button>
+            </div>
           </div>
+
+
+          <label class="field-label" for="remoteUrlInput">Baza z linku</label>
+          <div class="url-row">
+            <input id="remoteUrlInput" class="input" type="url" placeholder="Link do JSON/CSV/XLSX, Google Drive, Dropbox lub raw GitHub" autocomplete="off" />
+            <button id="loadUrlBtn" class="btn ghost" type="button">Pobierz</button>
+          </div>
+          <div id="storageStatus" class="storage-status">Pamięć lokalna: sprawdzanie…</div>
 
           <label class="field-label" for="searchInput">Szukaj</label>
           <input id="searchInput" class="input" type="search" placeholder="Miejscowość, adres, ID stacji" autocomplete="off" />
@@ -115,7 +127,8 @@
     </main>
   </div>
 
-  <input id="jsonFileInput" class="hidden" type="file" accept="application/json,.json" />
+  <input id="dataFileInput" class="hidden" type="file" accept="application/json,.json,text/csv,.csv,.xlsx,.xls" />
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js" defer></script>
   <script src="app.js" defer></script>
 </body>
 </html>

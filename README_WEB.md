@@ -1,51 +1,34 @@
-# myBTS Web Pro — PWA v1
+# myBTS Web Pro v2
 
-Pierwsza webowa wersja aplikacji myBTS przepisana z Kivy na HTML/CSS/JavaScript.
+Pierwsza poprawiona wersja web/PWA po przepisaniu z kierunku Kivy na HTML/CSS/JavaScript.
 
 ## Uruchomienie lokalne
 
-Najpewniej uruchamiaj przez lokalny serwer HTTP, nie przez dwuklik na `index.html`:
+Kliknij `run_local.bat`, potem otwórz:
 
-```bat
-python -m http.server 8000
-```
+`http://localhost:8000`
 
-Potem otwórz:
+Nie uruchamiaj przez dwuklik na `index.html`, bo przeglądarka może blokować wczytanie `stations.json`.
 
-```text
-http://localhost:8000
-```
+## Zrobione w v2
 
-## Publikacja na GitHub Pages
+- PWA bez Kivy.
+- Mapa OSM i satelitarna.
+- GPS, punkt pomiarowy, odległość i azymut.
+- Klastry markerów.
+- Sektory orientacyjne i realne azymuty, jeśli są w danych.
+- Import JSON.
+- Import CSV.
+- Import XLSX/XLS przez SheetJS z CDN.
+- Pobieranie bazy z linku JSON/CSV/XLSX.
+- Obsługa linków Google Sheets jako CSV.
+- Próba obsługi publicznych linków Google Drive i Dropbox.
+- IndexedDB: zapamiętanie aktywnej bazy w przeglądarce.
+- Przycisk czyszczenia zapisanej bazy.
+- Indeks przestrzenny, żeby filtrowanie widoku nie musiało za każdym razem sprawdzać całych 46k stacji.
 
-Wrzuć wszystkie pliki z tego folderu do repozytorium i ustaw GitHub Pages na branch/folder z plikami.
+## Ważne ograniczenia
 
-## Zrobione w v1
-
-- aplikacja webowa/PWA bez Kivy,
-- mapa kafelkowa OSM i satelitarna ESRI,
-- obsługa `stations.json`,
-- pełna baza stacji z paczki źródłowej,
-- filtrowanie po operatorze, paśmie, tekście i promieniu,
-- GPS / „Moja pozycja”,
-- punkt pomiarowy ustawiany z mapy,
-- odległość i azymut do BTS,
-- lista najbliższych stacji,
-- szczegóły stacji,
-- markery operatorów w kolorach,
-- klastry na niższych zoomach,
-- rysowanie sektorów i zasięgu orientacyjnego,
-- użycie realnych `azimuths` i `range_km`, jeśli są w danych,
-- zapis ustawień w przeglądarce,
-- jasny motyw domyślny i opcjonalny ciemny,
-- service worker i manifest PWA,
-- ręczne wczytanie pliku JSON.
-
-## Czego nie ma jeszcze w v1
-
-- importu plików UKE XLSX/CSV bezpośrednio w przeglądarce,
-- lokalnego SQLite z aplikacji Kivy,
-- pobierania aktualizacji z Google Drive,
-- pełnego offline dla kafelków mapy,
-- zaawansowanej optymalizacji danych pod bardzo słabe telefony.
-
+- Pełny import XLSX wymaga dostępu do biblioteki SheetJS z CDN. Bez internetu działa nadal JSON/CSV i zapisana baza.
+- Publiczny link Google Drive/Dropbox może zostać zablokowany przez CORS albo uprawnienia pliku. Najpewniejszy jest raw JSON/CSV albo Google Sheets opublikowany jako CSV.
+- Kafelki mapy pełnego offline nadal nie są pakowane lokalnie. Aplikacja działa offline, ale mapa wymaga kafelków pobranych wcześniej lub internetu.
