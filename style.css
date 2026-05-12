@@ -679,3 +679,186 @@ h3 { margin: 0; font-size: 15px; line-height: 1.25; }
   .compass-target-label { bottom: -6px; min-width: 104px; max-width: 130px; }
   .distance-hero strong { font-size: 25px; }
 }
+
+/* v3.4: widok mapowy jak BTSearch — informacje w małym okienku na mapie */
+.bts-leaflet-popup .leaflet-popup-content-wrapper {
+  border-radius: 18px;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, .22);
+}
+.bts-leaflet-popup .leaflet-popup-content {
+  margin: 0;
+  width: 300px !important;
+}
+.bts-popup-card {
+  color: #172033;
+  background: #fff;
+  font-family: inherit;
+}
+.bts-popup-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  padding: 12px 13px 9px;
+  border-bottom: 1px solid rgba(148, 163, 184, .28);
+}
+.bts-popup-head strong {
+  display: block;
+  font-size: 15px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.bts-popup-head small {
+  display: block;
+  margin-top: 3px;
+  color: #667085;
+  font-size: 12px;
+  line-height: 1.25;
+}
+.bts-popup-head > b {
+  align-self: start;
+  border-radius: 999px;
+  padding: 5px 8px;
+  color: #fff;
+  background: #1d4ed8;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.bts-popup-distance {
+  margin: 11px 12px 9px;
+  border-radius: 16px;
+  padding: 10px 12px;
+  color: #fff;
+  background: linear-gradient(135deg, #0f766e, #1d4ed8);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 5px 10px;
+}
+.bts-popup-distance span {
+  grid-column: 1 / -1;
+  color: rgba(255,255,255,.76);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.bts-popup-distance strong {
+  font-size: 28px;
+  line-height: .95;
+  letter-spacing: -.6px;
+}
+.bts-popup-distance em {
+  border-radius: 999px;
+  padding: 5px 7px;
+  background: rgba(255,255,255,.18);
+  font-style: normal;
+  font-weight: 850;
+  font-size: 12px;
+}
+.bts-popup-bands {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 0 12px 9px;
+}
+.bts-popup-bands span {
+  border-radius: 999px;
+  padding: 4px 7px;
+  background: #eef2f7;
+  color: #475467;
+  font-size: 11px;
+  font-weight: 800;
+}
+.bts-popup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid rgba(148, 163, 184, .24);
+  border-bottom: 1px solid rgba(148, 163, 184, .24);
+}
+.bts-popup-grid div {
+  padding: 8px 12px;
+  min-width: 0;
+  border-right: 1px solid rgba(148, 163, 184, .18);
+  border-bottom: 1px solid rgba(148, 163, 184, .18);
+}
+.bts-popup-grid div:nth-child(2n) { border-right: 0; }
+.bts-popup-grid div:nth-last-child(-n+2) { border-bottom: 0; }
+.bts-popup-grid span,
+.bts-popup-share span {
+  display: block;
+  color: #667085;
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: .035em;
+}
+.bts-popup-grid b,
+.bts-popup-share b {
+  display: block;
+  margin-top: 2px;
+  color: #172033;
+  font-size: 12px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.bts-popup-share {
+  padding: 9px 12px 12px;
+}
+.dark .bts-popup-card {
+  background: #182032;
+  color: #edf2ff;
+}
+.dark .bts-popup-head,
+.dark .bts-popup-grid,
+.dark .bts-popup-share { border-color: rgba(120, 139, 170, .28); }
+.dark .bts-popup-head strong,
+.dark .bts-popup-grid b,
+.dark .bts-popup-share b { color: #edf2ff; }
+.dark .bts-popup-head small,
+.dark .bts-popup-grid span,
+.dark .bts-popup-share span { color: #a7b1c5; }
+.dark .bts-popup-bands span { background: #202a3b; color: #d8e2f3; }
+
+@media (max-width: 900px) {
+  .app-panel.collapsed {
+    height: 32px;
+    min-height: 32px;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+    backdrop-filter: none;
+    transform: translateY(calc(100% - 32px));
+    pointer-events: none;
+  }
+  .app-panel.collapsed .panel-handle {
+    display: block;
+    width: 132px;
+    height: 32px;
+    margin: 0 auto;
+    pointer-events: auto;
+    background: rgba(255,255,255,.82);
+    border: 1px solid rgba(135,151,176,.34);
+    box-shadow: 0 10px 28px rgba(15,23,42,.16);
+    backdrop-filter: blur(14px);
+  }
+  .app-panel.collapsed .panel-handle::after {
+    margin-top: 13px;
+  }
+  .app-panel.collapsed .panel-top-row,
+  .app-panel.collapsed .tabs,
+  .app-panel.collapsed .panel-content {
+    display: none;
+  }
+  .bts-leaflet-popup .leaflet-popup-content {
+    width: min(310px, calc(100vw - 54px)) !important;
+  }
+  .leaflet-control-attribution {
+    max-width: calc(100vw - 118px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

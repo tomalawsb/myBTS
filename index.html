@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#f6f8fc" />
-  <title>myBTS Web Pro 3.2 - 1205261440</title>
+  <title>myBTS Web Pro 3.4 - 1205261505</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
   <link rel="stylesheet" href="style.css" />
@@ -14,16 +14,23 @@
     <section class="map-stage" aria-label="Mapa stacji BTS">
       <div id="map" class="map"></div>
 
-      <form id="searchForm" class="search-card glass-panel" autocomplete="off">
+      <form id="searchForm" class="search-card glass-panel" autocomplete="off" role="search">
         <span id="statusText" class="visually-hidden" aria-live="polite">Ładowanie aplikacji…</span>
         <input id="searchInput" class="input search-input" type="text" inputmode="search" enterkeyhint="search" placeholder="Szukaj miejscowości, adresu, ID stacji…" autocomplete="off" />
         <button id="locateBtn" class="btn primary icon-btn gps-btn" type="button" aria-label="Pokaż moją pozycję" title="Pokaż moją pozycję">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a1 1 0 0 1 1 1v1.06A8.01 8.01 0 0 1 19.94 11H21a1 1 0 1 1 0 2h-1.06A8.01 8.01 0 0 1 13 19.94V21a1 1 0 1 1-2 0v-1.06A8.01 8.01 0 0 1 4.06 13H3a1 1 0 1 1 0-2h1.06A8.01 8.01 0 0 1 11 4.06V3a1 1 0 0 1 1-1Zm0 4a6 6 0 1 0 0 12A6 6 0 0 0 12 6Zm0 3.2a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6Z"/></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2 20.7 21l-8.7-3.6L3.3 21 12 2.2Zm0 4.8-4.5 9.7 4.5-1.9 4.5 1.9L12 7Z"/></svg>
         </button>
         <button id="submitSearchBtn" class="btn primary search-submit" type="submit" aria-label="Zatwierdź wyszukiwanie">OK</button>
         <button id="clearSearchBtn" class="btn ghost icon-btn" type="button" aria-label="Wyczyść wyszukiwanie">×</button>
         <button id="menuBtn" class="btn ghost icon-btn" type="button" aria-label="Menu">☰</button>
       </form>
+      <button id="compassWidget" class="compass-widget glass-panel" type="button" aria-label="Włącz kompas telefonu" title="Włącz kompas telefonu">
+        <span class="compass-north">N</span>
+        <span id="compassPhoneArrow" class="compass-phone-arrow"></span>
+        <span id="compassTargetArrow" class="compass-target-arrow hidden"></span>
+        <span id="compassHeadingLabel" class="compass-heading-label">Kompas</span>
+        <span id="compassTargetLabel" class="compass-target-label">Dotknij, aby włączyć</span>
+      </button>
 
       <div class="map-switch glass-panel" role="group" aria-label="Typ mapy">
         <button id="mapPlanBtn" class="seg-btn active" type="button">Plan</button>
@@ -114,6 +121,7 @@
           <div class="settings-group">
             <h3>Dane</h3>
             <button id="refreshBtn" class="btn ghost" type="button">Odśwież stations.json</button>
+            <button id="ukeUpdateBtn" class="btn primary" type="button">Aktualizuj z UKE online</button>
             <button id="importFileBtn" class="btn ghost" type="button">Import JSON / CSV / XLSX</button>
             <button id="clearCacheBtn" class="btn danger" type="button">Wyczyść lokalną bazę</button>
           </div>
@@ -131,8 +139,8 @@
           </div>
 
           <div class="notice-box small">
-            Wersja: <strong>3.2 - 1205261440</strong><br />
-            Mapa działa na Leaflet. Górny panel usunięty, GPS jest w pasku wyszukiwania, a wybrana stacja pokazuje zasięg / sektory, jeżeli baza zawiera dane kierunkowe.
+            Wersja: <strong>3.4 - 1205261505</strong><br />
+            Widok główny to mapa. Dotknięcie BTS pokazuje okienko na mapie z odległością, zasięgiem, azymutem i informacją o współdzieleniu lokalizacji. Dane UKE są pobierane online, jeżeli przeglądarka i serwer UKE pozwolą na pobranie plików.
           </div>
         </section>
       </div>

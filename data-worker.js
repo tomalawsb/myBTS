@@ -50,6 +50,15 @@ function postResult(id, stations, sourceName) {
 
 function normalizeText(value) {
   return String(value || '')
+    .replace(/[łŁ]/g, match => match === 'Ł' ? 'L' : 'l')
+    .replace(/[ąĄ]/g, match => match === 'Ą' ? 'A' : 'a')
+    .replace(/[ćĆ]/g, match => match === 'Ć' ? 'C' : 'c')
+    .replace(/[ęĘ]/g, match => match === 'Ę' ? 'E' : 'e')
+    .replace(/[ńŃ]/g, match => match === 'Ń' ? 'N' : 'n')
+    .replace(/[óÓ]/g, match => match === 'Ó' ? 'O' : 'o')
+    .replace(/[śŚ]/g, match => match === 'Ś' ? 'S' : 's')
+    .replace(/[źŹ]/g, match => match === 'Ź' ? 'Z' : 'z')
+    .replace(/[żŻ]/g, match => match === 'Ż' ? 'Z' : 'z')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
@@ -78,6 +87,26 @@ function numberFromCell(value) {
   return match ? Number(match[0]) : NaN;
 }
 
+
+function coordinateFromCell(value) {
+  if (typeof value === 'number') return value;
+  const text = String(value ?? '').trim();
+  if (!text) return NaN;
+  const decimal = text.replace(',', '.').match(/-?\d+(?:\.\d+)?/);
+  const numbers = text.replace(/,/g, '.').match(/-?\d+(?:\.\d+)?/g) || [];
+  if (numbers.length >= 3 && /[°'"NSWE]/i.test(text)) {
+    const deg = Math.abs(Number(numbers[0]));
+    const min = Math.abs(Number(numbers[1]));
+    const sec = Math.abs(Number(numbers[2]));
+    if ([deg, min, sec].every(Number.isFinite)) {
+      let out = deg + min / 60 + sec / 3600;
+      if (/[SW]/i.test(text) || String(numbers[0]).startsWith('-')) out *= -1;
+      return out;
+    }
+  }
+  return decimal ? Number(decimal[0]) : NaN;
+}
+
 function splitListCell(value) {
   if (Array.isArray(value)) return value.map(String).map(s => s.trim()).filter(Boolean);
   const text = String(value ?? '').trim();
@@ -93,20 +122,35 @@ function getAliased(row, aliases) {
   return '';
 }
 
+
+function buildAddress(row) {
+  const direct = getAliased(row, ['address', 'adres', 'lokalizacja', 'location', 'ulica', 'adresstacji']);
+  if (direct) return direct;
+  const parts = [
+    getAliased(row, ['ulica']),
+    getAliased(row, ['nr', 'numer', 'numernieruchomosci', 'nrnieruchomosci']),
+    getAliased(row, ['miejscowosc', 'miejscowość', 'miasto']),
+    getAliased(row, ['gmina']),
+    getAliased(row, ['powiat']),
+    getAliased(row, ['wojewodztwo'])
+  ].map(v => String(v || '').trim()).filter(Boolean);
+  return [...new Set(parts)].join(', ');
+}
+
 function normalizeImportedRow(row) {
-  const lat = numberFromCell(getAliased(row, ['latitude', 'lat', 'szerokosc', 'szerokoscgeograficzna', 'wgs84lat', 'y']));
-  const lon = numberFromCell(getAliased(row, ['longitude', 'lon', 'lng', 'dlugosc', 'dlugoscgeograficzna', 'wgs84lon', 'x']));
+  const lat = coordinateFromCell(getAliased(row, ['latitude', 'lat', 'szerokosc', 'szerokoscgeograficzna', 'szerokoscgeograficznastacji', 'wgs84lat', 'latwgs84', 'y']));
+  const lon = coordinateFromCell(getAliased(row, ['longitude', 'lon', 'lng', 'dlugosc', 'dlugoscgeograficzna', 'dlugoscgeograficznastacji', 'wgs84lon', 'lonwgs84', 'lngwgs84', 'x']));
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-  const bandsRaw = getAliased(row, ['bands', 'pasma', 'pasmo', 'band', 'technologia', 'technology', 'system']);
-  const azRaw = getAliased(row, ['azimuths', 'azymuty', 'azymut', 'azimuth']);
-  const powerRaw = getAliased(row, ['power', 'power_w', 'moc', 'mocw', 'eirp', 'eirp_dbm', 'eirpdbm', 'erp', 'max_eirp_dbm', 'maxeirpdbm']);
+  const bandsRaw = getAliased(row, ['bands', 'pasma', 'pasmo', 'band', 'technologia', 'technology', 'system', 'standard', 'zakres', 'ukeband']);
+  const azRaw = getAliased(row, ['azimuths', 'azymuty', 'azymut', 'azimuth', 'azymutanteny', 'kierunek']);
+  const powerRaw = getAliased(row, ['power', 'power_w', 'moc', 'mocw', 'mocpromieniowana', 'mocpromieniowanaw', 'eirp', 'eirp_dbm', 'eirpdbm', 'erp', 'max_eirp_dbm', 'maxeirpdbm', 'maksymalnamoc', 'maksymalnamocpromieniowana']);
   return normalizeStation({
-    station_id: getAliased(row, ['station_id', 'stationid', 'id', 'nrstacji', 'idstacji', 'pozwolenie', 'btssid', 'siteid']) || '—',
-    operator: getAliased(row, ['operator', 'sieć', 'siec', 'network', 'mno']) || 'Nieznany',
+    station_id: getAliased(row, ['station_id', 'stationid', 'id', 'nrstacji', 'idstacji', 'nazwaobiektu', 'nazwastacji', 'pozwolenie', 'nrpozwolenia', 'numerpozwolenia', 'numerdecyzji', 'nrdecyzji', 'znaksprawy', 'btssid', 'siteid']) || '—',
+    operator: getAliased(row, ['operator', 'sieć', 'siec', 'network', 'mno', 'uzytkownik', 'uzytkownikpozwolenia', 'nazwaoperatora', 'nazwauzytkownika', 'podmiot', 'przedsiebiorca']) || 'Nieznany',
     latitude: lat,
     longitude: lon,
-    address: getAliased(row, ['address', 'adres', 'lokalizacja', 'location', 'ulica']),
-    city: getAliased(row, ['city', 'miasto', 'miejscowosc', 'miejscowość', 'gmina']),
+    address: buildAddress(row),
+    city: getAliased(row, ['city', 'miasto', 'miejscowosc', 'miejscowość', 'miejscowoscstacji', 'gmina']),
     bands: splitListCell(bandsRaw),
     azimuths: splitListCell(azRaw).map(numberFromCell).filter(Number.isFinite),
     range_km: numberFromCell(getAliased(row, ['range_km', 'rangekm', 'zasieg', 'zasiegkm', 'zasięg', 'zasięgkm'])),
@@ -145,7 +189,9 @@ function normalizeStation(raw) {
     eirp_dbm: raw.eirp_dbm ?? '',
     erp: raw.erp ?? '',
     max_eirp_dbm: raw.max_eirp_dbm ?? '',
-    source: String(raw.source || '')
+    source: String(raw.source || ''),
+    shared_operators: splitListCell(raw.shared_operators || raw.sharedoperators || raw.wspoldzielone || raw.wspoloperatorzy),
+    shared_site: !!(raw.shared_site || raw.sharedsite || raw.wspoldzielony)
   };
   station._search = compactSearchText(station);
   return station;
