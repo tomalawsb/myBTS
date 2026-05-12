@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '3.4 - 1205261505';
+const APP_VERSION = '3.5 - 1205261525';
 const DEFAULT_CENTER = [50.2872, 21.4231];
 const DEFAULT_ZOOM = 10;
 const MIN_ZOOM = 5;
@@ -20,6 +20,14 @@ const UKE_BIP_PAGE = 'https://bip.uke.gov.pl/pozwolenia-radiowe/wykaz-pozwolen-r
 const UKE_DATA_GOV_RESOURCES = 'https://api.dane.gov.pl/1.4/datasets/1075/resources?lang=pl&per_page=100';
 const UKE_DATA_GOV_METADATA = 'https://api.dane.gov.pl/1.4/datasets/1075/resources/metadata.csv?lang=pl';
 const UKE_LINK_LIMIT = 24;
+const COMPASS_UI_INTERVAL_MS = 140;
+const COMPASS_MIN_DELTA_DEG = 2.4;
+const COMPASS_SMOOTHING = 0.22;
+const COMPASS_ABSOLUTE_LOCK_MS = 1500;
+const UKE_CORS_PROXIES = [
+  'https://api.allorigins.win/raw?url=',
+  'https://corsproxy.io/?'
+];
 
 const OPERATOR_COLORS = {
   'Orange': '#ff7800',
@@ -76,9 +84,14 @@ const state = {
   gpsTracking: false,
   compassActive: false,
   compassHeading: null,
+  compassSmoothedHeading: null,
   compassAbsolute: false,
+  lastCompassUiUpdate: 0,
+  lastAbsoluteCompassAt: 0,
   longPressTimer: null,
-  stationPopup: null
+  stationPopup: null,
+  selectedPopupOpen: false,
+  suppressPopupClose: false
 };
 
 const el = {};
@@ -686,7 +699,10 @@ function renderMapAndList() {
     .map(item => item.station);
 
   renderMarkers(filtered);
-  if (state.selected) renderSelectedStationExtras(state.selected);
+  if (state.selected) {
+    renderSelectedStationExtras(state.selected);
+    if (state.selectedPopupOpen) refreshStationPopupContent(state.selected);
+  }
   renderList();
   updateMeasureMarker();
   updateNavigationIndicator();
@@ -771,11 +787,10 @@ function renderStationMarker(station) {
     fillColor: color,
     fillOpacity: .92
   });
-  marker.on('click', () => {
-    selectStation(station, false, false);
-    marker.openPopup();
+  marker.on('click', event => {
+    if (event?.originalEvent) L.DomEvent.stopPropagation(event.originalEvent);
+    selectStation(station, false, true);
   });
-  marker.bindPopup(() => popupHtml(station), { className: 'bts-leaflet-popup', maxWidth: 330, minWidth: 260, closeButton: true });
   marker.addTo(state.markerLayer);
 }
 
@@ -836,17 +851,41 @@ function popupHtml(station) {
 
 function openStationPopup(station) {
   if (!state.map || !window.L || !station) return;
-  if (state.stationPopup) state.map.closePopup(state.stationPopup);
-  state.stationPopup = L.popup({
-    className: 'bts-leaflet-popup',
-    closeButton: true,
-    autoPan: true,
-    maxWidth: 330,
-    minWidth: 260
-  })
+
+  if (!state.stationPopup) {
+    state.stationPopup = L.popup({
+      className: 'bts-leaflet-popup',
+      closeButton: true,
+      autoPan: true,
+      autoClose: false,
+      closeOnClick: false,
+      keepInView: true,
+      maxWidth: 330,
+      minWidth: 260
+    });
+    state.stationPopup.on('remove', () => {
+      if (!state.suppressPopupClose) state.selectedPopupOpen = false;
+    });
+  }
+
+  state.selectedPopupOpen = true;
+  state.suppressPopupClose = true;
+  state.stationPopup
     .setLatLng([station.latitude, station.longitude])
     .setContent(popupHtml(station))
     .openOn(state.map);
+  state.suppressPopupClose = false;
+}
+
+function refreshStationPopupContent(station) {
+  if (!station || !state.selectedPopupOpen) return;
+  if (state.stationPopup && state.map && state.map.hasLayer(state.stationPopup)) {
+    state.stationPopup
+      .setLatLng([station.latitude, station.longitude])
+      .setContent(popupHtml(station));
+    return;
+  }
+  openStationPopup(station);
 }
 
 function selectStation(station, centerOnMap = true, openPopup = true) {
@@ -1553,18 +1592,68 @@ async function startCompassTracking(showErrors = true) {
 }
 
 function handleDeviceOrientation(event) {
-  const heading = readCompassHeading(event);
-  if (!Number.isFinite(heading)) return;
-  state.compassHeading = heading;
-  state.compassAbsolute = !!event.absolute || Number.isFinite(event.webkitCompassHeading);
+  const reading = readCompassHeading(event);
+  if (!reading || !Number.isFinite(reading.heading)) return;
+
+  const now = performanceNow();
+  if (reading.absolute) {
+    state.lastAbsoluteCompassAt = now;
+  } else if (now - state.lastAbsoluteCompassAt < COMPASS_ABSOLUTE_LOCK_MS) {
+    return;
+  }
+
+  const smoothed = smoothCompassHeading(reading.heading);
+  const previous = Number.isFinite(state.compassHeading) ? state.compassHeading : null;
+  const delta = previous === null ? 360 : Math.abs(signedTurnDegrees(smoothed, previous));
+  const forceRefresh = now - state.lastCompassUiUpdate > 520;
+
+  if (delta < COMPASS_MIN_DELTA_DEG && !forceRefresh) return;
+
+  state.compassHeading = smoothed;
+  state.compassAbsolute = !!reading.absolute;
+
+  if (now - state.lastCompassUiUpdate < COMPASS_UI_INTERVAL_MS && !forceRefresh) return;
+  state.lastCompassUiUpdate = now;
+
   updateUserMarkerHeading();
   updateNavigationIndicator();
 }
 
 function readCompassHeading(event) {
-  if (Number.isFinite(event.webkitCompassHeading)) return normalizeDegrees(event.webkitCompassHeading);
-  if (Number.isFinite(event.alpha)) return normalizeDegrees(360 - event.alpha);
+  const screenAngle = getScreenOrientationAngle();
+  if (Number.isFinite(event.webkitCompassHeading)) {
+    return { heading: normalizeDegrees(event.webkitCompassHeading), absolute: true };
+  }
+  if (Number.isFinite(event.alpha)) {
+    const isAbsolute = !!event.absolute || event.type === 'deviceorientationabsolute';
+    return { heading: normalizeDegrees(360 - event.alpha - screenAngle), absolute: isAbsolute };
+  }
   return null;
+}
+
+function smoothCompassHeading(heading) {
+  const normalized = normalizeDegrees(heading);
+  if (!Number.isFinite(state.compassSmoothedHeading)) {
+    state.compassSmoothedHeading = normalized;
+    return normalized;
+  }
+
+  const diff = signedTurnDegrees(normalized, state.compassSmoothedHeading);
+  const abs = Math.abs(diff);
+  if (abs < 0.8) return state.compassSmoothedHeading;
+
+  const factor = abs > 45 ? 0.42 : COMPASS_SMOOTHING;
+  state.compassSmoothedHeading = normalizeDegrees(state.compassSmoothedHeading + diff * factor);
+  return state.compassSmoothedHeading;
+}
+
+function getScreenOrientationAngle() {
+  const angle = screen?.orientation && Number.isFinite(screen.orientation.angle) ? screen.orientation.angle : window.orientation;
+  return Number.isFinite(angle) ? angle : 0;
+}
+
+function performanceNow() {
+  return window.performance && typeof window.performance.now === 'function' ? window.performance.now() : Date.now();
 }
 
 function normalizeDegrees(value) {
@@ -1639,6 +1728,7 @@ async function updateFromUkeOnline() {
     setStatus('Szukam aktualnych arkuszy UKE…');
     const links = await collectUkeDownloadLinks();
     if (!links.length) throw new Error('Nie znaleziono linków do arkuszy UKE. Spróbuj później albo użyj importu z pliku.');
+    setStatus(`UKE: znaleziono ${links.length} arkuszy. Zaczynam pobieranie…`);
 
     const allStations = [];
     let done = 0;
@@ -1662,37 +1752,46 @@ async function updateFromUkeOnline() {
 
 async function collectUkeDownloadLinks() {
   const sources = [];
+  const errors = [];
+
   try {
-    const response = await fetch(UKE_DATA_GOV_RESOURCES, { headers: { Accept: 'application/json' }, cache: 'no-store' });
-    if (response.ok) {
-      const json = await response.json();
-      sources.push(...extractUkeLinksFromObject(json));
-    }
+    const text = await fetchTextWithFallback(UKE_DATA_GOV_RESOURCES, 'application/json');
+    const json = JSON.parse(text);
+    sources.push(...extractUkeLinksFromObject(json));
   } catch (err) {
+    errors.push(`dane.gov JSON: ${err.message}`);
     console.warn('dane.gov.pl resources failed', err);
   }
 
   if (!sources.length) {
     try {
-      const response = await fetch(UKE_DATA_GOV_METADATA, { headers: { Accept: 'text/csv,text/plain,*/*' }, cache: 'no-store' });
-      if (response.ok) sources.push(...extractUkeLinksFromText(await response.text()));
+      const text = await fetchTextWithFallback(UKE_DATA_GOV_METADATA, 'text/csv,text/plain,*/*');
+      sources.push(...extractUkeLinksFromText(text));
     } catch (err) {
+      errors.push(`dane.gov metadata: ${err.message}`);
       console.warn('dane.gov.pl metadata failed', err);
     }
   }
 
   if (!sources.length) {
     try {
-      const response = await fetch(UKE_BIP_PAGE, { headers: { Accept: 'text/html' }, cache: 'no-store' });
-      if (response.ok) sources.push(...extractUkeLinksFromHtml(await response.text(), UKE_BIP_PAGE));
+      const html = await fetchTextWithFallback(UKE_BIP_PAGE, 'text/html,*/*');
+      sources.push(...extractUkeLinksFromHtml(html, UKE_BIP_PAGE));
     } catch (err) {
+      errors.push(`BIP UKE: ${err.message}`);
       console.warn('UKE BIP page failed', err);
     }
   }
 
-  return uniqueUkeLinks(sources)
+  const links = uniqueUkeLinks(sources)
     .filter(link => isUkeStationBandName(link.name || link.url))
     .sort((a, b) => bandSort(inferBandFromName(a.name || a.url), inferBandFromName(b.name || b.url)) || String(a.name).localeCompare(String(b.name), 'pl'));
+
+  if (!links.length && errors.length) {
+    throw new Error(`Nie udało się pobrać listy arkuszy UKE. ${errors.slice(0, 3).join(' | ')}`);
+  }
+
+  return links;
 }
 
 function extractUkeLinksFromHtml(html, baseUrl) {
@@ -1812,15 +1911,45 @@ function enrichUkeStation(station, band, sourceName) {
 }
 
 async function fetchTextNoStore(url) {
-  const response = await fetch(url, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`${sourceNameFromUrlSafe(url)}: HTTP ${response.status}`);
-  return response.text();
+  return fetchTextWithFallback(url, 'text/csv,text/plain,text/html,*/*');
 }
 
 async function fetchArrayBufferNoStore(url) {
-  const response = await fetch(url, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`${sourceNameFromUrlSafe(url)}: HTTP ${response.status}`);
+  return fetchArrayBufferWithFallback(url);
+}
+
+async function fetchTextWithFallback(url, accept = '*/*') {
+  const response = await fetchWithCorsFallback(url, accept);
+  return response.text();
+}
+
+async function fetchArrayBufferWithFallback(url) {
+  const response = await fetchWithCorsFallback(url, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,*/*');
   return response.arrayBuffer();
+}
+
+async function fetchWithCorsFallback(url, accept = '*/*') {
+  const candidates = [url, ...UKE_CORS_PROXIES.map(prefix => makeCorsProxyUrl(prefix, url))];
+  const errors = [];
+
+  for (const candidate of candidates) {
+    try {
+      const response = await fetch(candidate, {
+        cache: 'no-store',
+        headers: { Accept: accept }
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response;
+    } catch (err) {
+      errors.push(`${sourceNameFromUrlSafe(candidate)}: ${err.message}`);
+    }
+  }
+
+  throw new Error(`${sourceNameFromUrlSafe(url)}: ${errors.join(' / ')}`);
+}
+
+function makeCorsProxyUrl(prefix, url) {
+  return `${prefix}${encodeURIComponent(url)}`;
 }
 
 function sourceNameFromUrlSafe(url) {

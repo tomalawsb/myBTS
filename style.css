@@ -478,6 +478,8 @@ h3 { margin: 0; font-size: 15px; line-height: 1.25; }
   height: 0;
   z-index: 4;
   transform-origin: 50% 100%;
+  transition: transform .14s linear;
+  will-change: transform;
 }
 .compass-phone-arrow {
   transform: translate(-50%, -100%) rotate(var(--heading, 0deg));
@@ -568,6 +570,8 @@ h3 { margin: 0; font-size: 15px; line-height: 1.25; }
   border-right: 6px solid transparent;
   border-bottom: 25px solid #2563eb;
   z-index: 2;
+  transition: transform .14s linear;
+  will-change: transform;
 }
 .user-dot {
   position: absolute;

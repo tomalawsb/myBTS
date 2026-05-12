@@ -1,4 +1,4 @@
-# myBTS Web Pro 3.3 - 1205261510
+# myBTS Web Pro 3.5 - 1205261525
 
 Wersja przebudowana od początku pod układ mobilny i bibliotekę Leaflet.
 
@@ -13,6 +13,9 @@ Wersja przebudowana od początku pod układ mobilny i bibliotekę Leaflet.
 - Service worker nie cache'uje już dużego `stations.json`, żeby nie dublować ciężkiej bazy w cache i IndexedDB.
 - Zachowano lokalną bazę w IndexedDB.
 - Dodano widoczną atrybucję map przez kontrolkę Leaflet.
+- Ustabilizowano kompas: wygładzanie odczytów, ograniczenie częstotliwości odświeżania i ignorowanie zdublowanych zdarzeń orientacji.
+- Okienko BTS na mapie zostaje przypięte po kliknięciu nadajnika i nie znika przy odświeżaniu markerów/GPS/kompasu.
+- Aktualizacja z UKE próbuje pobrać dane przez dane.gov, BIP UKE oraz zapasową ścieżkę proxy, gdy przeglądarka blokuje CORS.
 
 ## Uruchamianie lokalne
 
