@@ -1,4 +1,4 @@
-# myBTS Web Pro 3.5 - 1205261525
+# myBTS Web Pro 3.7 - 1205261555
 
 Wersja przebudowana od początku pod układ mobilny i bibliotekę Leaflet.
 
@@ -36,3 +36,17 @@ Bez serwera część przeglądarek może blokować `fetch`, Web Workera albo ser
 ## Uwaga
 
 Leaflet i SheetJS są pobierane z CDN. Po pierwszym uruchomieniu service worker może je zachować w cache, ale pierwsze uruchomienie wymaga internetu.
+
+
+## Zmiany 3.6
+- Widoczny komunikat aktualizacji UKE na mapie.
+- Pasek postępu pobierania arkuszy UKE.
+- Blokada podwójnego kliknięcia podczas aktualizacji.
+- Informacja o sukcesie albo błędzie zostaje pokazana użytkownikowi.
+
+## Zmiany 3.7
+- Dodano gradient zasięgu BTS: najmocniejszy kolor blisko nadajnika, słabszy na granicy zasięgu.
+- Jeżeli są azymuty, gradient jest rysowany jako sektory kierunkowe.
+- Jeżeli nie ma azymutu, aplikacja pokazuje orientacyjne koła zasięgu.
+- Zasięg może być korygowany mocą/EIRP, jeśli taka informacja jest w bazie.
+- Popup BTS pokazuje źródło pewności zasięgu i przycisk „Uzupełnij z UKE”.

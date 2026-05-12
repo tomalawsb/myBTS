@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#f6f8fc" />
-  <title>myBTS Web Pro 3.5 - 1205261525</title>
+  <title>myBTS Web Pro 3.7 - 1205261555</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
   <link rel="stylesheet" href="style.css" />
@@ -24,6 +24,17 @@
         <button id="clearSearchBtn" class="btn ghost icon-btn" type="button" aria-label="Wyczyść wyszukiwanie">×</button>
         <button id="menuBtn" class="btn ghost icon-btn" type="button" aria-label="Menu">☰</button>
       </form>
+
+      <div id="statusToast" class="status-toast hidden info" role="status" aria-live="polite">
+        <div class="status-dot" aria-hidden="true"></div>
+        <div class="status-body">
+          <strong id="statusToastTitle">Status</strong>
+          <p id="statusToastMessage">—</p>
+          <div id="statusProgress" class="status-progress hidden"><span id="statusProgressFill"></span></div>
+        </div>
+        <button id="statusToastClose" class="status-close" type="button" aria-label="Zamknij komunikat">×</button>
+      </div>
+
       <button id="compassWidget" class="compass-widget glass-panel" type="button" aria-label="Włącz kompas telefonu" title="Włącz kompas telefonu">
         <span class="compass-north">N</span>
         <span id="compassPhoneArrow" class="compass-phone-arrow"></span>
@@ -122,6 +133,7 @@
             <h3>Dane</h3>
             <button id="refreshBtn" class="btn ghost" type="button">Odśwież stations.json</button>
             <button id="ukeUpdateBtn" class="btn primary" type="button">Aktualizuj z UKE online</button>
+            <div id="ukeStatusBox" class="notice-box small update-status-box info">UKE: gotowe do aktualizacji. Po kliknięciu pokażę etap pobierania, liczbę plików i wynik.</div>
             <button id="importFileBtn" class="btn ghost" type="button">Import JSON / CSV / XLSX</button>
             <button id="clearCacheBtn" class="btn danger" type="button">Wyczyść lokalną bazę</button>
           </div>
@@ -139,8 +151,8 @@
           </div>
 
           <div class="notice-box small">
-            Wersja: <strong>3.5 - 1205261525</strong><br />
-            Widok główny to mapa. Dotknięcie BTS pokazuje okienko na mapie z odległością, zasięgiem, azymutem i informacją o współdzieleniu lokalizacji. Dane UKE są pobierane online przez dane.gov/BIP UKE. Gdy przeglądarka blokuje CORS, aplikacja próbuje zapasowej ścieżki proxy.
+            Wersja: <strong>3.7 - 1205261555</strong><br />
+            Widok główny to mapa. Dotknięcie BTS pokazuje okienko na mapie z odległością, gradientem zasięgu, azymutem i informacją o współdzieleniu lokalizacji. Dane UKE są pobierane online przez dane.gov/BIP UKE. Gdy przeglądarka blokuje CORS, aplikacja próbuje zapasowej ścieżki proxy.
           </div>
         </section>
       </div>

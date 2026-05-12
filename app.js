@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '3.5 - 1205261525';
+const APP_VERSION = '3.7 - 1205261555';
 const DEFAULT_CENTER = [50.2872, 21.4231];
 const DEFAULT_ZOOM = 10;
 const MIN_ZOOM = 5;
@@ -24,6 +24,12 @@ const COMPASS_UI_INTERVAL_MS = 140;
 const COMPASS_MIN_DELTA_DEG = 2.4;
 const COMPASS_SMOOTHING = 0.22;
 const COMPASS_ABSOLUTE_LOCK_MS = 1500;
+const COVERAGE_GRADIENT_RINGS = [
+  { scale: 1, opacity: 0.07, weight: 1, label: 'słaby' },
+  { scale: 0.66, opacity: 0.13, weight: 1.5, label: 'średni' },
+  { scale: 0.33, opacity: 0.24, weight: 2, label: 'mocny' }
+];
+const DEFAULT_SECTOR_WIDTH_DEG = 70;
 const UKE_CORS_PROXIES = [
   'https://api.allorigins.win/raw?url=',
   'https://corsproxy.io/?'
@@ -91,7 +97,9 @@ const state = {
   longPressTimer: null,
   stationPopup: null,
   selectedPopupOpen: false,
-  suppressPopupClose: false
+  suppressPopupClose: false,
+  statusHideTimer: null,
+  ukeUpdateRunning: false
 };
 
 const el = {};
@@ -100,6 +108,13 @@ function initElements() {
   Object.assign(el, {
     body: document.body,
     statusText: document.getElementById('statusText'),
+    statusToast: document.getElementById('statusToast'),
+    statusToastTitle: document.getElementById('statusToastTitle'),
+    statusToastMessage: document.getElementById('statusToastMessage'),
+    statusToastClose: document.getElementById('statusToastClose'),
+    statusProgress: document.getElementById('statusProgress'),
+    statusProgressFill: document.getElementById('statusProgressFill'),
+    ukeStatusBox: document.getElementById('ukeStatusBox'),
     datasetInfo: document.getElementById('datasetInfo'),
     map: document.getElementById('map'),
     appPanel: document.getElementById('appPanel'),
@@ -193,11 +208,45 @@ function applyTheme() {
 }
 
 function setStatus(text) {
-  el.statusText.textContent = text;
+  if (el.statusText) el.statusText.textContent = text;
 }
 
 function setStorageStatus(text) {
   if (el.storageStatus) el.storageStatus.textContent = text;
+}
+
+function showStatusToast(title, message, type = 'info', options = {}) {
+  if (!el.statusToast) return;
+  clearTimeout(state.statusHideTimer);
+  el.statusToast.classList.remove('hidden', 'info', 'success', 'error', 'busy');
+  el.statusToast.classList.add(type);
+  if (el.statusToastTitle) el.statusToastTitle.textContent = title || 'Status';
+  if (el.statusToastMessage) el.statusToastMessage.textContent = message || '';
+
+  const hasProgress = Number.isFinite(options.progress);
+  if (el.statusProgress) el.statusProgress.classList.toggle('hidden', !hasProgress);
+  if (el.statusProgressFill && hasProgress) {
+    el.statusProgressFill.style.width = `${clamp(options.progress, 0, 100)}%`;
+  }
+
+  if (!options.sticky) {
+    state.statusHideTimer = setTimeout(() => hideStatusToast(), options.timeout || 5200);
+  }
+}
+
+function hideStatusToast() {
+  clearTimeout(state.statusHideTimer);
+  if (el.statusToast) el.statusToast.classList.add('hidden');
+}
+
+function setUkeStatus(message, progress = null, type = 'busy', sticky = true) {
+  setStatus(message);
+  if (el.ukeStatusBox) {
+    el.ukeStatusBox.textContent = message;
+    el.ukeStatusBox.classList.remove('info', 'success', 'error', 'busy');
+    el.ukeStatusBox.classList.add(type);
+  }
+  showStatusToast('Aktualizacja UKE', message, type, { progress, sticky });
 }
 
 function normalizeText(value) {
@@ -255,15 +304,35 @@ function normalizePowerValue(value) {
   return { value: number, unit: '' };
 }
 
-function formatPower(station) {
+function getBestPowerInfo(station) {
   const candidates = [station.power, station.power_w, station.eirp, station.eirp_dbm, station.erp, station.max_eirp_dbm];
   for (const candidate of candidates) {
     const parsed = normalizePowerValue(candidate);
     if (!parsed) continue;
-    const value = Number.isInteger(parsed.value) ? String(parsed.value) : parsed.value.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
-    return parsed.unit ? `${value} ${parsed.unit}` : value;
+    const watts = powerInfoToWatts(parsed);
+    return { ...parsed, watts };
   }
-  return 'Brak danych o mocy w bazie';
+  return null;
+}
+
+function powerInfoToWatts(info) {
+  if (!info || !Number.isFinite(info.value)) return null;
+  const unit = String(info.unit || '').toLowerCase();
+  if (unit === 'kw') return info.value * 1000;
+  if (unit === 'w') return info.value;
+  if (unit === 'dbm') return 10 ** ((info.value - 30) / 10);
+  if (unit === 'dbw') return 10 ** (info.value / 10);
+  return null;
+}
+
+function formatPowerInfo(info) {
+  if (!info) return 'Brak danych o mocy w bazie';
+  const value = Number.isInteger(info.value) ? String(info.value) : info.value.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+  return info.unit ? `${value} ${info.unit}` : value;
+}
+
+function formatPower(station) {
+  return formatPowerInfo(getBestPowerInfo(station));
 }
 
 function isMobileLayout() {
@@ -845,6 +914,8 @@ function popupHtml(station) {
         <div><span>Moc</span><b>${escapeHtml(formatPower(station))}</b></div>
       </div>
       <div class="bts-popup-share"><span>Współdzielenie</span><b>${escapeHtml(formatSharedOperators(station))}</b></div>
+      <div class="bts-popup-note">Mapa pokazuje gradient orientacyjny: najmocniej blisko BTS, słabiej przy granicy zasięgu. Źródło: ${escapeHtml(coverageReliability(station))}.</div>
+      <div class="bts-popup-actions"><button type="button" data-action="enrich-selected-uke">Uzupełnij z UKE</button></div>
     </div>
   `;
 }
@@ -905,6 +976,8 @@ function renderSelectedStationExtras(station) {
   const rangeKm = estimateStationRangeKm(station);
   const azimuths = Array.isArray(station.azimuths) ? station.azimuths.filter(Number.isFinite) : [];
 
+  renderCoverageGradient(station, color, rangeKm, azimuths);
+
   L.circleMarker([station.latitude, station.longitude], {
     radius: 13,
     color,
@@ -914,58 +987,77 @@ function renderSelectedStationExtras(station) {
     interactive: false
   }).addTo(state.sectorLayer);
 
-  if (azimuths.length) {
-    for (const azimuth of azimuths) {
-      const polygon = sectorPolygon(station.latitude, station.longitude, azimuth, rangeKm, 42);
-      L.polygon(polygon, {
+  addCoverageLabel(station, color, rangeKm, azimuths);
+}
+
+function renderCoverageGradient(station, color, rangeKm, azimuths) {
+  const hasAzimuth = Array.isArray(azimuths) && azimuths.length > 0;
+  const rings = COVERAGE_GRADIENT_RINGS;
+  const center = [station.latitude, station.longitude];
+
+  for (const ring of rings) {
+    const radiusKm = Math.max(rangeKm * ring.scale, 0.05);
+    if (hasAzimuth) {
+      for (const azimuth of azimuths) {
+        L.polygon(sectorPolygon(station.latitude, station.longitude, azimuth, radiusKm, DEFAULT_SECTOR_WIDTH_DEG), {
+          color,
+          weight: ring.weight,
+          opacity: ring.scale === 1 ? .92 : .28,
+          fillColor: color,
+          fillOpacity: ring.opacity,
+          interactive: false
+        }).addTo(state.sectorLayer);
+      }
+    } else {
+      L.circle(center, {
+        radius: radiusKm * 1000,
         color,
-        weight: 2,
-        opacity: .95,
+        weight: ring.weight,
+        opacity: ring.scale === 1 ? .84 : .28,
+        dashArray: ring.scale === 1 ? '8 7' : null,
         fillColor: color,
-        fillOpacity: .18,
+        fillOpacity: ring.opacity,
         interactive: false
       }).addTo(state.sectorLayer);
+    }
+  }
+}
 
-      const labelPoint = destinationPoint(station.latitude, station.longitude, azimuth, Math.max(rangeKm * .62, .28));
+function addCoverageLabel(station, color, rangeKm, azimuths) {
+  const hasAzimuth = Array.isArray(azimuths) && azimuths.length > 0;
+  if (hasAzimuth) {
+    for (const azimuth of azimuths) {
+      const labelPoint = destinationPoint(station.latitude, station.longitude, azimuth, Math.max(rangeKm * .7, .28));
       L.marker([labelPoint.lat, labelPoint.lng], {
         interactive: false,
         icon: L.divIcon({
           className: '',
-          html: `<div class="sector-label">${Math.round(azimuth)}°</div>`,
-          iconSize: [54, 22],
-          iconAnchor: [27, 11]
+          html: `<div class="sector-label"><b>${Math.round(azimuth)}°</b><span>~${formatRangeShort(rangeKm)}</span></div>`,
+          iconSize: [92, 28],
+          iconAnchor: [46, 14]
         })
       }).addTo(state.sectorLayer);
     }
-  } else {
-    L.circle([station.latitude, station.longitude], {
-      radius: rangeKm * 1000,
-      color,
-      weight: 2,
-      dashArray: '8 7',
-      fillColor: color,
-      fillOpacity: .09,
-      interactive: false
-    }).addTo(state.sectorLayer);
-
-    const labelPoint = destinationPoint(station.latitude, station.longitude, 45, Math.max(rangeKm * .55, .25));
-    L.marker([labelPoint.lat, labelPoint.lng], {
-      interactive: false,
-      icon: L.divIcon({
-        className: '',
-        html: `<div class="sector-label">zasięg ~${formatRangeShort(rangeKm)}</div>`,
-        iconSize: [108, 22],
-        iconAnchor: [54, 11]
-      })
-    }).addTo(state.sectorLayer);
+    return;
   }
+
+  const labelPoint = destinationPoint(station.latitude, station.longitude, 45, Math.max(rangeKm * .62, .25));
+  L.marker([labelPoint.lat, labelPoint.lng], {
+    interactive: false,
+    icon: L.divIcon({
+      className: '',
+      html: `<div class="sector-label"><b>zasięg ~${formatRangeShort(rangeKm)}</b><span>orientacyjnie</span></div>`,
+      iconSize: [132, 28],
+      iconAnchor: [66, 14]
+    })
+  }).addTo(state.sectorLayer);
 }
 
 function sectorPolygon(lat, lon, bearing, rangeKm, widthDeg) {
   const points = [[lat, lon]];
   const start = bearing - widthDeg / 2;
   const end = bearing + widthDeg / 2;
-  const steps = 8;
+  const steps = 14;
   for (let i = 0; i <= steps; i++) {
     const b = start + (end - start) * (i / steps);
     const dest = destinationPoint(lat, lon, b, rangeKm);
@@ -975,8 +1067,7 @@ function sectorPolygon(lat, lon, bearing, rangeKm, widthDeg) {
   return points;
 }
 
-function estimateStationRangeKm(station) {
-  if (Number.isFinite(station.range_km) && station.range_km > 0) return station.range_km;
+function baseRangeFromBands(station) {
   const normalizedBands = (station.bands || []).map(normalizeText).join(' ');
   if (normalizedBands.includes('nr3500') || normalizedBands.includes('nr3600') || normalizedBands.includes('5g3600')) return 1.5;
   if (normalizedBands.includes('lte2600')) return 2.5;
@@ -986,6 +1077,28 @@ function estimateStationRangeKm(station) {
   return 4;
 }
 
+function powerRangeMultiplier(station) {
+  const info = getBestPowerInfo(station);
+  if (!info || !Number.isFinite(info.watts) || info.watts <= 0) return 1;
+  return clamp(Math.sqrt(info.watts / 20), .65, 1.7);
+}
+
+function estimateStationRangeKm(station) {
+  if (Number.isFinite(station.range_km) && station.range_km > 0) return station.range_km;
+  return Math.round(baseRangeFromBands(station) * powerRangeMultiplier(station) * 10) / 10;
+}
+
+function coverageReliability(station) {
+  const hasRange = Number.isFinite(station.range_km) && station.range_km > 0;
+  const hasAzimuth = Array.isArray(station.azimuths) && station.azimuths.length > 0;
+  const hasPower = !!getBestPowerInfo(station);
+  if (hasRange && hasAzimuth && hasPower) return 'dane: zasięg + azymut + moc';
+  if (hasAzimuth && hasPower) return 'szacunek z pasma, mocy i azymutu';
+  if (hasAzimuth) return 'szacunek z pasma i azymutu';
+  if (hasPower) return 'szacunek z pasma i mocy, bez kierunku';
+  return 'szacunek z pasma, bez mocy i azymutu';
+}
+
 function formatRangeShort(km) {
   if (!Number.isFinite(km)) return '—';
   return km < 10 ? `${String(km).replace('.', ',')} km` : `${Math.round(km)} km`;
@@ -993,8 +1106,8 @@ function formatRangeShort(km) {
 
 function formatCoverageInfo(station) {
   const range = estimateStationRangeKm(station);
-  const azimuths = station.azimuths && station.azimuths.length ? `${station.azimuths.join('°, ')}°` : 'Brak danych o azymutach — pokazuję tylko orientacyjny promień';
-  return `zasięg ~${formatRangeShort(range)}; ${azimuths}`;
+  const azimuths = station.azimuths && station.azimuths.length ? `${station.azimuths.join('°, ')}°` : 'Brak danych o azymutach — pokazuję orientacyjny promień';
+  return `gradient ~${formatRangeShort(range)}; ${azimuths}; ${coverageReliability(station)}`;
 }
 
 function showStationDetails(station) {
@@ -1016,6 +1129,7 @@ function showStationDetails(station) {
     detailLine('Moc nadawania', formatPower(station)),
     detailLine('Współdzielony nadajnik', formatSharedOperators(station)),
     detailLine('Zasięg na mapie', formatCoverageInfo(station)),
+    detailLine('Model gradientu', '0–33% mocny kolor, 33–66% średni, 66–100% słaby'),
     detailLine('Azymuty', station.azimuths && station.azimuths.length ? `${station.azimuths.join('°, ')}°` : 'Brak danych o azymutach — kierunek niepewny'),
     detailLine('Rekordy', compactNumber(station.records_count)),
     detailLine('Odległość', formatDistance(distance)),
@@ -1719,35 +1833,111 @@ function updateNavigationIndicator() {
   }
 }
 
-async function updateFromUkeOnline() {
-  if (!window.XLSX) {
-    setStatus(XLSX_CDN_NOTE);
+async function updateFromUkeOnline(options = {}) {
+  if (state.ukeUpdateRunning) {
+    setUkeStatus('Aktualizacja UKE już trwa. Poczekaj na zakończenie.', null, 'busy', true);
     return;
   }
+  if (!window.XLSX) {
+    setUkeStatus(XLSX_CDN_NOTE, null, 'error', false);
+    return;
+  }
+
+  state.ukeUpdateRunning = true;
+  const previousSelected = options.preserveSelected && state.selected ? { ...state.selected } : null;
+  const originalButtonText = el.ukeUpdateBtn ? el.ukeUpdateBtn.textContent : '';
+  if (el.ukeUpdateBtn) {
+    el.ukeUpdateBtn.disabled = true;
+    el.ukeUpdateBtn.textContent = 'Aktualizuję…';
+  }
+
   try {
-    setStatus('Szukam aktualnych arkuszy UKE…');
+    setUkeStatus('Łączę z UKE / dane.gov i szukam aktualnych arkuszy…', 3, 'busy', true);
     const links = await collectUkeDownloadLinks();
     if (!links.length) throw new Error('Nie znaleziono linków do arkuszy UKE. Spróbuj później albo użyj importu z pliku.');
-    setStatus(`UKE: znaleziono ${links.length} arkuszy. Zaczynam pobieranie…`);
+
+    const selectedLinks = links.slice(0, UKE_LINK_LIMIT);
+    setUkeStatus(`Znaleziono ${links.length} arkuszy. Pobieram ${selectedLinks.length} plików…`, 8, 'busy', true);
 
     const allStations = [];
-    let done = 0;
-    for (const link of links.slice(0, UKE_LINK_LIMIT)) {
-      done++;
-      setStatus(`UKE: pobieram ${done}/${links.length}: ${link.name}`);
+    for (let index = 0; index < selectedLinks.length; index++) {
+      const link = selectedLinks[index];
+      const progress = Math.round(((index + 1) / selectedLinks.length) * 88) + 8;
+      setUkeStatus(`Pobieram ${index + 1}/${selectedLinks.length}: ${link.name || sourceNameFromUrlSafe(link.url)}`, progress, 'busy', true);
       const stations = await parseUkeRemoteFile(link);
       allStations.push(...stations);
+      setUkeStatus(`Odczytano ${compactNumber(allStations.length)} rekordów. Przetworzono ${index + 1}/${selectedLinks.length}.`, progress, 'busy', true);
     }
 
     if (!allStations.length) throw new Error('Pobrano pliki UKE, ale nie udało się odczytać stacji z poprawnymi współrzędnymi.');
+    setUkeStatus('Scalam rekordy i zapisuję bazę lokalnie…', 98, 'busy', true);
     const stamp = new Date().toLocaleString('pl-PL');
-    setStations(allStations, `UKE online • ${stamp}`, { save: true, fit: true });
-    setStatus(`UKE: zaktualizowano bazę online. Stacji po scaleniu: ${compactNumber(state.stations.length)}.`);
+    setStations(allStations, `UKE online • ${stamp}`, { save: true, fit: !previousSelected });
+    if (previousSelected) {
+      const matched = findBestStationMatch(previousSelected, state.stations);
+      if (matched) {
+        selectStation(matched, true, true);
+        setTab('details');
+        setPanelMode(isMobileLayout() ? 'collapsed' : state.panelMode, false);
+      }
+    }
+    const finalMessage = `Gotowe. Zaktualizowano bazę UKE: ${compactNumber(state.stations.length)} stacji. Data zapisu: ${stamp}.`;
+    setUkeStatus(finalMessage, 100, 'success', false);
     setPanelMode(isMobileLayout() ? 'collapsed' : state.panelMode, false);
   } catch (err) {
     console.error(err);
-    setStatus(`Aktualizacja z UKE nieudana: ${err.message}`);
+    setUkeStatus(`Aktualizacja z UKE nieudana: ${err.message}`, null, 'error', false);
+  } finally {
+    state.ukeUpdateRunning = false;
+    if (el.ukeUpdateBtn) {
+      el.ukeUpdateBtn.disabled = false;
+      el.ukeUpdateBtn.textContent = originalButtonText || 'Aktualizuj z UKE online';
+    }
   }
+}
+
+async function updateSelectedFromUkeOnline() {
+  if (!state.selected) {
+    setUkeStatus('Najpierw wybierz nadajnik na mapie.', null, 'error', false);
+    return;
+  }
+  setUkeStatus(`Uzupełniam dane UKE dla: ${state.selected.operator} ${state.selected.station_id}…`, 2, 'busy', true);
+  await updateFromUkeOnline({ preserveSelected: true });
+}
+
+function findBestStationMatch(reference, stations) {
+  if (!reference || !Array.isArray(stations) || !stations.length) return null;
+  const refOperator = normalizeText(reference.operator);
+  const refId = normalizeText(reference.station_id);
+  const refCity = normalizeText(reference.city);
+  const refBands = new Set((reference.bands || []).map(normalizeText));
+  let best = null;
+  let bestScore = -Infinity;
+
+  for (const station of stations) {
+    const distance = haversineKm(reference.latitude, reference.longitude, station.latitude, station.longitude);
+    if (!Number.isFinite(distance) || distance > 1.2) continue;
+
+    let score = Math.max(0, 140 - distance * 140);
+    const operator = normalizeText(station.operator);
+    const id = normalizeText(station.station_id);
+    const city = normalizeText(station.city);
+    if (operator && refOperator && (operator === refOperator || operator.includes(refOperator) || refOperator.includes(operator))) score += 80;
+    if (id && refId && id === refId) score += 120;
+    else if (id && refId && (id.includes(refId) || refId.includes(id))) score += 45;
+    if (city && refCity && city === refCity) score += 35;
+    for (const band of (station.bands || []).map(normalizeText)) {
+      if (refBands.has(band)) score += 12;
+    }
+    if (station.azimuths && station.azimuths.length) score += 12;
+    if (getBestPowerInfo(station)) score += 12;
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = station;
+    }
+  }
+  return bestScore >= 45 ? best : null;
 }
 
 async function collectUkeDownloadLinks() {
@@ -2051,6 +2241,17 @@ function bindEvents() {
   el.closeDetailBtn.addEventListener('click', hideDetails);
   el.refreshBtn.addEventListener('click', () => loadStationsFromUrl('stations.json', { forceNetwork: true, save: true }).catch(showLoadError));
   if (el.ukeUpdateBtn) el.ukeUpdateBtn.addEventListener('click', updateFromUkeOnline);
+  if (el.statusToastClose) el.statusToastClose.addEventListener('click', hideStatusToast);
+  if (el.map) {
+    el.map.addEventListener('click', event => {
+      const action = event.target?.closest?.('[data-action]')?.dataset?.action;
+      if (action === 'enrich-selected-uke') {
+        event.preventDefault();
+        event.stopPropagation();
+        void updateSelectedFromUkeOnline();
+      }
+    });
+  }
   el.importFileBtn.addEventListener('click', () => el.dataFileInput.click());
   el.dataFileInput.addEventListener('change', importDataFile);
   el.loadUrlBtn.addEventListener('click', loadRemoteInput);
