@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '3.0 - 1205261329';
+const APP_VERSION = '3.1 - 1205261410';
 const DEFAULT_CENTER = [50.2872, 21.4231];
 const DEFAULT_ZOOM = 10;
 const MIN_ZOOM = 5;
@@ -51,6 +51,9 @@ const state = {
   currentList: [],
   currentVisibleTotal: 0,
   renderTimer: null,
+  searchTimer: null,
+  panelMode: 'half',
+  panelDrag: null,
   dataSourceName: '',
   deferredInstallPrompt: null,
   workerSeq: 0,
@@ -76,7 +79,10 @@ function initElements() {
     panelTitle: document.getElementById('panelTitle'),
     collapsePanelBtn: document.getElementById('collapsePanelBtn'),
     menuBtn: document.getElementById('menuBtn'),
+    panelHandle: document.querySelector('.panel-handle'),
+    searchForm: document.getElementById('searchForm'),
     searchInput: document.getElementById('searchInput'),
+    submitSearchBtn: document.getElementById('submitSearchBtn'),
     clearSearchBtn: document.getElementById('clearSearchBtn'),
     operatorSelect: document.getElementById('operatorSelect'),
     bandSelect: document.getElementById('bandSelect'),
@@ -127,6 +133,7 @@ function loadSettings() {
     if (parsed.operator) state.operator = parsed.operator;
     if (parsed.band) state.band = parsed.band;
     if (parsed.activeTab) state.activeTab = parsed.activeTab;
+    if (['collapsed', 'half', 'full'].includes(parsed.panelMode)) state.panelMode = parsed.panelMode;
     state.radiusKm = parsed.radiusKm === null || parsed.radiusKm === '' || parsed.radiusKm === undefined ? null : Number(parsed.radiusKm);
   } catch (_) {}
 }
@@ -142,7 +149,8 @@ function saveSettings() {
     operator: state.operator,
     band: state.band,
     radiusKm: state.radiusKm,
-    activeTab: state.activeTab
+    activeTab: state.activeTab,
+    panelMode: state.panelMode
   };
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(payload));
 }
@@ -412,8 +420,10 @@ function setStations(stations, sourceName, options = {}) {
   fillSelect(el.bandSelect, state.bands, state.band);
   el.datasetInfo.textContent = `Baza: ${state.dataSourceName} • ${compactNumber(state.stations.length)} stacji`;
   setStatus(`Wczytano ${compactNumber(state.stations.length)} stacji.`);
+  if (options.fit) fitMapToStations(state.stations);
   if (options.save) saveActiveDataset(state.stations, state.dataSourceName);
-  scheduleRender();
+  if (state.search.length >= SEARCH_MIN_CHARS) runSearch({ center: false, showPanel: false });
+  else scheduleRender();
 }
 
 function buildSpatialIndex(stations) {
@@ -506,8 +516,8 @@ function renderMapAndList() {
 
 function getVisibleCandidates() {
   if (!state.map) return [];
-  let bounds = state.map.getBounds().pad(0.18);
-  if (state.search.length >= SEARCH_MIN_CHARS) bounds = state.map.getBounds().pad(1.0);
+  if (state.search.length >= SEARCH_MIN_CHARS) return searchStations(state.search, 800);
+  const bounds = state.map.getBounds().pad(0.18);
   const candidates = stationsFromBounds(bounds);
   return candidates.length ? candidates : state.stations.slice(0, 0);
 }
@@ -825,6 +835,184 @@ function matchesNonSpatialFilters(station) {
   return true;
 }
 
+
+function fitMapToStations(stations) {
+  if (!state.map || !Array.isArray(stations) || !stations.length || !window.L) return;
+  try {
+    const bounds = L.latLngBounds([]);
+    for (const station of stations) bounds.extend([station.latitude, station.longitude]);
+    if (bounds.isValid()) state.map.fitBounds(bounds.pad(0.08), { maxZoom: 12, animate: false });
+  } catch (err) {
+    console.warn(err);
+  }
+}
+
+function matchesSearchQuery(station, query) {
+  const normalized = normalizeText(query);
+  if (normalized.length < SEARCH_MIN_CHARS) return true;
+  const tokens = normalized.split(/\s+/).filter(Boolean);
+  return tokens.every(token => station._search.includes(token));
+}
+
+function scoreStationSearch(station, query) {
+  const normalized = normalizeText(query);
+  const city = normalizeText(station.city);
+  const id = normalizeText(station.station_id);
+  const address = normalizeText(station.address);
+  let score = 0;
+  if (city === normalized) score += 120;
+  else if (city.startsWith(normalized)) score += 90;
+  else if (city.includes(normalized)) score += 55;
+  if (id === normalized) score += 115;
+  else if (id.startsWith(normalized)) score += 85;
+  else if (id.includes(normalized)) score += 60;
+  if (address.includes(normalized)) score += 35;
+  for (const token of normalized.split(/\s+/).filter(Boolean)) {
+    if (city.includes(token)) score += 14;
+    if (id.includes(token)) score += 13;
+    if (address.includes(token)) score += 8;
+  }
+  return score;
+}
+
+function searchStations(query, limit = 400) {
+  const normalized = normalizeText(query);
+  if (normalized.length < SEARCH_MIN_CHARS) return [];
+  const origin = getOrigin();
+  return state.stations
+    .filter(station => matchesSearchQuery(station, normalized))
+    .map(station => ({
+      station,
+      score: scoreStationSearch(station, normalized),
+      distance: haversineKm(origin.lat, origin.lng, station.latitude, station.longitude)
+    }))
+    .sort((a, b) => (b.score - a.score) || (a.distance - b.distance))
+    .slice(0, limit)
+    .map(item => item.station);
+}
+
+function runSearch(options = {}) {
+  const center = options.center !== false;
+  const showPanel = options.showPanel !== false;
+  state.search = normalizeText(el.searchInput.value);
+
+  if (state.search.length < SEARCH_MIN_CHARS) {
+    setStatus('Wpisz co najmniej 2 znaki do wyszukania.');
+    scheduleRender();
+    return;
+  }
+
+  if (!state.stations.length) {
+    setStatus('Najpierw wczytaj albo zaimportuj bazę stacji.');
+    return;
+  }
+
+  const results = searchStations(state.search, 900);
+  if (!results.length) {
+    state.currentList = [];
+    state.currentVisibleTotal = 0;
+    renderMarkers([]);
+    renderList();
+    updateStats();
+    setStatus(`Brak wyników dla: ${el.searchInput.value.trim()}`);
+    if (showPanel) {
+      setTab('list');
+      setPanelMode('half');
+    }
+    return;
+  }
+
+  state.currentList = results.slice(0, MAX_LIST_ROWS);
+  state.currentVisibleTotal = results.length;
+  renderMarkers(results);
+  renderList();
+  updateMeasureMarker();
+  updateStats();
+
+  if (center && state.map) {
+    const best = results[0];
+    state.map.setView([best.latitude, best.longitude], Math.max(state.map.getZoom(), 13), { animate: true });
+  }
+
+  if (showPanel) {
+    setTab('list');
+    setPanelMode('half');
+  }
+  setStatus(`Wyniki: ${compactNumber(results.length)} dla „${el.searchInput.value.trim()}”.`);
+}
+
+function setPanelMode(mode = 'half', save = true) {
+  if (!el.appPanel) return;
+  if (!['collapsed', 'half', 'full'].includes(mode)) mode = 'half';
+  state.panelMode = mode;
+  el.appPanel.classList.toggle('collapsed', mode === 'collapsed');
+  el.appPanel.classList.toggle('full', mode === 'full');
+  if (mode !== 'custom') el.appPanel.style.removeProperty('--panel-height');
+  if (el.collapsePanelBtn) {
+    el.collapsePanelBtn.textContent = mode === 'collapsed' ? '▴' : '▾';
+    el.collapsePanelBtn.setAttribute('aria-label', mode === 'collapsed' ? 'Rozwiń panel' : 'Zwiń panel');
+  }
+  if (state.map) setTimeout(() => state.map.invalidateSize(), 210);
+  if (save) saveSettings();
+}
+
+function togglePanelCollapsed() {
+  setPanelMode(state.panelMode === 'collapsed' ? 'half' : 'collapsed');
+}
+
+function bindPanelDrag() {
+  if (!el.panelHandle) return;
+  let drag = null;
+
+  el.panelHandle.addEventListener('pointerdown', event => {
+    if (!isMobileLayout()) return;
+    const rect = el.appPanel.getBoundingClientRect();
+    drag = {
+      pointerId: event.pointerId,
+      startY: event.clientY,
+      startHeight: rect.height,
+      moved: false
+    };
+    el.panelHandle.setPointerCapture(event.pointerId);
+    el.appPanel.classList.add('dragging');
+    event.preventDefault();
+  });
+
+  el.panelHandle.addEventListener('pointermove', event => {
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    const dy = drag.startY - event.clientY;
+    const height = clamp(drag.startHeight + dy, 88, Math.round(viewportHeight * 0.82));
+    if (Math.abs(dy) > 6) drag.moved = true;
+    el.appPanel.classList.remove('collapsed', 'full');
+    el.appPanel.style.setProperty('--panel-height', `${height}px`);
+    state.panelMode = 'half';
+  });
+
+  const finish = event => {
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    const rect = el.appPanel.getBoundingClientRect();
+    el.appPanel.classList.remove('dragging');
+    el.appPanel.style.removeProperty('--panel-height');
+    try { el.panelHandle.releasePointerCapture(event.pointerId); } catch (_) {}
+
+    if (!drag.moved) {
+      setPanelMode(state.panelMode === 'collapsed' ? 'half' : 'collapsed');
+    } else if (rect.height < 150) {
+      setPanelMode('collapsed');
+    } else if (rect.height > viewportHeight * 0.64) {
+      setPanelMode('full');
+    } else {
+      setPanelMode('half');
+    }
+    drag = null;
+  };
+
+  el.panelHandle.addEventListener('pointerup', finish);
+  el.panelHandle.addEventListener('pointercancel', finish);
+}
+
 function locateUser() {
   if (!navigator.geolocation) {
     setStatus('Ta przeglądarka nie obsługuje GPS.');
@@ -854,7 +1042,7 @@ function locateUser() {
 
 async function loadStationsFromUrl(url = 'stations.json', options = {}) {
   const result = await workerRequest({ type: 'loadUrl', url, forceNetwork: !!options.forceNetwork });
-  setStations(result.stations, result.sourceName || url, { save: !!options.save });
+  setStations(result.stations, result.sourceName || url, { save: !!options.save, fit: !!options.fit });
 }
 
 async function importDataFile() {
@@ -875,7 +1063,8 @@ async function importDataFile() {
     } else {
       result = await workerRequest({ type: 'parseText', text: await file.text(), name: file.name, contentType: file.type });
     }
-    setStations(result.stations, result.sourceName || file.name, { save: true });
+    setStations(result.stations, result.sourceName || file.name, { save: true, fit: true });
+    setStatus(`Zaimportowano ${compactNumber(result.stations.length)} stacji z ${file.name}. Baza jest aktywna od razu.`);
   } catch (err) {
     setStatus(`Błąd importu pliku: ${err.message}`);
   } finally {
@@ -886,7 +1075,7 @@ async function importDataFile() {
 async function loadRemoteInput() {
   try {
     const url = el.remoteUrlInput.value.trim();
-    await loadStationsFromUrl(url, { forceNetwork: true, save: true });
+    await loadStationsFromUrl(url, { forceNetwork: true, save: true, fit: true });
   } catch (err) {
     setStatus(`Błąd pobierania z linku: ${err.message}`);
   }
@@ -911,13 +1100,28 @@ function setTab(tabName) {
 }
 
 function bindEvents() {
+  el.searchForm.addEventListener('submit', event => {
+    event.preventDefault();
+    runSearch({ center: true, showPanel: true });
+    el.searchInput.blur();
+  });
   el.searchInput.addEventListener('input', () => {
     state.search = normalizeText(el.searchInput.value);
-    scheduleRender();
+    clearTimeout(state.searchTimer);
+    if (state.search.length < SEARCH_MIN_CHARS) {
+      scheduleRender();
+      return;
+    }
+    state.searchTimer = setTimeout(() => runSearch({ center: false, showPanel: false }), 280);
+  });
+  el.searchInput.addEventListener('focus', () => {
+    if (isMobileLayout()) setPanelMode('collapsed', false);
   });
   el.clearSearchBtn.addEventListener('click', () => {
+    clearTimeout(state.searchTimer);
     el.searchInput.value = '';
     state.search = '';
+    setStatus(state.stations.length ? `Wczytano ${compactNumber(state.stations.length)} stacji.` : 'Wyszukiwanie wyczyszczone.');
     scheduleRender();
   });
   el.operatorSelect.addEventListener('change', () => { state.operator = el.operatorSelect.value; scheduleRender(); });
@@ -937,11 +1141,12 @@ function bindEvents() {
   el.mapSatBtn.addEventListener('click', () => setMapType('sat'));
   el.nearestBtn.addEventListener('click', showNearest);
   el.installBtn.addEventListener('click', installPwa);
-  el.menuBtn.addEventListener('click', () => { setTab('settings'); el.appPanel.classList.remove('collapsed'); });
-  el.collapsePanelBtn.addEventListener('click', () => el.appPanel.classList.toggle('collapsed'));
+  el.menuBtn.addEventListener('click', () => { setTab('settings'); setPanelMode(isMobileLayout() ? 'full' : 'half'); });
+  el.collapsePanelBtn.addEventListener('click', () => togglePanelCollapsed());
+  bindPanelDrag();
   el.tabs.forEach(tab => tab.addEventListener('click', () => {
     setTab(tab.dataset.tab);
-    el.appPanel.classList.remove('collapsed');
+    setPanelMode(state.panelMode === 'collapsed' ? 'half' : state.panelMode);
   }));
   window.addEventListener('resize', () => {
     if (state.map) state.map.invalidateSize();
@@ -1014,6 +1219,7 @@ async function boot() {
   applyTheme();
   bindEvents();
   setTab(state.activeTab || 'filters');
+  setPanelMode(state.panelMode || 'half', false);
   el.radiusSelect.value = state.radiusKm ?? '';
   registerServiceWorker();
   initMap();

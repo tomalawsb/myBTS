@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_NAME = 'mybts-web-pro-v3-1205261329';
+const CACHE_NAME = 'mybts-web-pro-v3-1-1205261410';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -34,8 +34,13 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  if (request.mode === 'navigate' || url.pathname.endsWith('/index.html')) {
+    event.respondWith(networkFirst(request));
+    return;
+  }
+
   if (url.origin === self.location.origin) {
-    event.respondWith(cacheFirst(request));
+    event.respondWith(networkFirst(request));
     return;
   }
 
@@ -47,15 +52,17 @@ self.addEventListener('fetch', event => {
   event.respondWith(fetch(request));
 });
 
-async function cacheFirst(request) {
-  const cached = await caches.match(request);
-  if (cached) return cached;
-  const response = await fetch(request);
-  if (response.ok) {
-    const cache = await caches.open(CACHE_NAME);
-    cache.put(request, response.clone());
+async function networkFirst(request) {
+  const cache = await caches.open(CACHE_NAME);
+  try {
+    const response = await fetch(request, { cache: 'no-store' });
+    if (response.ok) cache.put(request, response.clone());
+    return response;
+  } catch (_) {
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    return fetch(request);
   }
-  return response;
 }
 
 async function staleWhileRevalidate(request) {
@@ -69,5 +76,5 @@ async function staleWhileRevalidate(request) {
 }
 
 async function networkOnly(request) {
-  return fetch(request);
+  return fetch(request, { cache: 'no-store' });
 }
