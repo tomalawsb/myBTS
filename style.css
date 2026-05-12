@@ -434,3 +434,248 @@ h3 { margin: 0; font-size: 15px; line-height: 1.25; }
   .search-submit { min-width: 40px; padding-left: 8px; padding-right: 8px; }
 
 }
+
+/* v3.3: GPS, kompas i wyraźna nawigacja do BTS */
+.compass-widget {
+  position: absolute;
+  z-index: 22;
+  right: calc(var(--panel-width) + 28px);
+  top: calc(74px + env(safe-area-inset-top));
+  width: 118px;
+  height: 118px;
+  border-radius: 999px;
+  padding: 0;
+  color: var(--text);
+  cursor: pointer;
+  overflow: visible;
+}
+.compass-widget::before {
+  content: '';
+  position: absolute;
+  inset: 9px;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at center, var(--solid-surface) 0 43%, transparent 44%),
+    conic-gradient(from 0deg, rgba(29,78,216,.22), transparent 32deg, transparent 328deg, rgba(29,78,216,.22));
+  border: 1px solid var(--border);
+}
+.compass-north {
+  position: absolute;
+  top: 13px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 950;
+  z-index: 3;
+}
+.compass-phone-arrow,
+.compass-target-arrow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  z-index: 4;
+  transform-origin: 50% 100%;
+}
+.compass-phone-arrow {
+  transform: translate(-50%, -100%) rotate(var(--heading, 0deg));
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 38px solid #1d4ed8;
+  filter: drop-shadow(0 3px 5px rgba(15,23,42,.25));
+}
+.compass-phone-arrow.inactive { opacity: .32; }
+.compass-target-arrow {
+  transform: translate(-50%, -100%) rotate(var(--target-bearing, 0deg));
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 48px solid #16a34a;
+  filter: drop-shadow(0 3px 7px rgba(22,163,74,.35));
+}
+.compass-heading-label {
+  position: absolute;
+  left: 50%;
+  top: 48px;
+  transform: translateX(-50%);
+  z-index: 5;
+  min-width: 42px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: var(--solid-surface);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1;
+  text-align: center;
+  box-shadow: 0 3px 10px rgba(15,23,42,.12);
+}
+.compass-target-label {
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  transform: translateX(-50%);
+  z-index: 5;
+  min-width: 118px;
+  max-width: 156px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #0f766e;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1.15;
+  text-align: center;
+  box-shadow: 0 8px 22px rgba(15,118,110,.28);
+}
+
+.user-location-marker {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.88);
+  border: 2px solid rgba(37,99,235,.42);
+  box-shadow: 0 0 0 7px rgba(37,99,235,.15), 0 9px 24px rgba(15,23,42,.28);
+}
+.user-location-marker::before {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border-radius: inherit;
+  border: 1px dashed rgba(37,99,235,.48);
+}
+.user-north {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #dc2626;
+  font-size: 10px;
+  font-weight: 950;
+  z-index: 3;
+}
+.user-heading {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform: translate(-50%, -100%) rotate(var(--heading, 0deg));
+  transform-origin: 50% 100%;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 25px solid #2563eb;
+  z-index: 2;
+}
+.user-dot {
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #2563eb;
+  border: 3px solid #fff;
+  z-index: 4;
+}
+
+.measure-pin {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: #0f766e;
+  border: 3px solid #fff;
+  box-shadow: 0 8px 22px rgba(15,118,110,.34);
+}
+.measure-pin span {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #fff;
+}
+
+.distance-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 82px;
+  gap: 10px;
+  align-items: center;
+  padding: 13px;
+  border-radius: 18px;
+  color: #fff;
+  background: linear-gradient(135deg, #0f766e, #1d4ed8);
+  box-shadow: 0 14px 32px rgba(15,118,110,.22);
+}
+.distance-hero-label,
+.distance-hero small {
+  display: block;
+  color: rgba(255,255,255,.78);
+  font-size: 11px;
+  font-weight: 750;
+}
+.distance-hero strong {
+  display: block;
+  margin: 2px 0;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: -.6px;
+}
+.bearing-hero {
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  min-height: 72px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.16);
+}
+.bearing-arrow {
+  width: 0;
+  height: 0;
+  transform: rotate(var(--bearing, 0deg));
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 34px solid #fff;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,.18));
+}
+.bearing-hero b { font-size: 14px; }
+.distance-badge {
+  background: #0f766e;
+  color: #fff;
+  font-size: 12px;
+  padding-inline: 10px;
+}
+
+@media (max-width: 900px) {
+  .compass-widget {
+    right: 10px;
+    top: calc(118px + env(safe-area-inset-top));
+    width: 112px;
+    height: 112px;
+  }
+  .compass-target-label { min-width: 108px; max-width: 142px; font-size: 9.5px; }
+  .leaflet-control-zoom { margin-bottom: 98px !important; }
+  .distance-hero { grid-template-columns: minmax(0, 1fr) 72px; padding: 12px; }
+  .distance-hero strong { font-size: 27px; }
+}
+
+@media (max-width: 420px) {
+  .compass-widget {
+    right: 9px;
+    top: calc(115px + env(safe-area-inset-top));
+    width: 104px;
+    height: 104px;
+  }
+  .compass-phone-arrow { border-left-width: 6px; border-right-width: 6px; border-bottom-width: 33px; }
+  .compass-target-arrow { border-left-width: 5px; border-right-width: 5px; border-bottom-width: 42px; }
+  .compass-heading-label { top: 43px; font-size: 10px; }
+  .compass-target-label { bottom: -6px; min-width: 104px; max-width: 130px; }
+  .distance-hero strong { font-size: 25px; }
+}
