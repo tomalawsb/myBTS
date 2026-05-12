@@ -1,4 +1,4 @@
-# myBTS Web Pro 3.8 - 1205261630
+# myBTS Web Pro 3.9 - 1205261715
 
 Wersja przebudowana od początku pod układ mobilny i bibliotekę Leaflet.
 
@@ -59,3 +59,11 @@ Leaflet i SheetJS są pobierane z CDN. Po pierwszym uruchomieniu service worker 
 - Przycisk OK w wyszukiwarce jest ukryty, Enter nadal uruchamia szukanie.
 - Krzyżyk czyszczenia wyszukiwarki pokazuje się dopiero po wpisaniu tekstu.
 - GPS jest osobnym, przezroczystym przyciskiem na mapie.
+
+
+## Zmiany 3.9
+- Dodano uzupełnianie parametrów stacji z PDF/TXT: pasma, azymuty, moc/EIRP, zasięg i współrzędne, jeśli występują w tekście raportu.
+- Dodano przycisk „PDF/TXT” w popupie BTS oraz przycisk „Uzupełnij parametry z PDF/TXT” w ustawieniach.
+- Import PDF/TXT nie zastępuje całej bazy, tylko dopasowuje dane do wybranej/najbliższej stacji i zapisuje je w IndexedDB.
+- Poprawiono wyciąganie pasm z opisów typu `[L1800FDD]`, `[LTE2100]`, `[5G: n1]`.
+- Szczegóły stacji pokazują źródła parametrów.

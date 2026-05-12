@@ -114,6 +114,53 @@ function splitListCell(value) {
   return text.split(/[;,|/]+|\s{2,}/).map(s => s.trim()).filter(Boolean);
 }
 
+
+function nrBandToLabel(n) {
+  const key = String(n || '').replace(/^n/i, '');
+  const map = {
+    '1': 'NR2100',
+    '3': 'NR1800',
+    '7': 'NR2600',
+    '8': 'NR900',
+    '20': 'NR800',
+    '28': 'NR700',
+    '38': 'NR2600',
+    '40': 'NR2300',
+    '41': 'NR2600',
+    '77': 'NR3700',
+    '78': 'NR3500'
+  };
+  return map[key] || `NR n${key}`;
+}
+
+function extractBandsFromText(value) {
+  const text = String(value || '');
+  if (!text) return [];
+  const out = [];
+  const push = band => {
+    const clean = String(band || '').toUpperCase().replace(/\s+/g, '');
+    if (clean && !out.some(item => normalizeText(item) === normalizeText(clean))) out.push(clean);
+  };
+
+  let match;
+  const lte = /(?:\bLTE|\bL)\s*[-_:]?\s*(700|800|850|900|1800|2100|2300|2600)\s*(?:FDD|TDD)?\b/gi;
+  while ((match = lte.exec(text))) push(`LTE${match[1]}`);
+
+  const gsm = /\b(?:GSM|G)\s*[-_:]?\s*(850|900|1800|1900)\b/gi;
+  while ((match = gsm.exec(text))) push(`GSM${match[1]}`);
+
+  const umts = /\b(?:UMTS|U)\s*[-_:]?\s*(850|900|1800|1900|2100)\b/gi;
+  while ((match = umts.exec(text))) push(`UMTS${match[1]}`);
+
+  const nr = /(?:\bNR|\b5G)\s*[-_:]?\s*n?\s*(1|3|7|8|20|28|38|40|41|77|78)\b/gi;
+  while ((match = nr.exec(text))) push(nrBandToLabel(match[1]));
+
+  const bracketNr = /\[\s*5G\s*:\s*n\s*(1|3|7|8|20|28|38|40|41|77|78)\s*\]/gi;
+  while ((match = bracketNr.exec(text))) push(nrBandToLabel(match[1]));
+
+  return out;
+}
+
 function getAliased(row, aliases) {
   for (const alias of aliases) {
     const key = normalizeColumnName(alias);
@@ -144,14 +191,17 @@ function normalizeImportedRow(row) {
   const bandsRaw = getAliased(row, ['bands', 'pasma', 'pasmo', 'band', 'technologia', 'technology', 'system', 'standard', 'zakres', 'ukeband']);
   const azRaw = getAliased(row, ['azimuths', 'azymuty', 'azymut', 'azimuth', 'azymutanteny', 'kierunek']);
   const powerRaw = getAliased(row, ['power', 'power_w', 'moc', 'mocw', 'mocpromieniowana', 'mocpromieniowanaw', 'eirp', 'eirp_dbm', 'eirpdbm', 'erp', 'max_eirp_dbm', 'maxeirpdbm', 'maksymalnamoc', 'maksymalnamocpromieniowana']);
+  const address = buildAddress(row);
+  const textForBands = [bandsRaw, address, Object.values(row).join(' ')].join(' ');
+  const extractedBands = extractBandsFromText(textForBands);
   return normalizeStation({
     station_id: getAliased(row, ['station_id', 'stationid', 'id', 'nrstacji', 'idstacji', 'nazwaobiektu', 'nazwastacji', 'pozwolenie', 'nrpozwolenia', 'numerpozwolenia', 'numerdecyzji', 'nrdecyzji', 'znaksprawy', 'btssid', 'siteid']) || '—',
     operator: getAliased(row, ['operator', 'sieć', 'siec', 'network', 'mno', 'uzytkownik', 'uzytkownikpozwolenia', 'nazwaoperatora', 'nazwauzytkownika', 'podmiot', 'przedsiebiorca']) || 'Nieznany',
     latitude: lat,
     longitude: lon,
-    address: buildAddress(row),
+    address,
     city: getAliased(row, ['city', 'miasto', 'miejscowosc', 'miejscowość', 'miejscowoscstacji', 'gmina']),
-    bands: splitListCell(bandsRaw),
+    bands: mergeUnique(splitListCell(bandsRaw), extractedBands),
     azimuths: splitListCell(azRaw).map(numberFromCell).filter(Number.isFinite),
     range_km: numberFromCell(getAliased(row, ['range_km', 'rangekm', 'zasieg', 'zasiegkm', 'zasięg', 'zasięgkm'])),
     power: powerRaw,
@@ -165,7 +215,8 @@ function normalizeStation(raw) {
   const latitude = Number(raw.latitude ?? raw.lat);
   const longitude = Number(raw.longitude ?? raw.lon ?? raw.lng);
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
-  const bands = splitListCell(raw.bands || raw.band || raw.technology || raw.technologie);
+  const textForBands = [raw.bands, raw.band, raw.technology, raw.technologie, raw.address, raw.location, raw.city, raw.station_id, raw.source].join(' ');
+  const bands = mergeUnique(splitListCell(raw.bands || raw.band || raw.technology || raw.technologie), extractBandsFromText(textForBands));
   const azimuths = splitListCell(raw.azimuths || raw.azymuty || raw.azimuth)
     .map(numberFromCell)
     .filter(Number.isFinite)
