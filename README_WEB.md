@@ -1,4 +1,4 @@
-# myBTS Web Pro 3.1 - 1205261410
+# myBTS Web Pro 3.2 - 1205261440
 
 Wersja przebudowana od początku pod układ mobilny i bibliotekę Leaflet.
 

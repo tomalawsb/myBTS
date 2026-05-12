@@ -99,6 +99,7 @@ function normalizeImportedRow(row) {
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
   const bandsRaw = getAliased(row, ['bands', 'pasma', 'pasmo', 'band', 'technologia', 'technology', 'system']);
   const azRaw = getAliased(row, ['azimuths', 'azymuty', 'azymut', 'azimuth']);
+  const powerRaw = getAliased(row, ['power', 'power_w', 'moc', 'mocw', 'eirp', 'eirp_dbm', 'eirpdbm', 'erp', 'max_eirp_dbm', 'maxeirpdbm']);
   return normalizeStation({
     station_id: getAliased(row, ['station_id', 'stationid', 'id', 'nrstacji', 'idstacji', 'pozwolenie', 'btssid', 'siteid']) || '—',
     operator: getAliased(row, ['operator', 'sieć', 'siec', 'network', 'mno']) || 'Nieznany',
@@ -109,6 +110,7 @@ function normalizeImportedRow(row) {
     bands: splitListCell(bandsRaw),
     azimuths: splitListCell(azRaw).map(numberFromCell).filter(Number.isFinite),
     range_km: numberFromCell(getAliased(row, ['range_km', 'rangekm', 'zasieg', 'zasiegkm', 'zasięg', 'zasięgkm'])),
+    power: powerRaw,
     records_count: numberFromCell(getAliased(row, ['records_count', 'recordscount', 'rekordy'])) || 1,
     source: getAliased(row, ['source', 'zrodlo', 'źródło']) || 'import'
   });
@@ -137,6 +139,12 @@ function normalizeStation(raw) {
     cell_names: splitListCell(raw.cell_names || raw.cells || raw.komorki),
     records_count: Number(raw.records_count || raw.records || 1) || 1,
     range_km: Number(raw.range_km || raw.range || 0) || null,
+    power: raw.power ?? raw.power_w ?? raw.moc ?? raw.eirp ?? raw.eirp_dbm ?? raw.erp ?? raw.max_eirp_dbm ?? '',
+    power_w: raw.power_w ?? '',
+    eirp: raw.eirp ?? '',
+    eirp_dbm: raw.eirp_dbm ?? '',
+    erp: raw.erp ?? '',
+    max_eirp_dbm: raw.max_eirp_dbm ?? '',
     source: String(raw.source || '')
   };
   station._search = compactSearchText(station);

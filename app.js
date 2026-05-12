@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '3.1 - 1205261410';
+const APP_VERSION = '3.2 - 1205261440';
 const DEFAULT_CENTER = [50.2872, 21.4231];
 const DEFAULT_ZOOM = 10;
 const MIN_ZOOM = 5;
@@ -196,6 +196,34 @@ function operatorColor(operator) {
   return OPERATOR_COLORS[operator] || '#3478f6';
 }
 
+function normalizePowerValue(value) {
+  if (value === null || value === undefined || value === '') return null;
+  if (typeof value === 'number' && Number.isFinite(value)) return { value, unit: 'W' };
+  const text = String(value).trim();
+  if (!text) return null;
+  const normalized = text.replace(',', '.').toLowerCase();
+  const match = normalized.match(/(-?\d+(?:\.\d+)?)/);
+  if (!match) return null;
+  const number = Number(match[1]);
+  if (!Number.isFinite(number)) return null;
+  if (normalized.includes('dbm')) return { value: number, unit: 'dBm' };
+  if (normalized.includes('dbw')) return { value: number, unit: 'dBW' };
+  if (normalized.includes('kw')) return { value: number, unit: 'kW' };
+  if (normalized.includes('w')) return { value: number, unit: 'W' };
+  return { value: number, unit: '' };
+}
+
+function formatPower(station) {
+  const candidates = [station.power, station.power_w, station.eirp, station.eirp_dbm, station.erp, station.max_eirp_dbm];
+  for (const candidate of candidates) {
+    const parsed = normalizePowerValue(candidate);
+    if (!parsed) continue;
+    const value = Number.isInteger(parsed.value) ? String(parsed.value) : parsed.value.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+    return parsed.unit ? `${value} ${parsed.unit}` : value;
+  }
+  return 'Brak danych o mocy w bazie';
+}
+
 function isMobileLayout() {
   return window.matchMedia('(max-width: 900px)').matches;
 }
@@ -389,6 +417,8 @@ function normalizeStationForMain(raw) {
   station.sector_ids = Array.isArray(station.sector_ids) ? station.sector_ids : [];
   station.cell_names = Array.isArray(station.cell_names) ? station.cell_names : [];
   station.records_count = Number(station.records_count || 1) || 1;
+  station.range_km = Number(station.range_km || station.range || 0) || null;
+  station.power = station.power ?? station.power_w ?? station.moc ?? station.eirp ?? station.eirp_dbm ?? station.erp ?? station.max_eirp_dbm ?? '';
   station._search = station._search || normalizeText([
     station.station_id,
     station.operator,
@@ -422,7 +452,7 @@ function setStations(stations, sourceName, options = {}) {
   setStatus(`Wczytano ${compactNumber(state.stations.length)} stacji.`);
   if (options.fit) fitMapToStations(state.stations);
   if (options.save) saveActiveDataset(state.stations, state.dataSourceName);
-  if (state.search.length >= SEARCH_MIN_CHARS) runSearch({ center: false, showPanel: false });
+  if (state.search.length >= SEARCH_MIN_CHARS) void runSearch({ center: false, showPanel: false });
   else scheduleRender();
 }
 
@@ -508,6 +538,7 @@ function renderMapAndList() {
     .map(item => item.station);
 
   renderMarkers(filtered);
+  if (state.selected) renderSelectedStationExtras(state.selected);
   renderList();
   updateMeasureMarker();
   updateStats();
@@ -525,7 +556,7 @@ function getVisibleCandidates() {
 function matchesFilters(station) {
   if (state.operator !== 'Wszyscy' && station.operator !== state.operator) return false;
   if (state.band !== 'Wszystkie' && !(station.bands || []).includes(state.band)) return false;
-  if (state.search.length >= SEARCH_MIN_CHARS && !station._search.includes(normalizeText(state.search))) return false;
+  if (state.search.length >= SEARCH_MIN_CHARS && !matchesSearchQuery(station, state.search) && !matchesRelaxedSearchQuery(station, state.search)) return false;
   if (Number.isFinite(state.radiusKm) && state.radiusKm > 0) {
     const origin = getOrigin();
     if (haversineKm(origin.lat, origin.lng, station.latitude, station.longitude) > state.radiusKm) return false;
@@ -535,7 +566,6 @@ function matchesFilters(station) {
 
 function renderMarkers(stations) {
   state.markerLayer.clearLayers();
-  state.sectorLayer.clearLayers();
   if (!stations.length) return;
 
   const limit = isMobileLayout() ? MAX_MAP_OBJECTS_MOBILE : MAX_MAP_OBJECTS_DESKTOP;
@@ -632,23 +662,70 @@ function selectStation(station, centerOnMap = true) {
   renderSelectedStationExtras(station);
   if (isMobileLayout()) {
     setTab('details');
-    el.appPanel.classList.remove('collapsed');
+    setPanelMode(state.panelMode === 'collapsed' ? 'half' : state.panelMode, false);
   }
-  scheduleRender();
 }
 
 function renderSelectedStationExtras(station) {
   state.sectorLayer.clearLayers();
-  if (!station || !Array.isArray(station.azimuths) || !station.azimuths.length) return;
+  if (!station || !window.L) return;
+
+  const color = operatorColor(station.operator);
   const rangeKm = estimateStationRangeKm(station);
-  for (const azimuth of station.azimuths) {
-    const polygon = sectorPolygon(station.latitude, station.longitude, azimuth, rangeKm, 34);
-    L.polygon(polygon, {
-      color: operatorColor(station.operator),
-      weight: 1,
-      fillColor: operatorColor(station.operator),
-      fillOpacity: .14,
+  const azimuths = Array.isArray(station.azimuths) ? station.azimuths.filter(Number.isFinite) : [];
+
+  L.circleMarker([station.latitude, station.longitude], {
+    radius: 13,
+    color,
+    weight: 3,
+    fillColor: '#ffffff',
+    fillOpacity: .36,
+    interactive: false
+  }).addTo(state.sectorLayer);
+
+  if (azimuths.length) {
+    for (const azimuth of azimuths) {
+      const polygon = sectorPolygon(station.latitude, station.longitude, azimuth, rangeKm, 42);
+      L.polygon(polygon, {
+        color,
+        weight: 2,
+        opacity: .95,
+        fillColor: color,
+        fillOpacity: .18,
+        interactive: false
+      }).addTo(state.sectorLayer);
+
+      const labelPoint = destinationPoint(station.latitude, station.longitude, azimuth, Math.max(rangeKm * .62, .28));
+      L.marker([labelPoint.lat, labelPoint.lng], {
+        interactive: false,
+        icon: L.divIcon({
+          className: '',
+          html: `<div class="sector-label">${Math.round(azimuth)}°</div>`,
+          iconSize: [54, 22],
+          iconAnchor: [27, 11]
+        })
+      }).addTo(state.sectorLayer);
+    }
+  } else {
+    L.circle([station.latitude, station.longitude], {
+      radius: rangeKm * 1000,
+      color,
+      weight: 2,
+      dashArray: '8 7',
+      fillColor: color,
+      fillOpacity: .09,
       interactive: false
+    }).addTo(state.sectorLayer);
+
+    const labelPoint = destinationPoint(station.latitude, station.longitude, 45, Math.max(rangeKm * .55, .25));
+    L.marker([labelPoint.lat, labelPoint.lng], {
+      interactive: false,
+      icon: L.divIcon({
+        className: '',
+        html: `<div class="sector-label">zasięg ~${formatRangeShort(rangeKm)}</div>`,
+        iconSize: [108, 22],
+        iconAnchor: [54, 11]
+      })
     }).addTo(state.sectorLayer);
   }
 }
@@ -678,6 +755,17 @@ function estimateStationRangeKm(station) {
   return 4;
 }
 
+function formatRangeShort(km) {
+  if (!Number.isFinite(km)) return '—';
+  return km < 10 ? `${String(km).replace('.', ',')} km` : `${Math.round(km)} km`;
+}
+
+function formatCoverageInfo(station) {
+  const range = estimateStationRangeKm(station);
+  const azimuths = station.azimuths && station.azimuths.length ? `${station.azimuths.join('°, ')}°` : 'Brak danych o azymutach — pokazuję tylko orientacyjny promień';
+  return `zasięg ~${formatRangeShort(range)}; ${azimuths}`;
+}
+
 function showStationDetails(station) {
   el.emptyDetails.classList.add('hidden');
   el.detailCard.classList.remove('hidden');
@@ -692,6 +780,8 @@ function showStationDetails(station) {
     detailLine('Miejscowość', station.city || '—'),
     detailLine('Adres', station.address || '—'),
     detailLine('Pasma', formatBands(station.bands)),
+    detailLine('Moc nadawania', formatPower(station)),
+    detailLine('Zasięg na mapie', formatCoverageInfo(station)),
     detailLine('Azymuty', station.azimuths && station.azimuths.length ? `${station.azimuths.join('°, ')}°` : 'Brak danych o azymutach — kierunek niepewny'),
     detailLine('Rekordy', compactNumber(station.records_count)),
     detailLine('Odległość', formatDistance(distance)),
@@ -831,7 +921,7 @@ function showNearest() {
 function matchesNonSpatialFilters(station) {
   if (state.operator !== 'Wszyscy' && station.operator !== state.operator) return false;
   if (state.band !== 'Wszystkie' && !(station.bands || []).includes(state.band)) return false;
-  if (state.search.length >= SEARCH_MIN_CHARS && !station._search.includes(normalizeText(state.search))) return false;
+  if (state.search.length >= SEARCH_MIN_CHARS && !matchesSearchQuery(station, state.search) && !matchesRelaxedSearchQuery(station, state.search)) return false;
   return true;
 }
 
@@ -847,11 +937,21 @@ function fitMapToStations(stations) {
   }
 }
 
+function searchTokens(query) {
+  return normalizeText(query).split(/\s+/).filter(Boolean);
+}
+
 function matchesSearchQuery(station, query) {
-  const normalized = normalizeText(query);
-  if (normalized.length < SEARCH_MIN_CHARS) return true;
-  const tokens = normalized.split(/\s+/).filter(Boolean);
+  const tokens = searchTokens(query);
+  if (!tokens.length) return true;
   return tokens.every(token => station._search.includes(token));
+}
+
+function matchesRelaxedSearchQuery(station, query) {
+  const tokens = searchTokens(query);
+  const textTokens = tokens.filter(token => /[a-ząćęłńóśźż]/i.test(token));
+  if (!textTokens.length || textTokens.length === tokens.length) return false;
+  return textTokens.every(token => station._search.includes(token));
 }
 
 function scoreStationSearch(station, query) {
@@ -879,11 +979,16 @@ function searchStations(query, limit = 400) {
   const normalized = normalizeText(query);
   if (normalized.length < SEARCH_MIN_CHARS) return [];
   const origin = getOrigin();
-  return state.stations
-    .filter(station => matchesSearchQuery(station, normalized))
+  let strict = true;
+  let matches = state.stations.filter(station => matchesSearchQuery(station, normalized));
+  if (!matches.length) {
+    matches = state.stations.filter(station => matchesRelaxedSearchQuery(station, normalized));
+    strict = false;
+  }
+  return matches
     .map(station => ({
       station,
-      score: scoreStationSearch(station, normalized),
+      score: scoreStationSearch(station, normalized) + (strict ? 20 : 0),
       distance: haversineKm(origin.lat, origin.lng, station.latitude, station.longitude)
     }))
     .sort((a, b) => (b.score - a.score) || (a.distance - b.distance))
@@ -891,10 +996,11 @@ function searchStations(query, limit = 400) {
     .map(item => item.station);
 }
 
-function runSearch(options = {}) {
+async function runSearch(options = {}) {
   const center = options.center !== false;
   const showPanel = options.showPanel !== false;
-  state.search = normalizeText(el.searchInput.value);
+  const rawQuery = el.searchInput.value.trim();
+  state.search = normalizeText(rawQuery);
 
   if (state.search.length < SEARCH_MIN_CHARS) {
     setStatus('Wpisz co najmniej 2 znaki do wyszukania.');
@@ -909,12 +1015,22 @@ function runSearch(options = {}) {
 
   const results = searchStations(state.search, 900);
   if (!results.length) {
+    const place = center ? await geocodePlace(rawQuery).catch(() => null) : null;
+    if (place && state.map) {
+      state.search = '';
+      state.map.setView([place.lat, place.lon], Math.max(state.map.getZoom(), 13), { animate: true });
+      scheduleRender();
+      setStatus(`Przeniesiono mapę do: ${place.label}`);
+      if (showPanel) setPanelMode('collapsed');
+      return;
+    }
+
     state.currentList = [];
     state.currentVisibleTotal = 0;
     renderMarkers([]);
     renderList();
     updateStats();
-    setStatus(`Brak wyników dla: ${el.searchInput.value.trim()}`);
+    setStatus(`Brak wyników dla: ${rawQuery}`);
     if (showPanel) {
       setTab('list');
       setPanelMode('half');
@@ -925,20 +1041,37 @@ function runSearch(options = {}) {
   state.currentList = results.slice(0, MAX_LIST_ROWS);
   state.currentVisibleTotal = results.length;
   renderMarkers(results);
+  if (state.selected) renderSelectedStationExtras(state.selected);
   renderList();
   updateMeasureMarker();
   updateStats();
 
   if (center && state.map) {
     const best = results[0];
-    state.map.setView([best.latitude, best.longitude], Math.max(state.map.getZoom(), 13), { animate: true });
+    state.map.setView([best.latitude, best.longitude], Math.max(state.map.getZoom(), 14), { animate: true });
   }
 
   if (showPanel) {
     setTab('list');
     setPanelMode('half');
   }
-  setStatus(`Wyniki: ${compactNumber(results.length)} dla „${el.searchInput.value.trim()}”.`);
+
+  setStatus(`Wyniki: ${compactNumber(results.length)} dla „${rawQuery}”.`);
+}
+
+async function geocodePlace(query) {
+  const normalized = String(query || '').trim();
+  if (normalized.length < SEARCH_MIN_CHARS) return null;
+  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=pl&q=${encodeURIComponent(normalized)}`;
+  const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+  if (!response.ok) return null;
+  const data = await response.json();
+  const first = Array.isArray(data) ? data[0] : null;
+  if (!first) return null;
+  const lat = Number(first.lat);
+  const lon = Number(first.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+  return { lat, lon, label: first.display_name || normalized };
 }
 
 function setPanelMode(mode = 'half', save = true) {
@@ -1102,7 +1235,7 @@ function setTab(tabName) {
 function bindEvents() {
   el.searchForm.addEventListener('submit', event => {
     event.preventDefault();
-    runSearch({ center: true, showPanel: true });
+    void runSearch({ center: true, showPanel: true });
     el.searchInput.blur();
   });
   el.searchInput.addEventListener('input', () => {
@@ -1112,7 +1245,7 @@ function bindEvents() {
       scheduleRender();
       return;
     }
-    state.searchTimer = setTimeout(() => runSearch({ center: false, showPanel: false }), 280);
+    state.searchTimer = setTimeout(() => { void runSearch({ center: false, showPanel: false }); }, 280);
   });
   el.searchInput.addEventListener('focus', () => {
     if (isMobileLayout()) setPanelMode('collapsed', false);
