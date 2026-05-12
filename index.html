@@ -4,7 +4,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#f6f8fc" />
-  <title>myBTS Web Pro 3.11 - 1205261805</title>
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self';
+                 script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.sheetjs.com;
+                 style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com;
+                 img-src 'self' data: blob: https:;
+                 connect-src 'self' https:;
+                 worker-src 'self' blob: https://cdnjs.cloudflare.com;
+                 object-src 'none';
+                 base-uri 'self';" />
+  <title>myBTS Web Pro 3.16 - 1205262109</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
   <link rel="stylesheet" href="style.css" />
@@ -132,8 +141,8 @@
           <div class="settings-group">
             <h3>Dane</h3>
             <button id="refreshBtn" class="btn ghost" type="button">Odśwież stations.json</button>
-            <button id="ukeUpdateBtn" class="btn primary" type="button">Aktualizuj z UKE online</button>
-            <div id="ukeStatusBox" class="notice-box small update-status-box info">UKE: gotowe do aktualizacji. Jeżeli przeglądarka zablokuje UKE/Box przez CORS albo HTTP 403, pobierz paczkę z UKE ręcznie i użyj importu ZIP/XLSX.</div>
+            <button id="ukeUpdateBtn" class="btn primary" type="button">UKE online wyłączone</button>
+            <div id="ukeStatusBox" class="notice-box small update-status-box info">UKE online: wyłączone. Pobierz paczkę ZIP/XLSX/CSV z UKE ręcznie i użyj importu pliku. Publiczne CORS-proxy zostały usunięte.</div>
             <div class="action-grid compact-actions">
               <button id="openUkePageBtn" class="btn ghost" type="button">Otwórz stronę UKE</button>
               <button id="openSi2pemBtn" class="btn ghost" type="button">Skąd wziąć PDF</button>
@@ -156,7 +165,7 @@
           </div>
 
           <div class="notice-box small">
-            Wersja: <strong>3.11 - 1205261805</strong><br />
+            Wersja: <strong>3.16 - 1205262109</strong><br />
             Import PDF/TXT uzupełnia wybraną lub najbliższą stację o pasma, azymuty, moc/EIRP i zasięg, jeżeli takie dane są w tekście raportu.
             Widok główny to mapa. Dotknięcie BTS pokazuje małe okienko na mapie z odległością, gradientem zasięgu, azymutem i informacją o współdzieleniu lokalizacji. Opcje są dostępne po przeciągnięciu dolnego uchwytu panelu. Dane UKE są pobierane online przez dane.gov/BIP UKE. Gdy przeglądarka blokuje CORS/HTTP 403, użyj importu ręcznie pobranej paczki ZIP albo arkuszy XLSX z UKE. PDF/TXT bierz głównie z SI2PEM albo raportów pomiarowych.
           </div>
@@ -168,8 +177,7 @@
   <input id="dataFileInput" class="hidden" type="file" accept="application/json,.json,text/csv,.csv,.xlsx,.xls,.xml,.html,.htm,.zip,application/zip" />
   <input id="paramFileInput" class="hidden" type="file" accept="application/pdf,.pdf,text/plain,.txt" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" defer></script>
-  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js" defer></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
   <script src="app.js" defer></script>
 </body>

@@ -1,0 +1,10 @@
+{
+  "version": "3.16 - 1205262109",
+  "source": "stations.json",
+  "raw_bytes": 52067053,
+  "gzip_bytes": 6977268,
+  "brotli_bytes": 5529519,
+  "gzip_ratio_percent": 13.4,
+  "brotli_ratio_percent": 10.62,
+  "note": "Aplikacja nadal pobiera stations.json. Serwer musi zwracać skompresowaną odpowiedź z Content-Encoding: br albo gzip dla /stations.json albo poprawnie serwować wariant .br/.gz."
+}

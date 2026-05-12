@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '3.11 - 1205261805';
+const APP_VERSION = '3.16 - 1205262109';
 const DEFAULT_CENTER = [50.2872, 21.4231];
 const DEFAULT_ZOOM = 10;
 const MIN_ZOOM = 5;
@@ -15,13 +15,17 @@ const DB_VERSION = 1;
 const DATASET_STORE = 'datasets';
 const ACTIVE_DATASET_ID = 'active';
 const SPATIAL_CELL_DEG = 0.25;
-const XLSX_CDN_NOTE = 'Import XLSX wymaga biblioteki SheetJS z CDN albo połączenia z internetem.';
-const PDF_CDN_NOTE = 'Import PDF wymaga biblioteki PDF.js z CDN albo połączenia z internetem.';
+const XLSX_CDN_NOTE = 'Import XLSX wymaga załadowanej biblioteki SheetJS 0.20.3.';
+const PDF_CDN_NOTE = 'Import PDF wymaga załadowanej biblioteki PDF.js 5.4.149.';
 const ZIP_CDN_NOTE = 'Import ZIP wymaga biblioteki JSZip z CDN albo połączenia z internetem.';
+const PDFJS_MODULE_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.149/pdf.min.mjs';
+const PDFJS_WORKER_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.149/pdf.worker.min.mjs';
 const UKE_BIP_PAGE = 'https://bip.uke.gov.pl/pozwolenia-radiowe/wykaz-pozwolen-radiowych-tresci/stacje-gsm-umts-lte-5gnr-oraz-cdma%2C12%2C0.html';
 const UKE_DATA_GOV_RESOURCES = 'https://api.dane.gov.pl/1.4/datasets/1075/resources?lang=pl&per_page=100';
 const UKE_DATA_GOV_METADATA = 'https://api.dane.gov.pl/1.4/datasets/1075/resources/metadata.csv?lang=pl';
 const UKE_LINK_LIMIT = 24;
+const UKE_ONLINE_IMPORT_ENABLED = false;
+const UKE_ONLINE_DISABLED_MESSAGE = 'Automatyczne pobieranie UKE online jest wyłączone, bo aplikacja nie korzysta już z publicznych CORS-proxy. Pobierz ZIP/XLSX/CSV z UKE ręcznie i użyj importu pliku.';
 const COMPASS_UI_INTERVAL_MS = 140;
 const COMPASS_MIN_DELTA_DEG = 2.4;
 const COMPASS_SMOOTHING = 0.22;
@@ -32,10 +36,6 @@ const COVERAGE_GRADIENT_RINGS = [
   { scale: 0.33, opacity: 0.24, weight: 2, label: 'mocny' }
 ];
 const DEFAULT_SECTOR_WIDTH_DEG = 70;
-const UKE_CORS_PROXIES = [
-  'https://api.allorigins.win/raw?url=',
-  'https://corsproxy.io/?'
-];
 
 const OPERATOR_COLORS = {
   'Orange': '#ff7800',
@@ -628,7 +628,7 @@ function normalizeStationForMain(raw) {
   station.latitude = Number(station.latitude);
   station.longitude = Number(station.longitude);
   const extractedBands = extractBandsFromText([station.bands, station.address, station.city, station.station_id, station.source].join(' '));
-  station.bands = mergeUnique(Array.isArray(station.bands) && station.bands.length ? station.bands.map(String) : [], extractedBands);
+  station.bands = cleanBands(mergeUnique(Array.isArray(station.bands) && station.bands.length ? station.bands.map(String) : [], extractedBands));
   if (!station.bands.length) station.bands = ['Nieznane'];
   station.azimuths = Array.isArray(station.azimuths) ? station.azimuths.map(Number).filter(Number.isFinite) : [];
   station.sector_ids = Array.isArray(station.sector_ids) ? station.sector_ids : [];
@@ -682,7 +682,7 @@ function setStations(stations, sourceName, options = {}) {
 }
 
 function mergeStationInto(target, source) {
-  target.bands = mergeUnique(target.bands, source.bands);
+  target.bands = cleanBands(mergeUnique(target.bands, source.bands));
   target.azimuths = mergeUnique(target.azimuths, source.azimuths).map(Number).filter(Number.isFinite).sort((a, b) => a - b);
   target.sector_ids = mergeUnique(target.sector_ids, source.sector_ids);
   target.cell_names = mergeUnique(target.cell_names, source.cell_names);
@@ -723,6 +723,25 @@ function mergeUnique(a, b) {
     out.push(value);
   }
   return out;
+}
+
+// UWAGA: te same reguły czyszczenia pasm są zdublowane w data-worker.js. Każdą zmianę parsera trzeba wykonać w obu plikach.
+const VALID_NR_BANDS = new Set([
+  'NR1', 'NR3', 'NR7', 'NR8', 'NR20', 'NR28', 'NR38', 'NR40', 'NR41', 'NR77', 'NR78'
+]);
+
+function cleanBands(bands) {
+  if (!Array.isArray(bands)) return [];
+
+  return [...new Set(
+    bands
+      .map(b => String(b).trim().toUpperCase().replace(/\s+/g, ''))
+      .filter(Boolean)
+      .filter(b => {
+        if (b.startsWith('NR')) return VALID_NR_BANDS.has(b);
+        return true;
+      })
+  )];
 }
 
 function mergeSourceNames(a, b) {
@@ -812,7 +831,7 @@ function buildFilterOptions() {
 }
 
 function bandSort(a, b) {
-  const order = ['GSM900', 'UMTS900', 'LTE800', 'LTE900', 'LTE1800', 'LTE2100', 'LTE2600', 'NR2100', 'NR3500', '5G'];
+  const order = ['GSM900', 'UMTS900', 'LTE800', 'LTE900', 'LTE1800', 'LTE2100', 'LTE2600', 'NR1', 'NR3', 'NR7', 'NR8', 'NR20', 'NR28', 'NR38', 'NR40', 'NR41', 'NR77', 'NR78', '5G'];
   const ia = order.findIndex(item => normalizeText(a).includes(normalizeText(item)));
   const ib = order.findIndex(item => normalizeText(b).includes(normalizeText(item)));
   if (ia !== -1 || ib !== -1) return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
@@ -1910,6 +1929,11 @@ function updateNavigationIndicator() {
 }
 
 async function updateFromUkeOnline(options = {}) {
+  if (!UKE_ONLINE_IMPORT_ENABLED) {
+    setUkeStatus(UKE_ONLINE_DISABLED_MESSAGE, null, 'info', false);
+    return;
+  }
+
   if (state.ukeUpdateRunning) {
     setUkeStatus('Aktualizacja UKE już trwa. Poczekaj na zakończenie.', null, 'busy', true);
     return;
@@ -1973,6 +1997,11 @@ async function updateFromUkeOnline(options = {}) {
 }
 
 async function updateSelectedFromUkeOnline() {
+  if (!UKE_ONLINE_IMPORT_ENABLED) {
+    setUkeStatus(UKE_ONLINE_DISABLED_MESSAGE, null, 'info', false);
+    return;
+  }
+
   if (!state.selected) {
     setUkeStatus('Najpierw wybierz nadajnik na mapie.', null, 'error', false);
     return;
@@ -2020,7 +2049,7 @@ function findBestStationMatch(reference, stations) {
 function describeUkeDownloadError(err) {
   const message = String(err?.message || err || 'nieznany błąd');
   if (/403|failed to fetch|cors|load failed|networkerror/i.test(message)) {
-    return `${message}. To zwykle oznacza blokadę pobierania plików UKE/Box bezpośrednio z przeglądarki.`;
+    return `${message}. To zwykle oznacza blokadę pobierania plików UKE/Box bezpośrednio z przeglądarki. Publiczne CORS-proxy są wyłączone.`;
   }
   return message;
 }
@@ -2171,7 +2200,7 @@ function enrichUkeRow(row, band, sourceName) {
 
 function enrichUkeStation(station, band, sourceName) {
   if (band && (!Array.isArray(station.bands) || !station.bands.some(item => normalizeText(item) === normalizeText(band)))) {
-    station.bands = [...(station.bands || []), band];
+    station.bands = cleanBands([...(station.bands || []), band]);
   }
   station.source = station.source || `UKE ${sourceName || ''}`.trim();
   return station;
@@ -2196,27 +2225,16 @@ async function fetchArrayBufferWithFallback(url) {
 }
 
 async function fetchWithCorsFallback(url, accept = '*/*') {
-  const candidates = [url, ...UKE_CORS_PROXIES.map(prefix => makeCorsProxyUrl(prefix, url))];
-  const errors = [];
-
-  for (const candidate of candidates) {
-    try {
-      const response = await fetch(candidate, {
-        cache: 'no-store',
-        headers: { Accept: accept }
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return response;
-    } catch (err) {
-      errors.push(`${sourceNameFromUrlSafe(candidate)}: ${err.message}`);
-    }
+  try {
+    const response = await fetch(url, {
+      cache: 'no-store',
+      headers: { Accept: accept }
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response;
+  } catch (err) {
+    throw new Error(`${sourceNameFromUrlSafe(url)}: ${err.message}. Publiczne CORS-proxy są wyłączone; użyj bezpośredniego linku z prawidłowym CORS albo importu ręcznego.`);
   }
-
-  throw new Error(`${sourceNameFromUrlSafe(url)}: ${errors.join(' / ')}`);
-}
-
-function makeCorsProxyUrl(prefix, url) {
-  return `${prefix}${encodeURIComponent(url)}`;
 }
 
 function sourceNameFromUrlSafe(url) {
@@ -2740,7 +2758,7 @@ function normalizeImportedRowMain(rawRow) {
     longitude: lon,
     address,
     city: getAliasedMain(row, ['city', 'miasto', 'miejscowosc', 'miejscowość', 'miejscowoscstacji', 'gmina']) || address.split(',')[0] || '',
-    bands: mergeUnique(splitListCellMain(bandsRaw), extractBandsFromText([bandsRaw, address, Object.values(row).join(' ')].join(' '))),
+    bands: cleanBands(mergeUnique(splitListCellMain(bandsRaw), extractBandsFromText([bandsRaw, address, Object.values(row).join(' ')].join(' ')))),
     azimuths: splitListCellMain(azRaw).map(numberFromCellMain).filter(Number.isFinite),
     sector_ids: splitListCellMain(getAliasedMain(row, ['sector_ids', 'sektory', 'sector', 'sektor', 'cellid', 'clid'])),
     cell_names: splitListCellMain(getAliasedMain(row, ['cell_names', 'komorki', 'komórki', 'cells', 'cellname'])),
@@ -2881,13 +2899,28 @@ async function importParameterFile(file) {
   showStatusToast('Import parametrów', message, 'success', { sticky: false, progress: 100 });
 }
 
-async function readPdfText(file) {
-  if (!window.pdfjsLib) throw new Error(PDF_CDN_NOTE);
-  if (pdfjsLib.GlobalWorkerOptions && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+async function ensurePdfJs() {
+  if (window.pdfjsLib) return window.pdfjsLib;
+  try {
+    const loadedPdfJs = await import(PDFJS_MODULE_URL);
+    if (loadedPdfJs.GlobalWorkerOptions) loadedPdfJs.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
+    window.pdfjsLib = loadedPdfJs;
+    return loadedPdfJs;
+  } catch (err) {
+    throw new Error(`${PDF_CDN_NOTE} ${err.message || err}`);
   }
+}
+
+async function readPdfText(file) {
+  const pdfjs = await ensurePdfJs();
+  if (pdfjs.GlobalWorkerOptions) pdfjs.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
   const buffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+  const typedArray = new Uint8Array(buffer);
+  const loadingTask = pdfjs.getDocument({
+    data: typedArray,
+    isEvalSupported: false,
+  });
+  const pdf = await loadingTask.promise;
   const chunks = [];
   const pageLimit = Math.min(pdf.numPages, 80);
   for (let pageNo = 1; pageNo <= pageLimit; pageNo++) {
@@ -2900,7 +2933,7 @@ async function readPdfText(file) {
 
 function extractStationSupplementFromText(text, sourceName) {
   const raw = String(text || '');
-  const bands = extractBandsFromText(raw);
+  const bands = cleanBands(extractBandsFromText(raw));
   const azimuths = extractAzimuthsFromText(raw);
   const power = extractPowerFromText(raw);
   const rangeKm = extractRangeFromText(raw);
@@ -2998,7 +3031,7 @@ function scoreSupplementMatch(station, supplement) {
 }
 
 function mergeSupplementIntoStation(station, supplement, sourceName) {
-  station.bands = mergeUnique(station.bands, supplement.bands);
+  station.bands = cleanBands(mergeUnique(station.bands, supplement.bands));
   station.azimuths = mergeUnique(station.azimuths, supplement.azimuths).map(Number).filter(Number.isFinite).sort((a, b) => a - b);
   if (!station.power && supplement.power) station.power = supplement.power;
   if (!station.eirp_dbm && supplement.eirp_dbm) station.eirp_dbm = supplement.eirp_dbm;
@@ -3017,20 +3050,7 @@ function mergeSupplementIntoStation(station, supplement, sourceName) {
 
 function nrBandToLabel(n) {
   const key = String(n || '').replace(/^n/i, '');
-  const map = {
-    '1': 'NR2100',
-    '3': 'NR1800',
-    '7': 'NR2600',
-    '8': 'NR900',
-    '20': 'NR800',
-    '28': 'NR700',
-    '38': 'NR2600',
-    '40': 'NR2300',
-    '41': 'NR2600',
-    '77': 'NR3700',
-    '78': 'NR3500'
-  };
-  return map[key] || `NR n${key}`;
+  return VALID_NR_BANDS.has(`NR${key}`) ? `NR${key}` : '';
 }
 
 function extractBandsFromText(value) {
@@ -3188,7 +3208,13 @@ function bindEvents() {
   el.themeBtn.addEventListener('click', () => { state.theme = state.theme === 'dark' ? 'light' : 'dark'; applyTheme(); saveSettings(); });
   el.closeDetailBtn.addEventListener('click', hideDetails);
   el.refreshBtn.addEventListener('click', () => loadStationsFromUrl('stations.json', { forceNetwork: true, save: true }).catch(showLoadError));
-  if (el.ukeUpdateBtn) el.ukeUpdateBtn.addEventListener('click', updateFromUkeOnline);
+  if (el.ukeUpdateBtn) {
+    el.ukeUpdateBtn.addEventListener('click', updateFromUkeOnline);
+    if (!UKE_ONLINE_IMPORT_ENABLED) {
+      el.ukeUpdateBtn.textContent = 'UKE online wyłączone';
+      el.ukeUpdateBtn.title = 'Użyj importu ręcznego ZIP/XLSX/CSV z UKE.';
+    }
+  }
   if (el.openUkePageBtn) el.openUkePageBtn.addEventListener('click', openUkePage);
   if (el.openSi2pemBtn) el.openSi2pemBtn.addEventListener('click', openSi2pemPage);
   if (el.statusToastClose) el.statusToastClose.addEventListener('click', hideStatusToast);

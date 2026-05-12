@@ -172,6 +172,25 @@ function mergeUnique(a, b) {
   return out;
 }
 
+// UWAGA: te same reguły czyszczenia pasm są zdublowane w app.js. Każdą zmianę parsera trzeba wykonać w obu plikach.
+const VALID_NR_BANDS = new Set([
+  'NR1', 'NR3', 'NR7', 'NR8', 'NR20', 'NR28', 'NR38', 'NR40', 'NR41', 'NR77', 'NR78'
+]);
+
+function cleanBands(bands) {
+  if (!Array.isArray(bands)) return [];
+
+  return [...new Set(
+    bands
+      .map(b => String(b).trim().toUpperCase().replace(/\s+/g, ''))
+      .filter(Boolean)
+      .filter(b => {
+        if (b.startsWith('NR')) return VALID_NR_BANDS.has(b);
+        return true;
+      })
+  )];
+}
+
 function matrixToObjects(matrix) {
   const rows = (matrix || []).map(row => Array.from(row || []).map(value => String(value ?? '').trim()));
   const nonEmpty = rows.filter(row => row.some(Boolean));
@@ -202,20 +221,7 @@ function scoreHeaderRow(row) {
 
 function nrBandToLabel(n) {
   const key = String(n || '').replace(/^n/i, '');
-  const map = {
-    '1': 'NR2100',
-    '3': 'NR1800',
-    '7': 'NR2600',
-    '8': 'NR900',
-    '20': 'NR800',
-    '28': 'NR700',
-    '38': 'NR2600',
-    '40': 'NR2300',
-    '41': 'NR2600',
-    '77': 'NR3700',
-    '78': 'NR3500'
-  };
-  return map[key] || `NR n${key}`;
+  return VALID_NR_BANDS.has(`NR${key}`) ? `NR${key}` : '';
 }
 
 function extractBandsFromText(value) {
@@ -291,7 +297,7 @@ function normalizeImportedRow(row) {
     longitude: lon,
     address,
     city: getAliased(row, ['city', 'miasto', 'miejscowosc', 'miejscowość', 'miejscowoscstacji', 'gmina']),
-    bands: mergeUnique(splitListCell(bandsRaw), extractedBands),
+    bands: cleanBands(mergeUnique(splitListCell(bandsRaw), extractedBands)),
     azimuths: splitListCell(azRaw).map(numberFromCell).filter(Number.isFinite),
     range_km: numberFromCell(getAliased(row, ['range_km', 'rangekm', 'zasieg', 'zasiegkm', 'zasięg', 'zasięgkm'])),
     power: powerRaw,
@@ -306,7 +312,7 @@ function normalizeStation(raw) {
   const longitude = Number(raw.longitude ?? raw.lon ?? raw.lng);
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
   const textForBands = [raw.bands, raw.band, raw.technology, raw.technologie, raw.address, raw.location, raw.city, raw.station_id, raw.source].join(' ');
-  const bands = mergeUnique(splitListCell(raw.bands || raw.band || raw.technology || raw.technologie), extractBandsFromText(textForBands));
+  const bands = cleanBands(mergeUnique(splitListCell(raw.bands || raw.band || raw.technology || raw.technologie), extractBandsFromText(textForBands)));
   const azimuths = splitListCell(raw.azimuths || raw.azymuty || raw.azimuth)
     .map(numberFromCell)
     .filter(Number.isFinite)
@@ -318,7 +324,7 @@ function normalizeStation(raw) {
     longitude,
     address: String(raw.address || raw.location || ''),
     city: String(raw.city || ''),
-    bands: bands.length ? [...new Set(bands)] : ['Nieznane'],
+    bands: bands.length ? cleanBands([...new Set(bands)]) : ['Nieznane'],
     azimuths: [...new Set(azimuths)],
     sector_ids: splitListCell(raw.sector_ids || raw.sectors || raw.sektory),
     cell_names: splitListCell(raw.cell_names || raw.cells || raw.komorki),

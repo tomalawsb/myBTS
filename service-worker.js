@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_NAME = 'mybts-web-pro-v3-11-1205261805';
+const CACHE_NAME = 'mybts-web-pro-v3-16-1205262109';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -9,6 +9,8 @@ const CORE_ASSETS = [
   './data-worker.js',
   './manifest.json',
   './icon.svg',
+  './icon-192.png',
+  './icon-512.png',
   './stations_sample.json'
 ];
 
@@ -29,7 +31,7 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
 
-  if (url.pathname.endsWith('/stations.json')) {
+  if (url.pathname.endsWith('/stations.json') || url.pathname.endsWith('/stations.json.br') || url.pathname.endsWith('/stations.json.gz')) {
     event.respondWith(networkOnly(request));
     return;
   }
