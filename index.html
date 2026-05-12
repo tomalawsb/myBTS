@@ -3,71 +3,69 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#f7f9fc" />
-  <title>myBTS Web Pro v2</title>
+  <meta name="theme-color" content="#f6f8fc" />
+  <title>myBTS Web Pro 3.0 - 1205261329</title>
   <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="app" class="app-shell">
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand-icon">BTS</div>
+    <section class="map-stage" aria-label="Mapa stacji BTS">
+      <div id="map" class="map"></div>
+
+      <header class="topbar glass-panel">
+        <div class="brand">
+          <div class="brand-icon">BTS</div>
+          <div class="brand-text">
+            <h1>myBTS Web Pro</h1>
+            <p id="statusText">Ładowanie aplikacji…</p>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button id="locateBtn" class="btn primary" type="button">GPS</button>
+          <button id="menuBtn" class="btn ghost icon-btn" type="button" aria-label="Menu">☰</button>
+        </div>
+      </header>
+
+      <div class="search-card glass-panel">
+        <input id="searchInput" class="input search-input" type="search" placeholder="Szukaj miejscowości, adresu, ID stacji…" autocomplete="off" />
+        <button id="clearSearchBtn" class="btn ghost icon-btn" type="button" aria-label="Wyczyść wyszukiwanie">×</button>
+      </div>
+
+      <div class="map-switch glass-panel" role="group" aria-label="Typ mapy">
+        <button id="mapPlanBtn" class="seg-btn active" type="button">Plan</button>
+        <button id="mapSatBtn" class="seg-btn" type="button">Satelita</button>
+      </div>
+
+      <div id="quickStats" class="quick-stats glass-panel">
+        <div><span>Wszystkie</span><strong id="totalCount">0</strong></div>
+        <div><span>Widoczne</span><strong id="visibleCount">0</strong></div>
+        <div><span>Zoom</span><strong id="zoomValue">—</strong></div>
+      </div>
+
+      <button id="setPointBtn" class="floating-action" type="button">Ustaw punkt pomiaru</button>
+    </section>
+
+    <aside id="appPanel" class="app-panel glass-panel" aria-label="Panel aplikacji">
+      <div class="panel-handle" aria-hidden="true"></div>
+      <div class="panel-top-row">
         <div>
-          <h1>myBTS Web Pro <span class="version-pill">v2</span></h1>
-          <p id="statusText">Ładowanie aplikacji…</p>
+          <h2 id="panelTitle">Filtry</h2>
+          <p id="datasetInfo">Baza: —</p>
         </div>
+        <button id="collapsePanelBtn" class="btn ghost icon-btn" type="button" aria-label="Zwiń panel">⌄</button>
       </div>
-      <div class="top-actions">
-        <button id="installBtn" class="btn ghost hidden" type="button">Zainstaluj</button>
-        <button id="clearCacheBtn" class="btn ghost" type="button">Wyczyść bazę</button>
-        <button id="themeBtn" class="btn ghost" type="button">Motyw</button>
-        <button id="locateBtn" class="btn primary" type="button">Moja pozycja</button>
-      </div>
-    </header>
 
-    <main class="main-grid">
-      <section class="map-card">
-        <div id="map" class="map" aria-label="Mapa stacji BTS">
-          <div id="tileLayer" class="tile-layer"></div>
-          <canvas id="overlayCanvas" class="overlay-canvas"></canvas>
-          <div id="measureMarker" class="measure-marker hidden" title="Punkt pomiarowy"></div>
-          <div class="map-tools top-left">
-            <button id="zoomInBtn" class="map-btn" type="button">+</button>
-            <button id="zoomOutBtn" class="map-btn" type="button">−</button>
-          </div>
-          <div class="map-tools bottom-left">
-            <button id="setPointBtn" class="map-btn wide" type="button">Ustaw punkt z mapy</button>
-            <button id="clearPointBtn" class="map-btn wide" type="button">Wyczyść pomiar</button>
-          </div>
-          <div id="mapHint" class="map-hint">Przeciągnij mapę • kliknij BTS • tryb punktu ustawia pomiar</div>
-        </div>
-      </section>
+      <nav class="tabs" aria-label="Sekcje panelu">
+        <button class="tab active" data-tab="filters" type="button">Filtry</button>
+        <button class="tab" data-tab="list" type="button">Lista</button>
+        <button class="tab" data-tab="details" type="button">Szczegóły</button>
+        <button class="tab" data-tab="settings" type="button">Ustawienia</button>
+      </nav>
 
-      <aside class="side-panel">
-        <section class="panel-card filters-card">
-          <div class="panel-title-row">
-            <div>
-              <h2>Filtry</h2>
-              <p id="datasetInfo">Baza: —</p>
-            </div>
-            <div class="mini-actions">
-              <button id="importFileBtn" class="btn ghost" type="button">Import pliku</button>
-              <button id="refreshBtn" class="btn ghost" type="button">Odśwież JSON</button>
-            </div>
-          </div>
-
-
-          <label class="field-label" for="remoteUrlInput">Baza z linku</label>
-          <div class="url-row">
-            <input id="remoteUrlInput" class="input" type="url" placeholder="Link do JSON/CSV/XLSX, Google Drive, Dropbox lub raw GitHub" autocomplete="off" />
-            <button id="loadUrlBtn" class="btn ghost" type="button">Pobierz</button>
-          </div>
-          <div id="storageStatus" class="storage-status">Pamięć lokalna: sprawdzanie…</div>
-
-          <label class="field-label" for="searchInput">Szukaj</label>
-          <input id="searchInput" class="input" type="search" placeholder="Miejscowość, adres, ID stacji" autocomplete="off" />
-
+      <div class="panel-content">
+        <section id="tabFilters" class="tab-panel active">
           <div class="field-grid">
             <label>
               <span class="field-label">Operator</span>
@@ -79,7 +77,7 @@
             </label>
           </div>
 
-          <label class="field-label" for="radiusSelect">Odległość</label>
+          <label class="field-label" for="radiusSelect">Odległość od punktu / środka mapy</label>
           <select id="radiusSelect" class="select">
             <option value="">Wszędzie</option>
             <option value="1">1 km</option>
@@ -90,44 +88,67 @@
             <option value="50">50 km</option>
           </select>
 
-          <div class="toggle-row">
-            <button id="mapPlanBtn" class="btn seg active" type="button">Plan</button>
-            <button id="mapSatBtn" class="btn seg" type="button">Satelita</button>
-            <button id="nearestBtn" class="btn seg" type="button">Najbliższe</button>
+          <div class="action-grid">
+            <button id="nearestBtn" class="btn ghost" type="button">Najbliższe</button>
+            <button id="clearPointBtn" class="btn ghost" type="button">Wyczyść pomiar</button>
           </div>
+
+          <div id="storageStatus" class="notice-box">Pamięć lokalna: sprawdzanie…</div>
         </section>
 
-        <section class="stats-grid">
-          <div class="stat"><span>Wszystkie</span><strong id="totalCount">0</strong></div>
-          <div class="stat"><span>Widoczne</span><strong id="visibleCount">0</strong></div>
-          <div class="stat"><span>Zoom</span><strong id="zoomValue">—</strong></div>
-        </section>
-
-        <section id="detailCard" class="panel-card detail-card hidden">
-          <div class="panel-title-row">
-            <div>
-              <h2 id="detailTitle">Stacja</h2>
-              <p id="detailSubtitle">—</p>
-            </div>
-            <button id="closeDetailBtn" class="btn ghost" type="button">×</button>
-          </div>
-          <div id="detailBody" class="detail-body"></div>
-        </section>
-
-        <section class="panel-card list-card">
-          <div class="panel-title-row">
-            <div>
-              <h2>Stacje w widoku</h2>
-              <p id="listSubtitle">Najbliższe względem środka mapy</p>
-            </div>
+        <section id="tabList" class="tab-panel">
+          <div class="list-head">
+            <h3>Stacje w widoku</h3>
+            <p id="listSubtitle">Najbliższe względem środka mapy</p>
           </div>
           <div id="stationList" class="station-list"></div>
         </section>
-      </aside>
-    </main>
+
+        <section id="tabDetails" class="tab-panel">
+          <div id="emptyDetails" class="empty-state">Kliknij stację na mapie albo na liście.</div>
+          <div id="detailCard" class="detail-card hidden">
+            <div class="detail-title-row">
+              <div>
+                <h3 id="detailTitle">Stacja</h3>
+                <p id="detailSubtitle">—</p>
+              </div>
+              <button id="closeDetailBtn" class="btn ghost icon-btn" type="button" aria-label="Zamknij szczegóły">×</button>
+            </div>
+            <div id="detailBody" class="detail-body"></div>
+          </div>
+        </section>
+
+        <section id="tabSettings" class="tab-panel">
+          <div class="settings-group">
+            <h3>Dane</h3>
+            <button id="refreshBtn" class="btn ghost" type="button">Odśwież stations.json</button>
+            <button id="importFileBtn" class="btn ghost" type="button">Import JSON / CSV / XLSX</button>
+            <button id="clearCacheBtn" class="btn danger" type="button">Wyczyść lokalną bazę</button>
+          </div>
+
+          <div class="settings-group">
+            <h3>Baza z linku</h3>
+            <input id="remoteUrlInput" class="input" type="url" placeholder="Link do JSON/CSV/XLSX, Dropbox, Google Drive, raw GitHub" autocomplete="off" />
+            <button id="loadUrlBtn" class="btn ghost" type="button">Pobierz z linku</button>
+          </div>
+
+          <div class="settings-group">
+            <h3>Wygląd</h3>
+            <button id="themeBtn" class="btn ghost" type="button">Przełącz motyw</button>
+            <button id="installBtn" class="btn ghost hidden" type="button">Zainstaluj PWA</button>
+          </div>
+
+          <div class="notice-box small">
+            Wersja: <strong>3.0 - 1205261329</strong><br />
+            Mapa działa na Leaflet. Stacje nie są już rysowane własnym silnikiem canvas.
+          </div>
+        </section>
+      </div>
+    </aside>
   </div>
 
   <input id="dataFileInput" class="hidden" type="file" accept="application/json,.json,text/csv,.csv,.xlsx,.xls" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" defer></script>
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js" defer></script>
   <script src="app.js" defer></script>
 </body>

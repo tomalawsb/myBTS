@@ -1,13 +1,13 @@
 {
-  "name": "myBTS Web Pro v2",
+  "name": "myBTS Web Pro 3.0",
   "short_name": "myBTS",
-  "description": "Webowa PWA do przeglądania stacji BTS z importem JSON/CSV/XLSX i lokalną bazą IndexedDB.",
+  "description": "Webowa PWA do przeglądania stacji BTS z mapą Leaflet, importem JSON/CSV/XLSX i lokalną bazą IndexedDB.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#f4f7fb",
-  "theme_color": "#f7f9fc",
+  "background_color": "#f5f7fb",
+  "theme_color": "#f6f8fc",
   "icons": [
     {
       "src": "icon.svg",

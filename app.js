@@ -1,17 +1,16 @@
 'use strict';
 
-const APP_VERSION = '2.0.0-web';
-const TILE_SIZE = 256;
-const DEFAULT_CENTER = { lat: 50.2872, lon: 21.4231 };
+const APP_VERSION = '3.0 - 1205261329';
+const DEFAULT_CENTER = [50.2872, 21.4231];
 const DEFAULT_ZOOM = 10;
 const MIN_ZOOM = 5;
 const MAX_ZOOM = 18;
-const MAX_LIST_ROWS = 120;
-const MAX_MARKERS = 260;
-const MOBILE_MAX_MARKERS = 120;
+const MAX_LIST_ROWS = 140;
+const MAX_MAP_OBJECTS_DESKTOP = 520;
+const MAX_MAP_OBJECTS_MOBILE = 210;
 const SEARCH_MIN_CHARS = 2;
-const SETTINGS_KEY = 'mybts-web-settings-v2';
-const DB_NAME = 'mybts-web-db';
+const SETTINGS_KEY = 'mybts-web-settings-v3';
+const DB_NAME = 'mybts-web-db-v3';
 const DB_VERSION = 1;
 const DATASET_STORE = 'datasets';
 const ACTIVE_DATASET_ID = 'active';
@@ -34,9 +33,10 @@ const OPERATOR_COLORS = {
 
 const state = {
   stations: [],
+  spatialGrid: new Map(),
   operators: ['Wszyscy'],
   bands: ['Wszystkie'],
-  center: { ...DEFAULT_CENTER },
+  center: DEFAULT_CENTER.slice(),
   zoom: DEFAULT_ZOOM,
   mapType: 'plan',
   theme: 'light',
@@ -47,15 +47,21 @@ const state = {
   measure: null,
   selected: null,
   setPointMode: false,
-  currentItems: [],
+  activeTab: 'filters',
   currentList: [],
   currentVisibleTotal: 0,
   renderTimer: null,
-  spatialGrid: new Map(),
   dataSourceName: '',
-  isSavingDataset: false,
-  dataLoaded: false,
-  deferredInstallPrompt: null
+  deferredInstallPrompt: null,
+  workerSeq: 0,
+  worker: null,
+  map: null,
+  planLayer: null,
+  satLayer: null,
+  markerLayer: null,
+  sectorLayer: null,
+  measureLayer: null,
+  userMarker: null
 };
 
 const el = {};
@@ -66,10 +72,12 @@ function initElements() {
     statusText: document.getElementById('statusText'),
     datasetInfo: document.getElementById('datasetInfo'),
     map: document.getElementById('map'),
-    tileLayer: document.getElementById('tileLayer'),
-    canvas: document.getElementById('overlayCanvas'),
-    measureMarker: document.getElementById('measureMarker'),
+    appPanel: document.getElementById('appPanel'),
+    panelTitle: document.getElementById('panelTitle'),
+    collapsePanelBtn: document.getElementById('collapsePanelBtn'),
+    menuBtn: document.getElementById('menuBtn'),
     searchInput: document.getElementById('searchInput'),
+    clearSearchBtn: document.getElementById('clearSearchBtn'),
     operatorSelect: document.getElementById('operatorSelect'),
     bandSelect: document.getElementById('bandSelect'),
     radiusSelect: document.getElementById('radiusSelect'),
@@ -79,6 +87,7 @@ function initElements() {
     stationList: document.getElementById('stationList'),
     listSubtitle: document.getElementById('listSubtitle'),
     detailCard: document.getElementById('detailCard'),
+    emptyDetails: document.getElementById('emptyDetails'),
     detailTitle: document.getElementById('detailTitle'),
     detailSubtitle: document.getElementById('detailSubtitle'),
     detailBody: document.getElementById('detailBody'),
@@ -93,39 +102,47 @@ function initElements() {
     storageStatus: document.getElementById('storageStatus'),
     themeBtn: document.getElementById('themeBtn'),
     installBtn: document.getElementById('installBtn'),
-    zoomInBtn: document.getElementById('zoomInBtn'),
-    zoomOutBtn: document.getElementById('zoomOutBtn'),
     setPointBtn: document.getElementById('setPointBtn'),
     clearPointBtn: document.getElementById('clearPointBtn'),
     mapPlanBtn: document.getElementById('mapPlanBtn'),
     mapSatBtn: document.getElementById('mapSatBtn'),
-    nearestBtn: document.getElementById('nearestBtn')
+    nearestBtn: document.getElementById('nearestBtn'),
+    tabs: Array.from(document.querySelectorAll('.tab')),
+    tabPanels: {
+      filters: document.getElementById('tabFilters'),
+      list: document.getElementById('tabList'),
+      details: document.getElementById('tabDetails'),
+      settings: document.getElementById('tabSettings')
+    }
   });
 }
 
 function loadSettings() {
   try {
     const parsed = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-    if (Number.isFinite(parsed.lat) && Number.isFinite(parsed.lon)) state.center = { lat: parsed.lat, lon: parsed.lon };
+    if (Number.isFinite(parsed.lat) && Number.isFinite(parsed.lon)) state.center = [parsed.lat, parsed.lon];
     if (Number.isFinite(parsed.zoom)) state.zoom = clamp(Math.round(parsed.zoom), MIN_ZOOM, MAX_ZOOM);
     if (parsed.mapType === 'sat' || parsed.mapType === 'plan') state.mapType = parsed.mapType;
     if (parsed.theme === 'dark' || parsed.theme === 'light') state.theme = parsed.theme;
     if (parsed.operator) state.operator = parsed.operator;
     if (parsed.band) state.band = parsed.band;
+    if (parsed.activeTab) state.activeTab = parsed.activeTab;
     state.radiusKm = parsed.radiusKm === null || parsed.radiusKm === '' || parsed.radiusKm === undefined ? null : Number(parsed.radiusKm);
   } catch (_) {}
 }
 
 function saveSettings() {
+  const center = state.map ? state.map.getCenter() : { lat: state.center[0], lng: state.center[1] };
   const payload = {
-    lat: state.center.lat,
-    lon: state.center.lon,
-    zoom: state.zoom,
+    lat: center.lat,
+    lon: center.lng,
+    zoom: state.map ? state.map.getZoom() : state.zoom,
     mapType: state.mapType,
     theme: state.theme,
     operator: state.operator,
     band: state.band,
-    radiusKm: state.radiusKm
+    radiusKm: state.radiusKm,
+    activeTab: state.activeTab
   };
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(payload));
 }
@@ -138,28 +155,16 @@ function setStatus(text) {
   el.statusText.textContent = text;
 }
 
+function setStorageStatus(text) {
+  if (el.storageStatus) el.storageStatus.textContent = text;
+}
+
 function normalizeText(value) {
   return String(value || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .trim();
-}
-
-function stationKey(station) {
-  return `${station.operator}|${station.station_id}|${station.latitude}|${station.longitude}`;
-}
-
-function compactNumber(value) {
-  return new Intl.NumberFormat('pl-PL').format(value || 0);
-}
-
-function operatorColor(operator) {
-  return OPERATOR_COLORS[operator] || '#3478f6';
-}
-
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
 }
 
 function escapeHtml(value) {
@@ -171,9 +176,20 @@ function escapeHtml(value) {
     .replace(/'/g, '&#039;');
 }
 
+function compactNumber(value) {
+  return new Intl.NumberFormat('pl-PL').format(value || 0);
+}
 
-function setStorageStatus(text) {
-  if (el.storageStatus) el.storageStatus.textContent = text;
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function operatorColor(operator) {
+  return OPERATOR_COLORS[operator] || '#3478f6';
+}
+
+function isMobileLayout() {
+  return window.matchMedia('(max-width: 900px)').matches;
 }
 
 function openDb() {
@@ -222,7 +238,6 @@ function idbDelete(storeName, key) {
 
 async function saveActiveDataset(stations, sourceName) {
   if (!stations || !stations.length) return;
-  state.isSavingDataset = true;
   setStorageStatus('Pamięć lokalna: zapisuję bazę…');
   try {
     await idbPut(DATASET_STORE, {
@@ -236,8 +251,6 @@ async function saveActiveDataset(stations, sourceName) {
   } catch (err) {
     console.warn(err);
     setStorageStatus(`Pamięć lokalna: nie zapisano bazy (${err.message}).`);
-  } finally {
-    state.isSavingDataset = false;
   }
 }
 
@@ -255,143 +268,160 @@ async function loadActiveDataset() {
 async function clearActiveDataset() {
   try {
     await idbDelete(DATASET_STORE, ACTIVE_DATASET_ID);
-    setStorageStatus('Pamięć lokalna: wyczyszczona. Odświeżono bazę z pliku stations.json.');
+    setStorageStatus('Pamięć lokalna: wyczyszczona. Wczytuję stations.json…');
     await loadStationsFromUrl('stations.json', { forceNetwork: true, save: true });
   } catch (err) {
     setStatus(`Nie udało się wyczyścić bazy: ${err.message}`);
   }
 }
 
-function normalizeColumnName(value) {
-  return normalizeText(value).replace(/[^a-z0-9]+/g, '');
+function ensureWorker() {
+  if (state.worker) return state.worker;
+  if (!window.Worker) return null;
+  state.worker = new Worker('data-worker.js');
+  return state.worker;
 }
 
-function numberFromCell(value) {
-  if (typeof value === 'number') return value;
-  const text = String(value ?? '').trim().replace(',', '.');
-  const match = text.match(/-?\d+(?:\.\d+)?/);
-  return match ? Number(match[0]) : NaN;
-}
-
-function splitListCell(value) {
-  if (Array.isArray(value)) return value.map(String).map(s => s.trim()).filter(Boolean);
-  const text = String(value ?? '').trim();
-  if (!text) return [];
-  return text.split(/[;,|/]+|\s{2,}/).map(s => s.trim()).filter(Boolean);
-}
-
-function getAliased(row, aliases) {
-  for (const alias of aliases) {
-    const key = normalizeColumnName(alias);
-    if (Object.prototype.hasOwnProperty.call(row, key) && row[key] !== '') return row[key];
-  }
-  return '';
-}
-
-function normalizeImportedRow(row) {
-  const lat = numberFromCell(getAliased(row, ['latitude', 'lat', 'szerokosc', 'szerokoscgeograficzna', 'wgs84lat', 'y']));
-  const lon = numberFromCell(getAliased(row, ['longitude', 'lon', 'lng', 'dlugosc', 'dlugoscgeograficzna', 'wgs84lon', 'x']));
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-  const bandsRaw = getAliased(row, ['bands', 'pasma', 'pasmo', 'band', 'technologia', 'technology', 'system']);
-  const azRaw = getAliased(row, ['azimuths', 'azymuty', 'azymut', 'azimuth']);
-  return normalizeStation({
-    station_id: getAliased(row, ['station_id', 'stationid', 'id', 'nrstacji', 'idstacji', 'pozwolenie', 'btssid', 'siteid']) || '—',
-    operator: getAliased(row, ['operator', 'sieć', 'siec', 'network', 'mno']) || 'Nieznany',
-    latitude: lat,
-    longitude: lon,
-    address: getAliased(row, ['address', 'adres', 'lokalizacja', 'location', 'ulica']),
-    city: getAliased(row, ['city', 'miasto', 'miejscowosc', 'miejscowość', 'gmina']),
-    bands: splitListCell(bandsRaw),
-    azimuths: splitListCell(azRaw).map(numberFromCell).filter(Number.isFinite),
-    range_km: numberFromCell(getAliased(row, ['range_km', 'rangekm', 'zasieg', 'zasiegkm', 'zasięg', 'zasięgkm'])),
-    records_count: numberFromCell(getAliased(row, ['records_count', 'recordscount', 'rekordy'])) || 1,
-    source: getAliased(row, ['source', 'zrodlo', 'źródło']) || 'import'
-  });
-}
-
-function parseCsv(text) {
-  const sample = text.slice(0, 5000);
-  const delimiters = [';', ',', '\t'];
-  let delimiter = ';';
-  let best = -1;
-  for (const d of delimiters) {
-    const score = (sample.match(new RegExp(d === '\\t' ? '\\t' : `\\${d}`, 'g')) || []).length;
-    if (score > best) { best = score; delimiter = d === '\\t' ? '\t' : d; }
-  }
-
-  const rows = [];
-  let row = [];
-  let cell = '';
-  let quoted = false;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    const next = text[i + 1];
-    if (ch === '"') {
-      if (quoted && next === '"') { cell += '"'; i++; }
-      else quoted = !quoted;
-      continue;
+function workerRequest(payload) {
+  return new Promise((resolve, reject) => {
+    const worker = ensureWorker();
+    if (!worker) {
+      reject(new Error('Ta przeglądarka nie obsługuje Web Workera.'));
+      return;
     }
-    if (!quoted && ch === delimiter) { row.push(cell); cell = ''; continue; }
-    if (!quoted && (ch === '\n' || ch === '\r')) {
-      if (ch === '\r' && next === '\n') i++;
-      row.push(cell); cell = '';
-      if (row.some(v => String(v).trim() !== '')) rows.push(row);
-      row = [];
-      continue;
+    const id = ++state.workerSeq;
+    const cleanup = () => worker.removeEventListener('message', onMessage);
+    const onMessage = (event) => {
+      const msg = event.data || {};
+      if (msg.id !== id) return;
+      if (msg.type === 'status') {
+        setStatus(msg.text);
+        return;
+      }
+      cleanup();
+      if (msg.type === 'error') reject(new Error(msg.message || 'Błąd przetwarzania danych.'));
+      else resolve(msg);
+    };
+    worker.addEventListener('message', onMessage);
+    worker.postMessage({ ...payload, id });
+  });
+}
+
+function initMap() {
+  if (!window.L) {
+    setStatus('Nie wczytano biblioteki Leaflet. Sprawdź internet albo cache przeglądarki.');
+    return;
+  }
+
+  state.map = L.map('map', {
+    center: state.center,
+    zoom: state.zoom,
+    minZoom: MIN_ZOOM,
+    maxZoom: MAX_ZOOM,
+    zoomControl: false,
+    inertia: true,
+    tap: true,
+    attributionControl: true
+  });
+
+  L.control.zoom({ position: 'bottomright' }).addTo(state.map);
+
+  state.planLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+  });
+
+  state.satLayer = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19,
+    attribution: 'Tiles &copy; Esri'
+  });
+
+  state.markerLayer = L.layerGroup().addTo(state.map);
+  state.sectorLayer = L.layerGroup().addTo(state.map);
+  state.measureLayer = L.layerGroup().addTo(state.map);
+
+  setMapType(state.mapType, false);
+
+  state.map.on('moveend zoomend resize', () => {
+    const center = state.map.getCenter();
+    state.center = [center.lat, center.lng];
+    state.zoom = state.map.getZoom();
+    scheduleRender();
+    saveSettings();
+  });
+
+  state.map.on('click', event => {
+    if (state.setPointMode) setMeasurePoint(event.latlng);
+  });
+}
+
+function setMapType(type, rerender = true) {
+  state.mapType = type === 'sat' ? 'sat' : 'plan';
+  if (state.map) {
+    if (state.mapType === 'sat') {
+      if (state.map.hasLayer(state.planLayer)) state.map.removeLayer(state.planLayer);
+      state.satLayer.addTo(state.map);
+    } else {
+      if (state.map.hasLayer(state.satLayer)) state.map.removeLayer(state.satLayer);
+      state.planLayer.addTo(state.map);
     }
-    cell += ch;
   }
-  row.push(cell);
-  if (row.some(v => String(v).trim() !== '')) rows.push(row);
-  if (!rows.length) return [];
-
-  const headers = rows[0].map(normalizeColumnName);
-  return rows.slice(1).map(values => {
-    const out = {};
-    headers.forEach((key, i) => { if (key) out[key] = String(values[i] ?? '').trim(); });
-    return out;
-  });
+  el.mapPlanBtn.classList.toggle('active', state.mapType === 'plan');
+  el.mapSatBtn.classList.toggle('active', state.mapType === 'sat');
+  saveSettings();
+  if (rerender) scheduleRender();
 }
 
-function parseCsvStations(text) {
-  const rows = parseCsv(text);
-  const stations = [];
-  for (const row of rows) {
-    const station = normalizeImportedRow(row);
-    if (station) stations.push(station);
-  }
-  if (!stations.length) throw new Error('Nie znaleziono stacji z poprawnymi współrzędnymi. Sprawdź nazwy kolumn: lat/lon/operator/pasma/adres.');
-  return stations;
+function normalizeStationForMain(raw) {
+  const station = { ...raw };
+  station.latitude = Number(station.latitude);
+  station.longitude = Number(station.longitude);
+  station.bands = Array.isArray(station.bands) && station.bands.length ? station.bands.map(String) : ['Nieznane'];
+  station.azimuths = Array.isArray(station.azimuths) ? station.azimuths.map(Number).filter(Number.isFinite) : [];
+  station.sector_ids = Array.isArray(station.sector_ids) ? station.sector_ids : [];
+  station.cell_names = Array.isArray(station.cell_names) ? station.cell_names : [];
+  station.records_count = Number(station.records_count || 1) || 1;
+  station._search = station._search || normalizeText([
+    station.station_id,
+    station.operator,
+    station.city,
+    station.address,
+    station.bands.join(' '),
+    station.source
+  ].join(' • '));
+  return Number.isFinite(station.latitude) && Number.isFinite(station.longitude) ? station : null;
 }
 
-async function parseXlsxStations(fileOrBuffer) {
-  if (!window.XLSX) throw new Error(XLSX_CDN_NOTE);
-  const buffer = fileOrBuffer instanceof ArrayBuffer ? fileOrBuffer : await fileOrBuffer.arrayBuffer();
-  const workbook = XLSX.read(buffer, { type: 'array' });
-  const firstSheetName = workbook.SheetNames[0];
-  if (!firstSheetName) throw new Error('Plik XLSX nie ma arkuszy.');
-  const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName], { defval: '' });
-  const normalizedRows = rows.map(row => {
-    const out = {};
-    for (const [key, value] of Object.entries(row)) out[normalizeColumnName(key)] = value;
-    return out;
-  });
-  const stations = [];
-  for (const row of normalizedRows) {
-    const station = normalizeImportedRow(row);
-    if (station) stations.push(station);
+function setStations(stations, sourceName, options = {}) {
+  const normalized = [];
+  const seen = new Set();
+  for (const raw of stations || []) {
+    const station = normalizeStationForMain(raw);
+    if (!station) continue;
+    const key = `${station.operator}|${station.station_id}|${station.latitude}|${station.longitude}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    normalized.push(station);
   }
-  if (!stations.length) throw new Error('Nie znaleziono stacji z poprawnymi współrzędnymi w XLSX.');
-  return stations;
+
+  state.stations = normalized;
+  state.dataSourceName = sourceName || 'baza';
+  buildSpatialIndex(state.stations);
+  buildFilterOptions();
+  fillSelect(el.operatorSelect, state.operators, state.operator);
+  fillSelect(el.bandSelect, state.bands, state.band);
+  el.datasetInfo.textContent = `Baza: ${state.dataSourceName} • ${compactNumber(state.stations.length)} stacji`;
+  setStatus(`Wczytano ${compactNumber(state.stations.length)} stacji.`);
+  if (options.save) saveActiveDataset(state.stations, state.dataSourceName);
+  scheduleRender();
 }
 
 function buildSpatialIndex(stations) {
   const grid = new Map();
   for (const station of stations) {
     const key = spatialKey(station.latitude, station.longitude);
-    let bucket = grid.get(key);
-    if (!bucket) { bucket = []; grid.set(key, bucket); }
-    bucket.push(station);
+    if (!grid.has(key)) grid.set(key, []);
+    grid.get(key).push(station);
   }
   state.spatialGrid = grid;
 }
@@ -401,707 +431,382 @@ function spatialKey(lat, lon) {
 }
 
 function stationsFromBounds(bounds) {
-  if (!state.spatialGrid.size) return state.stations;
-  if (bounds.east < bounds.west) return state.stations;
-  const latMin = Math.floor(bounds.south / SPATIAL_CELL_DEG);
-  const latMax = Math.floor(bounds.north / SPATIAL_CELL_DEG);
-  const lonMin = Math.floor(bounds.west / SPATIAL_CELL_DEG);
-  const lonMax = Math.floor(bounds.east / SPATIAL_CELL_DEG);
-  if ((latMax - latMin) * (lonMax - lonMin) > 1200) return state.stations;
+  if (!bounds || !state.spatialGrid.size) return [];
+  const south = bounds.getSouth();
+  const north = bounds.getNorth();
+  const west = bounds.getWest();
+  const east = bounds.getEast();
+  const minLat = Math.floor(south / SPATIAL_CELL_DEG);
+  const maxLat = Math.floor(north / SPATIAL_CELL_DEG);
+  const minLon = Math.floor(west / SPATIAL_CELL_DEG);
+  const maxLon = Math.floor(east / SPATIAL_CELL_DEG);
   const out = [];
-  for (let la = latMin; la <= latMax; la++) {
-    for (let lo = lonMin; lo <= lonMax; lo++) {
-      const bucket = state.spatialGrid.get(`${la}:${lo}`);
-      if (bucket) out.push(...bucket);
+  for (let lat = minLat; lat <= maxLat; lat++) {
+    for (let lon = minLon; lon <= maxLon; lon++) {
+      const bucket = state.spatialGrid.get(`${lat}:${lon}`);
+      if (!bucket) continue;
+      for (const station of bucket) {
+        if (bounds.contains([station.latitude, station.longitude])) out.push(station);
+      }
     }
   }
   return out;
 }
 
-function radiusBounds(center, radiusKm) {
-  const latDelta = radiusKm / 111.32;
-  const lonDelta = radiusKm / (111.32 * Math.max(0.18, Math.cos(center.lat * Math.PI / 180)));
-  return {
-    north: center.lat + latDelta,
-    south: center.lat - latDelta,
-    west: center.lon - lonDelta,
-    east: center.lon + lonDelta
-  };
-}
-
-function normalizeRemoteUrl(url) {
-  let out = String(url || '').trim();
-  if (!out) throw new Error('Wklej link do pliku JSON/CSV/XLSX.');
-  const driveFile = out.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-  const driveOpen = out.match(/[?&]id=([^&]+)/);
-  const driveSheets = out.match(/docs\.google\.com\/spreadsheets\/d\/([^/]+)/);
-  if (driveSheets) {
-    const gid = out.match(/[?&#]gid=([^&#]+)/)?.[1] || '0';
-    return `https://docs.google.com/spreadsheets/d/${driveSheets[1]}/export?format=csv&gid=${gid}`;
+function buildFilterOptions() {
+  const operators = new Set();
+  const bands = new Set();
+  for (const station of state.stations) {
+    operators.add(station.operator || 'Nieznany');
+    for (const band of station.bands || []) bands.add(band);
   }
-  if (driveFile || (out.includes('drive.google.com') && driveOpen)) {
-    const id = driveFile?.[1] || driveOpen?.[1];
-    return `https://drive.google.com/uc?export=download&id=${id}`;
-  }
-  if (out.includes('dropbox.com')) out = out.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace(/[?&]dl=0/, '').replace(/[?&]raw=1/, '');
-  return out;
-}
-
-function detectRemoteType(url, contentType) {
-  const lower = url.toLowerCase();
-  if (contentType.includes('json') || lower.includes('.json')) return 'json';
-  if (contentType.includes('spreadsheet') || lower.includes('.xlsx') || lower.includes('.xls')) return 'xlsx';
-  return 'csv';
-}
-
-function normalizeStation(raw) {
-  const lat = numberFromCell(raw.latitude ?? raw.lat);
-  const lon = numberFromCell(raw.longitude ?? raw.lon ?? raw.lng);
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-  const bands = Array.isArray(raw.bands) ? raw.bands.map(String).filter(Boolean) : splitListCell(raw.bands);
-  const sectorIds = Array.isArray(raw.sector_ids) ? raw.sector_ids.map(String) : splitListCell(raw.sector_ids);
-  const cellNames = Array.isArray(raw.cell_names) ? raw.cell_names.map(String) : splitListCell(raw.cell_names);
-  const azimuths = Array.isArray(raw.azimuths) ? raw.azimuths.map(Number).filter(Number.isFinite) : splitListCell(raw.azimuths).map(numberFromCell).filter(Number.isFinite);
-  const station = {
-    station_id: String(raw.station_id ?? raw.id ?? '').trim() || '—',
-    operator: String(raw.operator ?? 'Nieznany').trim() || 'Nieznany',
-    latitude: lat,
-    longitude: lon,
-    address: String(raw.address ?? '').trim(),
-    city: String(raw.city ?? '').trim(),
-    bands,
-    sector_ids: sectorIds,
-    cell_names: cellNames,
-    records_count: Number(raw.records_count ?? 0) || 0,
-    source: String(raw.source ?? '').trim(),
-    azimuths,
-    range_km: Number.isFinite(numberFromCell(raw.range_km)) ? numberFromCell(raw.range_km) : null
-  };
-  station.key = stationKey(station);
-  station.searchText = normalizeText(`${station.station_id} ${station.operator} ${station.city} ${station.address} ${station.bands.join(' ')}`);
-  return station;
-}
-
-function parseStationsPayload(payload) {
-  let items = payload;
-  if (!Array.isArray(items) && payload && typeof payload === 'object') {
-    items = payload.stations || payload.items || payload.data || [];
-  }
-  if (!Array.isArray(items)) throw new Error('Nieobsługiwany format pliku stations.json');
-  const stations = [];
-  for (const raw of items) {
-    const station = normalizeStation(raw);
-    if (station) stations.push(station);
-  }
-  return stations;
-}
-
-async function loadStationsFromUrl(url = 'stations.json', options = {}) {
-  const normalizedUrl = url === 'stations.json' ? url : normalizeRemoteUrl(url);
-  setStatus(`Ładowanie bazy z ${normalizedUrl === 'stations.json' ? 'stations.json' : 'linku'}…`);
-  el.stationList.innerHTML = '<div class="loading-box">Ładowanie danych BTS…</div>';
-  const response = await fetch(normalizedUrl, { cache: options.forceNetwork ? 'reload' : 'default' });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  const contentType = response.headers.get('content-type') || '';
-  const type = detectRemoteType(normalizedUrl, contentType);
-  let stations;
-  if (type === 'json') {
-    stations = parseStationsPayload(await response.json());
-  } else if (type === 'xlsx') {
-    stations = await parseXlsxStations(await response.arrayBuffer());
-  } else {
-    stations = parseCsvStations(await response.text());
-  }
-  setStations(stations, normalizedUrl === 'stations.json' ? 'stations.json' : normalizedUrl, { save: options.save !== false });
-}
-
-function setStations(stations, sourceName, options = {}) {
-  state.stations = stations;
-  state.dataSourceName = sourceName;
-  state.dataLoaded = true;
-  state.selected = null;
-  buildSpatialIndex(stations);
-  state.operators = ['Wszyscy', ...Array.from(new Set(stations.map(s => s.operator).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pl'))];
-  const bandSet = new Set();
-  for (const station of stations) for (const band of station.bands) bandSet.add(band);
-  state.bands = ['Wszystkie', ...Array.from(bandSet).sort(bandSort)];
+  state.operators = ['Wszyscy', ...Array.from(operators).sort((a, b) => a.localeCompare(b, 'pl'))];
+  state.bands = ['Wszystkie', ...Array.from(bands).sort(bandSort)];
   if (!state.operators.includes(state.operator)) state.operator = 'Wszyscy';
   if (!state.bands.includes(state.band)) state.band = 'Wszystkie';
-  fillSelect(el.operatorSelect, state.operators, state.operator);
-  fillSelect(el.bandSelect, state.bands, state.band);
-  el.totalCount.textContent = compactNumber(stations.length);
-  el.datasetInfo.textContent = `Baza: ${compactNumber(stations.length)} stacji • ${sourceName}`;
-  setStatus(`Gotowe • ${compactNumber(stations.length)} stacji • wersja ${APP_VERSION}`);
-  if (options.save) saveActiveDataset(stations, sourceName);
-  scheduleRender();
 }
 
 function bandSort(a, b) {
-  const na = Number(String(a).match(/\d+/)?.[0] || 0);
-  const nb = Number(String(b).match(/\d+/)?.[0] || 0);
-  if (na !== nb) return na - nb;
-  return String(a).localeCompare(String(b), 'pl');
+  const order = ['GSM900', 'UMTS900', 'LTE800', 'LTE900', 'LTE1800', 'LTE2100', 'LTE2600', 'NR2100', 'NR3500', '5G'];
+  const ia = order.findIndex(item => normalizeText(a).includes(normalizeText(item)));
+  const ib = order.findIndex(item => normalizeText(b).includes(normalizeText(item)));
+  if (ia !== -1 || ib !== -1) return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+  return a.localeCompare(b, 'pl', { numeric: true });
 }
 
 function fillSelect(select, values, selected) {
-  select.innerHTML = '';
-  for (const value of values) {
-    const option = document.createElement('option');
-    option.value = value;
-    option.textContent = value;
-    if (value === selected) option.selected = true;
-    select.appendChild(option);
-  }
-}
-
-function latLonToPoint(lat, lon, zoom) {
-  const scale = TILE_SIZE * Math.pow(2, zoom);
-  const sinLat = Math.sin((clamp(lat, -85.05112878, 85.05112878) * Math.PI) / 180);
-  return {
-    x: ((lon + 180) / 360) * scale,
-    y: (0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) * scale
-  };
-}
-
-function pointToLatLon(x, y, zoom) {
-  const scale = TILE_SIZE * Math.pow(2, zoom);
-  const lon = (x / scale) * 360 - 180;
-  const n = Math.PI - (2 * Math.PI * y) / scale;
-  const lat = (180 / Math.PI) * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
-  return { lat, lon };
-}
-
-function stationToScreen(station) {
-  const centerPoint = latLonToPoint(state.center.lat, state.center.lon, state.zoom);
-  const lat = station.latitude ?? station.lat;
-  const lon = station.longitude ?? station.lon;
-  const point = latLonToPoint(lat, lon, state.zoom);
-  const rect = el.map.getBoundingClientRect();
-  return {
-    x: point.x - centerPoint.x + rect.width / 2,
-    y: point.y - centerPoint.y + rect.height / 2
-  };
-}
-
-function screenToLatLon(clientX, clientY) {
-  const rect = el.map.getBoundingClientRect();
-  const centerPoint = latLonToPoint(state.center.lat, state.center.lon, state.zoom);
-  const x = centerPoint.x - rect.width / 2 + (clientX - rect.left);
-  const y = centerPoint.y - rect.height / 2 + (clientY - rect.top);
-  return pointToLatLon(x, y, state.zoom);
-}
-
-function getMapBounds(marginPx = 80) {
-  const rect = el.map.getBoundingClientRect();
-  const centerPoint = latLonToPoint(state.center.lat, state.center.lon, state.zoom);
-  const topLeft = pointToLatLon(centerPoint.x - rect.width / 2 - marginPx, centerPoint.y - rect.height / 2 - marginPx, state.zoom);
-  const bottomRight = pointToLatLon(centerPoint.x + rect.width / 2 + marginPx, centerPoint.y + rect.height / 2 + marginPx, state.zoom);
-  return {
-    north: topLeft.lat,
-    south: bottomRight.lat,
-    west: topLeft.lon,
-    east: bottomRight.lon
-  };
-}
-
-function renderTiles() {
-  const rect = el.map.getBoundingClientRect();
-  if (!rect.width || !rect.height) return;
-  const z = state.zoom;
-  const centerPoint = latLonToPoint(state.center.lat, state.center.lon, z);
-  const topLeftX = centerPoint.x - rect.width / 2;
-  const topLeftY = centerPoint.y - rect.height / 2;
-  const startX = Math.floor(topLeftX / TILE_SIZE);
-  const startY = Math.floor(topLeftY / TILE_SIZE);
-  const endX = Math.floor((topLeftX + rect.width) / TILE_SIZE);
-  const endY = Math.floor((topLeftY + rect.height) / TILE_SIZE);
-  const worldTiles = Math.pow(2, z);
-  const fragment = document.createDocumentFragment();
-
-  for (let x = startX; x <= endX; x++) {
-    for (let y = startY; y <= endY; y++) {
-      if (y < 0 || y >= worldTiles) continue;
-      const wrappedX = ((x % worldTiles) + worldTiles) % worldTiles;
-      const img = document.createElement('img');
-      img.className = 'tile';
-      img.alt = '';
-      img.decoding = 'async';
-      img.loading = 'lazy';
-      img.style.left = `${Math.round(x * TILE_SIZE - topLeftX)}px`;
-      img.style.top = `${Math.round(y * TILE_SIZE - topLeftY)}px`;
-      img.src = getTileUrl(z, wrappedX, y);
-      fragment.appendChild(img);
-    }
-  }
-  el.tileLayer.replaceChildren(fragment);
-}
-
-function getTileUrl(z, x, y) {
-  if (state.mapType === 'sat') {
-    return `https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`;
-  }
-  return `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
+  select.innerHTML = values.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join('');
+  select.value = values.includes(selected) ? selected : values[0];
 }
 
 function scheduleRender() {
   clearTimeout(state.renderTimer);
-  state.renderTimer = setTimeout(renderAll, 45);
+  state.renderTimer = setTimeout(renderMapAndList, 60);
 }
 
-function renderAll() {
-  renderTiles();
-  const filtered = getFilteredStations();
+function renderMapAndList() {
+  if (!state.map || !state.markerLayer) return;
+  const candidates = getVisibleCandidates();
+  const filtered = candidates.filter(matchesFilters);
+  const origin = getOrigin();
+
   state.currentVisibleTotal = filtered.length;
-  state.currentList = buildStationList(filtered);
-  state.currentItems = buildRenderItems(filtered);
-  drawOverlay();
-  renderList();
-  updateStats();
-  updateMeasureMarker();
-  saveSettings();
-}
-
-function getOrigin() {
-  return state.measure || state.center;
-}
-
-function getFilteredStations() {
-  if (!state.dataLoaded) return [];
-  const bounds = getMapBounds();
-  const search = normalizeText(state.search);
-  const useGlobalSearch = search.length >= SEARCH_MIN_CHARS;
-  const origin = getOrigin();
-  const radius = Number.isFinite(state.radiusKm) ? state.radiusKm : null;
-  const inViewOnly = !useGlobalSearch && !radius;
-  const candidates = useGlobalSearch ? state.stations : stationsFromBounds(radius ? radiusBounds(origin, radius) : bounds);
-  const result = [];
-
-  for (const station of candidates) {
-    if (state.operator !== 'Wszyscy' && station.operator !== state.operator) continue;
-    if (state.band !== 'Wszystkie' && !station.bands.includes(state.band)) continue;
-    if (useGlobalSearch && !station.searchText.includes(search)) continue;
-    if (radius !== null && haversineKm(origin.lat, origin.lon, station.latitude, station.longitude) > radius) continue;
-    if (inViewOnly) {
-      if (station.latitude > bounds.north || station.latitude < bounds.south) continue;
-      if (station.longitude < bounds.west || station.longitude > bounds.east) continue;
-    }
-    result.push(station);
-  }
-  return result;
-}
-
-function buildStationList(stations) {
-  const origin = getOrigin();
-  return stations
-    .map(station => ({ station, distance: haversineKm(origin.lat, origin.lon, station.latitude, station.longitude) }))
+  state.currentList = filtered
+    .map(station => ({ station, distance: haversineKm(origin.lat, origin.lng, station.latitude, station.longitude) }))
     .sort((a, b) => a.distance - b.distance)
     .slice(0, MAX_LIST_ROWS)
     .map(item => item.station);
+
+  renderMarkers(filtered);
+  renderList();
+  updateMeasureMarker();
+  updateStats();
+  saveSettings();
 }
 
-function buildRenderItems(stations) {
-  const rect = el.map.getBoundingClientRect();
-  const candidates = [];
+function getVisibleCandidates() {
+  if (!state.map) return [];
+  let bounds = state.map.getBounds().pad(0.18);
+  if (state.search.length >= SEARCH_MIN_CHARS) bounds = state.map.getBounds().pad(1.0);
+  const candidates = stationsFromBounds(bounds);
+  return candidates.length ? candidates : state.stations.slice(0, 0);
+}
+
+function matchesFilters(station) {
+  if (state.operator !== 'Wszyscy' && station.operator !== state.operator) return false;
+  if (state.band !== 'Wszystkie' && !(station.bands || []).includes(state.band)) return false;
+  if (state.search.length >= SEARCH_MIN_CHARS && !station._search.includes(normalizeText(state.search))) return false;
+  if (Number.isFinite(state.radiusKm) && state.radiusKm > 0) {
+    const origin = getOrigin();
+    if (haversineKm(origin.lat, origin.lng, station.latitude, station.longitude) > state.radiusKm) return false;
+  }
+  return true;
+}
+
+function renderMarkers(stations) {
+  state.markerLayer.clearLayers();
+  state.sectorLayer.clearLayers();
+  if (!stations.length) return;
+
+  const limit = isMobileLayout() ? MAX_MAP_OBJECTS_MOBILE : MAX_MAP_OBJECTS_DESKTOP;
+  const shouldCluster = stations.length > limit || state.map.getZoom() < 13;
+  const items = shouldCluster ? buildClusters(stations) : stations.map(station => ({ type: 'station', station }));
+
+  let rendered = 0;
+  for (const item of items) {
+    if (rendered >= limit) break;
+    if (item.type === 'cluster') renderCluster(item);
+    else renderStationMarker(item.station);
+    rendered++;
+  }
+}
+
+function buildClusters(stations) {
+  const zoom = state.map.getZoom();
+  const gridSize = zoom < 10 ? 80 : zoom < 13 ? 64 : 54;
+  const cells = new Map();
   for (const station of stations) {
-    const p = stationToScreen(station);
-    if (p.x < -60 || p.y < -60 || p.x > rect.width + 60 || p.y > rect.height + 60) continue;
-    candidates.push({ type: 'station', station, x: p.x, y: p.y });
-  }
-
-  const maxMarkers = rect.width < 700 ? MOBILE_MAX_MARKERS : MAX_MARKERS;
-  if (candidates.length <= maxMarkers || state.zoom >= 13) return candidates.slice(0, maxMarkers);
-
-  const cell = state.zoom <= 8 ? 96 : state.zoom <= 10 ? 72 : 56;
-  const groups = new Map();
-  for (const item of candidates) {
-    const key = `${Math.floor(item.x / cell)}:${Math.floor(item.y / cell)}`;
-    let group = groups.get(key);
-    if (!group) {
-      group = { type: 'cluster', count: 0, x: 0, y: 0, lat: 0, lon: 0, operators: new Map() };
-      groups.set(key, group);
+    const point = state.map.latLngToContainerPoint([station.latitude, station.longitude]);
+    const key = `${Math.floor(point.x / gridSize)}:${Math.floor(point.y / gridSize)}`;
+    let cell = cells.get(key);
+    if (!cell) {
+      cell = { type: 'cluster', count: 0, lat: 0, lng: 0, stations: [], operators: new Map() };
+      cells.set(key, cell);
     }
-    group.count++;
-    group.x += item.x;
-    group.y += item.y;
-    group.lat += item.station.latitude;
-    group.lon += item.station.longitude;
-    group.operators.set(item.station.operator, (group.operators.get(item.station.operator) || 0) + 1);
+    cell.count++;
+    cell.lat += station.latitude;
+    cell.lng += station.longitude;
+    cell.stations.push(station);
+    cell.operators.set(station.operator, (cell.operators.get(station.operator) || 0) + 1);
   }
 
-  const out = [];
-  for (const group of groups.values()) {
-    if (group.count === 1) {
-      const nearest = candidates.find(item => Math.abs(item.x - group.x) < 0.001 && Math.abs(item.y - group.y) < 0.001);
-      if (nearest) out.push(nearest);
-      continue;
+  const result = [];
+  for (const cell of cells.values()) {
+    if (cell.count === 1) result.push({ type: 'station', station: cell.stations[0] });
+    else {
+      cell.lat /= cell.count;
+      cell.lng /= cell.count;
+      result.push(cell);
     }
-    group.x /= group.count;
-    group.y /= group.count;
-    group.lat /= group.count;
-    group.lon /= group.count;
-    out.push(group);
   }
-  return out.slice(0, maxMarkers);
+  return result.sort((a, b) => (b.count || 1) - (a.count || 1));
 }
 
-function resizeCanvas() {
-  const rect = el.map.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  el.canvas.width = Math.max(1, Math.round(rect.width * dpr));
-  el.canvas.height = Math.max(1, Math.round(rect.height * dpr));
-  el.canvas.style.width = `${rect.width}px`;
-  el.canvas.style.height = `${rect.height}px`;
-  const ctx = el.canvas.getContext('2d');
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-}
-
-function drawOverlay() {
-  resizeCanvas();
-  const ctx = el.canvas.getContext('2d');
-  const rect = el.map.getBoundingClientRect();
-  ctx.clearRect(0, 0, rect.width, rect.height);
-
-  if (state.selected) drawSelectedStationExtras(ctx);
-  for (const item of state.currentItems) {
-    if (item.type === 'cluster') drawCluster(ctx, item);
-    else drawMarker(ctx, item.station, item.x, item.y, state.selected && item.station.key === state.selected.key);
-  }
-}
-
-function drawMarker(ctx, station, x, y, selected) {
+function renderStationMarker(station) {
   const color = operatorColor(station.operator);
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(x, y, selected ? 10 : 7, 0, Math.PI * 2);
-  ctx.fillStyle = color;
-  ctx.fill();
-  ctx.lineWidth = selected ? 4 : 2;
-  ctx.strokeStyle = '#ffffff';
-  ctx.stroke();
-  if (selected) {
-    ctx.beginPath();
-    ctx.arc(x, y, 16, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(29,78,216,.35)';
-    ctx.lineWidth = 5;
-    ctx.stroke();
-  }
-  ctx.restore();
+  const radius = state.selected && stationKey(station) === stationKey(state.selected) ? 10 : 7;
+  const marker = L.circleMarker([station.latitude, station.longitude], {
+    radius,
+    color: '#ffffff',
+    weight: 2,
+    fillColor: color,
+    fillOpacity: .92
+  });
+  marker.on('click', () => selectStation(station, false));
+  marker.bindPopup(() => popupHtml(station));
+  marker.addTo(state.markerLayer);
 }
 
-function drawCluster(ctx, cluster) {
-  const mainOperator = Array.from(cluster.operators.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
-  const color = operatorColor(mainOperator);
-  const r = clamp(14 + Math.log10(cluster.count) * 8, 18, 34);
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cluster.x, cluster.y, r, 0, Math.PI * 2);
-  ctx.fillStyle = color;
-  ctx.globalAlpha = 0.88;
-  ctx.fill();
-  ctx.globalAlpha = 1;
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = '#ffffff';
-  ctx.stroke();
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '700 12px system-ui, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(compactClusterCount(cluster.count), cluster.x, cluster.y);
-  ctx.restore();
+function renderCluster(cluster) {
+  const size = clamp(34 + Math.log10(cluster.count) * 11, 36, 62);
+  const marker = L.marker([cluster.lat, cluster.lng], {
+    icon: L.divIcon({
+      html: `<span>${compactClusterCount(cluster.count)}</span>`,
+      className: 'cluster-marker',
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size / 2]
+    })
+  });
+  marker.on('click', () => {
+    state.map.setView([cluster.lat, cluster.lng], clamp(state.map.getZoom() + 2, MIN_ZOOM, MAX_ZOOM), { animate: true });
+  });
+  marker.addTo(state.markerLayer);
 }
 
 function compactClusterCount(value) {
-  return value >= 1000 ? `${Math.round(value / 100) / 10}k` : String(value);
+  if (value >= 1000) return `${Math.round(value / 100) / 10}k`;
+  return String(value);
 }
 
-function drawSelectedStationExtras(ctx) {
-  const station = state.selected;
-  const stationPoint = stationToScreen(station);
-  const origin = getOrigin();
-  const originPoint = stationToScreen({ latitude: origin.lat, longitude: origin.lon });
-  const range = estimateStationRangeKm(station);
+function popupHtml(station) {
+  return `
+    <div class="popup-title">${escapeHtml(station.operator)} • ${escapeHtml(station.station_id)}</div>
+    <div class="popup-meta">${escapeHtml(station.city || station.address || 'Brak lokalizacji')}</div>
+  `;
+}
 
-  drawSectors(ctx, station, range);
+function selectStation(station, centerOnMap = true) {
+  state.selected = station;
+  if (centerOnMap && state.map) state.map.setView([station.latitude, station.longitude], Math.max(state.map.getZoom(), 14), { animate: true });
+  showStationDetails(station);
+  renderSelectedStationExtras(station);
+  if (isMobileLayout()) {
+    setTab('details');
+    el.appPanel.classList.remove('collapsed');
+  }
+  scheduleRender();
+}
 
-  if (state.measure) {
-    ctx.save();
-    ctx.setLineDash([8, 7]);
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = 'rgba(14,165,233,.9)';
-    ctx.beginPath();
-    ctx.moveTo(originPoint.x, originPoint.y);
-    ctx.lineTo(stationPoint.x, stationPoint.y);
-    ctx.stroke();
-    ctx.restore();
+function renderSelectedStationExtras(station) {
+  state.sectorLayer.clearLayers();
+  if (!station || !Array.isArray(station.azimuths) || !station.azimuths.length) return;
+  const rangeKm = estimateStationRangeKm(station);
+  for (const azimuth of station.azimuths) {
+    const polygon = sectorPolygon(station.latitude, station.longitude, azimuth, rangeKm, 34);
+    L.polygon(polygon, {
+      color: operatorColor(station.operator),
+      weight: 1,
+      fillColor: operatorColor(station.operator),
+      fillOpacity: .14,
+      interactive: false
+    }).addTo(state.sectorLayer);
   }
 }
 
-function drawSectors(ctx, station, rangeKm) {
-  const azimuths = stationSectorAzimuths(station);
-  const center = stationToScreen(station);
-  const rangePxPoint = stationToScreen(destinationPoint(station.latitude, station.longitude, 90, rangeKm));
-  const radiusPx = Math.abs(rangePxPoint.x - center.x);
-  if (!Number.isFinite(radiusPx) || radiusPx < 12 || radiusPx > 3000) return;
-
-  const estimated = !station.azimuths || !station.azimuths.length;
-  const halfWidth = estimated ? 70 : 55;
-  const color = hexToRgb(operatorColor(station.operator));
-  ctx.save();
-  for (const az of azimuths) {
-    drawSector(ctx, center.x, center.y, radiusPx, az - halfWidth, az + halfWidth, `rgba(${color.r},${color.g},${color.b},.16)`);
-    drawSector(ctx, center.x, center.y, radiusPx * 0.58, az - halfWidth * 0.55, az + halfWidth * 0.55, `rgba(${color.r},${color.g},${color.b},.22)`);
+function sectorPolygon(lat, lon, bearing, rangeKm, widthDeg) {
+  const points = [[lat, lon]];
+  const start = bearing - widthDeg / 2;
+  const end = bearing + widthDeg / 2;
+  const steps = 8;
+  for (let i = 0; i <= steps; i++) {
+    const b = start + (end - start) * (i / steps);
+    const dest = destinationPoint(lat, lon, b, rangeKm);
+    points.push([dest.lat, dest.lng]);
   }
-  ctx.restore();
-}
-
-function drawSector(ctx, x, y, radius, startDeg, endDeg, fill) {
-  const start = ((startDeg - 90) * Math.PI) / 180;
-  const end = ((endDeg - 90) * Math.PI) / 180;
-  ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.arc(x, y, radius, start, end);
-  ctx.closePath();
-  ctx.fillStyle = fill;
-  ctx.fill();
-}
-
-function hexToRgb(hex) {
-  const clean = hex.replace('#', '');
-  const n = parseInt(clean.length === 3 ? clean.split('').map(c => c + c).join('') : clean, 16);
-  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
-}
-
-function stationSectorAzimuths(station) {
-  if (station.azimuths && station.azimuths.length) return station.azimuths.slice(0, 6);
-  return [0, 120, 240];
+  points.push([lat, lon]);
+  return points;
 }
 
 function estimateStationRangeKm(station) {
   if (Number.isFinite(station.range_km) && station.range_km > 0) return station.range_km;
-  const bands = station.bands.join(' ').toUpperCase();
-  if (bands.includes('3500') || bands.includes('3600') || bands.includes('3700') || bands.includes('NR78')) return 1.5;
-  if (bands.includes('2600')) return 2.5;
-  if (bands.includes('2100')) return 4.0;
-  if (bands.includes('1800')) return 5.0;
-  if (bands.includes('800') || bands.includes('900') || bands.includes('GSM900')) return 8.0;
-  return 4.0;
-}
-
-function renderList() {
-  if (!state.dataLoaded) return;
-  const origin = getOrigin();
-  el.stationList.innerHTML = '';
-  if (!state.currentList.length) {
-    el.stationList.innerHTML = '<div class="loading-box">Brak stacji dla aktualnych filtrów.</div>';
-    return;
-  }
-  const fragment = document.createDocumentFragment();
-  for (const station of state.currentList) {
-    const distance = haversineKm(origin.lat, origin.lon, station.latitude, station.longitude);
-    const az = azimuthDeg(origin.lat, origin.lon, station.latitude, station.longitude);
-    const row = document.createElement('button');
-    row.type = 'button';
-    row.className = `station-row${state.selected && state.selected.key === station.key ? ' active' : ''}`;
-    row.innerHTML = `
-      <div class="station-row-title">
-        <span>${escapeHtml(station.city || station.station_id)}</span>
-        <span class="operator-pill" style="background:${operatorColor(station.operator)}">${escapeHtml(station.operator)}</span>
-      </div>
-      <div class="station-row-sub">ID: ${escapeHtml(station.station_id)} • ${formatDistance(distance)} • azymut ${Math.round(az)}°</div>
-      <div class="station-row-sub">${escapeHtml(formatBands(station.bands))}</div>
-      <div class="station-row-sub">${escapeHtml(shorten(station.address, 90))}</div>`;
-    row.addEventListener('click', () => selectStation(station, true));
-    fragment.appendChild(row);
-  }
-  el.stationList.appendChild(fragment);
-}
-
-function updateStats() {
-  el.visibleCount.textContent = compactNumber(state.currentVisibleTotal);
-  el.zoomValue.textContent = String(state.zoom);
-  el.listSubtitle.textContent = state.measure ? 'Najbliższe względem punktu pomiarowego' : 'Najbliższe względem środka mapy';
-}
-
-function updateMeasureMarker() {
-  if (!state.measure) {
-    el.measureMarker.classList.add('hidden');
-    return;
-  }
-  const p = stationToScreen({ latitude: state.measure.lat, longitude: state.measure.lon });
-  el.measureMarker.style.left = `${p.x}px`;
-  el.measureMarker.style.top = `${p.y}px`;
-  el.measureMarker.classList.remove('hidden');
-}
-
-function selectStation(station, centerOnMap = false) {
-  state.selected = station;
-  if (centerOnMap) state.center = { lat: station.latitude, lon: station.longitude };
-  showStationDetails(station);
-  renderAll();
+  const normalizedBands = (station.bands || []).map(normalizeText).join(' ');
+  if (normalizedBands.includes('nr3500')) return 1.5;
+  if (normalizedBands.includes('lte2600')) return 2.5;
+  if (normalizedBands.includes('lte2100') || normalizedBands.includes('nr2100')) return 4;
+  if (normalizedBands.includes('lte1800')) return 5;
+  if (normalizedBands.includes('lte800') || normalizedBands.includes('lte900') || normalizedBands.includes('gsm900')) return 8;
+  return 4;
 }
 
 function showStationDetails(station) {
-  const origin = getOrigin();
-  const distance = haversineKm(origin.lat, origin.lon, station.latitude, station.longitude);
-  const az = azimuthDeg(origin.lat, origin.lon, station.latitude, station.longitude);
-  const range = estimateStationRangeKm(station);
-  const realAz = station.azimuths && station.azimuths.length;
-  el.detailTitle.textContent = `${station.operator} • ${station.city || station.station_id}`;
-  el.detailSubtitle.textContent = `ID ${station.station_id} • ${formatDistance(distance)} • ${Math.round(az)}°`;
-  el.detailBody.innerHTML = `
-    ${detailLine('Adres', station.address || '—')}
-    ${detailLine('Pasma', formatBands(station.bands))}
-    ${detailLine('Zasięg', `${range.toFixed(1)} km ${station.range_km ? '' : '(orientacyjnie)'}`)}
-    ${detailLine('Sektory', realAz ? station.azimuths.map(a => `${Math.round(a)}°`).join(', ') : 'Brak realnych azymutów — układ orientacyjny 0°/120°/240°')}
-    ${detailLine('Rekordy', station.records_count || '—')}
-    ${detailLine('Źródło', station.source || '—')}
-    ${detailLine('Współrzędne', `${station.latitude.toFixed(6)}, ${station.longitude.toFixed(6)}`)}
-  `;
+  el.emptyDetails.classList.add('hidden');
   el.detailCard.classList.remove('hidden');
+  const origin = getOrigin();
+  const distance = haversineKm(origin.lat, origin.lng, station.latitude, station.longitude);
+  const bearing = azimuthDeg(origin.lat, origin.lng, station.latitude, station.longitude);
+  el.detailTitle.textContent = `${station.operator} • ${station.station_id}`;
+  el.detailSubtitle.textContent = station.city || station.address || 'Brak opisu lokalizacji';
+  el.detailBody.innerHTML = [
+    detailLine('Operator', station.operator),
+    detailLine('ID stacji', station.station_id),
+    detailLine('Miejscowość', station.city || '—'),
+    detailLine('Adres', station.address || '—'),
+    detailLine('Pasma', formatBands(station.bands)),
+    detailLine('Azymuty', station.azimuths && station.azimuths.length ? `${station.azimuths.join('°, ')}°` : 'Brak danych o azymutach — kierunek niepewny'),
+    detailLine('Rekordy', compactNumber(station.records_count)),
+    detailLine('Odległość', formatDistance(distance)),
+    detailLine('Kierunek', `${Math.round(bearing)}°`),
+    detailLine('Współrzędne', `${station.latitude.toFixed(6)}, ${station.longitude.toFixed(6)}`),
+    detailLine('Źródło', station.source || '—')
+  ].join('');
 }
 
 function detailLine(label, value) {
-  return `<div class="line"><b>${escapeHtml(label)}</b><span>${escapeHtml(value)}</span></div>`;
+  return `<div class="detail-line"><span>${escapeHtml(label)}</span><span>${escapeHtml(value)}</span></div>`;
 }
 
 function hideDetails() {
   state.selected = null;
+  state.sectorLayer.clearLayers();
   el.detailCard.classList.add('hidden');
-  renderAll();
+  el.emptyDetails.classList.remove('hidden');
+  scheduleRender();
 }
 
 function formatBands(bands) {
-  return bands && bands.length ? bands.join(', ') : 'Brak danych';
+  return Array.isArray(bands) && bands.length ? bands.join(', ') : '—';
 }
 
-function shorten(value, maxLen) {
-  const text = String(value || '—');
-  return text.length > maxLen ? `${text.slice(0, maxLen - 1)}…` : text;
-}
+function renderList() {
+  const origin = getOrigin();
+  const total = state.currentVisibleTotal;
+  el.listSubtitle.textContent = total
+    ? `${compactNumber(total)} w widoku, lista pokazuje maks. ${MAX_LIST_ROWS}`
+    : 'Brak stacji dla bieżących filtrów';
 
-function formatDistance(km) {
-  if (!Number.isFinite(km)) return '—';
-  if (km < 1) return `${Math.round(km * 1000)} m`;
-  if (km < 10) return `${km.toFixed(2)} km`;
-  return `${km.toFixed(1)} km`;
-}
-
-function haversineKm(lat1, lon1, lat2, lon2) {
-  const R = 6371.0088;
-  const p1 = lat1 * Math.PI / 180;
-  const p2 = lat2 * Math.PI / 180;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-function azimuthDeg(lat1, lon1, lat2, lon2) {
-  const phi1 = lat1 * Math.PI / 180;
-  const phi2 = lat2 * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const y = Math.sin(dLon) * Math.cos(phi2);
-  const x = Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Math.cos(dLon);
-  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
-}
-
-function destinationPoint(lat, lon, bearingDeg, distanceKm) {
-  const R = 6371.0088;
-  const delta = distanceKm / R;
-  const theta = bearingDeg * Math.PI / 180;
-  const phi1 = lat * Math.PI / 180;
-  const lambda1 = lon * Math.PI / 180;
-  const sinPhi2 = Math.sin(phi1) * Math.cos(delta) + Math.cos(phi1) * Math.sin(delta) * Math.cos(theta);
-  const phi2 = Math.asin(sinPhi2);
-  const y = Math.sin(theta) * Math.sin(delta) * Math.cos(phi1);
-  const x = Math.cos(delta) - Math.sin(phi1) * Math.sin(phi2);
-  const lambda2 = lambda1 + Math.atan2(y, x);
-  const outLon = ((lambda2 * 180 / Math.PI + 540) % 360) - 180;
-  const outLat = phi2 * 180 / Math.PI;
-  return { latitude: outLat, longitude: outLon, lat: outLat, lon: outLon };
-}
-
-function zoomTo(newZoom, anchorClientX = null, anchorClientY = null) {
-  newZoom = clamp(Math.round(newZoom), MIN_ZOOM, MAX_ZOOM);
-  if (newZoom === state.zoom) return;
-  if (anchorClientX !== null && anchorClientY !== null) {
-    const before = screenToLatLon(anchorClientX, anchorClientY);
-    const rect = el.map.getBoundingClientRect();
-    state.zoom = newZoom;
-    const anchorPoint = latLonToPoint(before.lat, before.lon, state.zoom);
-    const centerPoint = {
-      x: anchorPoint.x - (anchorClientX - rect.left - rect.width / 2),
-      y: anchorPoint.y - (anchorClientY - rect.top - rect.height / 2)
-    };
-    state.center = pointToLatLon(centerPoint.x, centerPoint.y, state.zoom);
-  } else {
-    state.zoom = newZoom;
+  if (!state.currentList.length) {
+    el.stationList.innerHTML = '<div class="empty-state">Brak stacji w tym widoku. Oddal mapę albo zmień filtry.</div>';
+    return;
   }
-  scheduleRender();
-}
 
-function bindEvents() {
-  el.searchInput.addEventListener('input', () => { state.search = el.searchInput.value; scheduleRender(); });
-  el.operatorSelect.addEventListener('change', () => { state.operator = el.operatorSelect.value; scheduleRender(); });
-  el.bandSelect.addEventListener('change', () => { state.band = el.bandSelect.value; scheduleRender(); });
-  el.radiusSelect.addEventListener('change', () => { state.radiusKm = el.radiusSelect.value ? Number(el.radiusSelect.value) : null; scheduleRender(); });
-  el.themeBtn.addEventListener('click', () => { state.theme = state.theme === 'dark' ? 'light' : 'dark'; applyTheme(); saveSettings(); });
-  el.closeDetailBtn.addEventListener('click', hideDetails);
-  el.refreshBtn.addEventListener('click', () => loadStationsFromUrl('stations.json', { forceNetwork: true, save: true }).catch(showLoadError));
-  el.importFileBtn.addEventListener('click', () => el.dataFileInput.click());
-  el.dataFileInput.addEventListener('change', importDataFile);
-  el.loadUrlBtn.addEventListener('click', loadRemoteInput);
-  el.clearCacheBtn.addEventListener('click', clearActiveDataset);
-  el.locateBtn.addEventListener('click', locateUser);
-  el.zoomInBtn.addEventListener('click', () => zoomTo(state.zoom + 1));
-  el.zoomOutBtn.addEventListener('click', () => zoomTo(state.zoom - 1));
-  el.clearPointBtn.addEventListener('click', clearMeasurePoint);
-  el.setPointBtn.addEventListener('click', toggleSetPointMode);
-  el.mapPlanBtn.addEventListener('click', () => setMapType('plan'));
-  el.mapSatBtn.addEventListener('click', () => setMapType('sat'));
-  el.nearestBtn.addEventListener('click', showNearest);
-  el.installBtn.addEventListener('click', installPwa);
-  bindMapPointerEvents();
-  window.addEventListener('resize', scheduleRender);
-  window.addEventListener('beforeinstallprompt', (event) => {
-    event.preventDefault();
-    state.deferredInstallPrompt = event;
-    el.installBtn.classList.remove('hidden');
+  el.stationList.innerHTML = state.currentList.map(station => {
+    const distance = haversineKm(origin.lat, origin.lng, station.latitude, station.longitude);
+    const color = operatorColor(station.operator);
+    return `
+      <button class="station-row" type="button" data-key="${escapeHtml(stationKey(station))}">
+        <strong><span class="operator-dot" style="background:${escapeHtml(color)}"></span>${escapeHtml(station.operator)} • ${escapeHtml(station.station_id)}</strong>
+        <p>${escapeHtml(station.city || station.address || 'Brak adresu')}</p>
+        <div class="station-meta">
+          <span class="badge">${escapeHtml(formatDistance(distance))}</span>
+          <span class="badge">${escapeHtml(formatBands(station.bands))}</span>
+          <span class="badge">rek. ${escapeHtml(compactNumber(station.records_count))}</span>
+        </div>
+      </button>
+    `;
+  }).join('');
+
+  el.stationList.querySelectorAll('.station-row').forEach(button => {
+    button.addEventListener('click', () => {
+      const station = state.currentList.find(item => stationKey(item) === button.dataset.key);
+      if (station) selectStation(station, true);
+    });
   });
 }
 
-function setMapType(type) {
-  state.mapType = type;
-  el.mapPlanBtn.classList.toggle('active', type === 'plan');
-  el.mapSatBtn.classList.toggle('active', type === 'sat');
-  scheduleRender();
+function stationKey(station) {
+  return `${station.operator}|${station.station_id}|${station.latitude}|${station.longitude}`;
+}
+
+function updateStats() {
+  el.totalCount.textContent = compactNumber(state.stations.length);
+  el.visibleCount.textContent = compactNumber(state.currentVisibleTotal);
+  el.zoomValue.textContent = state.map ? state.map.getZoom() : '—';
+}
+
+function getOrigin() {
+  if (state.measure) return { lat: state.measure.lat, lng: state.measure.lng };
+  if (state.map) {
+    const center = state.map.getCenter();
+    return { lat: center.lat, lng: center.lng };
+  }
+  return { lat: DEFAULT_CENTER[0], lng: DEFAULT_CENTER[1] };
+}
+
+function updateMeasureMarker() {
+  state.measureLayer.clearLayers();
+  if (!state.measure) return;
+  const icon = L.divIcon({ className: '', html: '<div class="measure-pin"></div>', iconSize: [22, 22], iconAnchor: [11, 11] });
+  L.marker([state.measure.lat, state.measure.lng], { icon, interactive: false }).addTo(state.measureLayer);
+  if (Number.isFinite(state.radiusKm) && state.radiusKm > 0) {
+    L.circle([state.measure.lat, state.measure.lng], {
+      radius: state.radiusKm * 1000,
+      color: '#0ea5e9',
+      weight: 1,
+      fillColor: '#0ea5e9',
+      fillOpacity: .07,
+      interactive: false
+    }).addTo(state.measureLayer);
+  }
 }
 
 function toggleSetPointMode() {
   state.setPointMode = !state.setPointMode;
   el.setPointBtn.classList.toggle('active', state.setPointMode);
-  el.setPointBtn.textContent = state.setPointMode ? 'Kliknij punkt na mapie' : 'Ustaw punkt z mapy';
+  el.setPointBtn.textContent = state.setPointMode ? 'Kliknij punkt na mapie' : 'Ustaw punkt pomiaru';
+  setStatus(state.setPointMode ? 'Kliknij miejsce na mapie, aby ustawić punkt pomiarowy.' : 'Tryb ustawiania punktu wyłączony.');
+}
+
+function setMeasurePoint(latlng) {
+  state.measure = { lat: latlng.lat, lng: latlng.lng };
+  state.setPointMode = false;
+  el.setPointBtn.classList.remove('active');
+  el.setPointBtn.textContent = 'Ustaw punkt pomiaru';
+  setStatus('Ustawiono punkt pomiarowy. Odległości liczone są od tego punktu.');
+  scheduleRender();
 }
 
 function clearMeasurePoint() {
   state.measure = null;
-  scheduleRender();
-}
-
-function setMeasurePoint(latLon) {
-  state.measure = { lat: latLon.lat, lon: latLon.lon };
-  state.setPointMode = false;
-  el.setPointBtn.classList.remove('active');
-  el.setPointBtn.textContent = 'Ustaw punkt z mapy';
+  setStatus('Punkt pomiarowy wyczyszczony. Odległości liczone są od środka mapy.');
   scheduleRender();
 }
 
 function showNearest() {
+  if (!state.stations.length) return;
   const origin = getOrigin();
   const nearest = state.stations
-    .filter(station => state.operator === 'Wszyscy' || station.operator === state.operator)
-    .filter(station => state.band === 'Wszystkie' || station.bands.includes(state.band))
-    .map(station => ({ station, distance: haversineKm(origin.lat, origin.lon, station.latitude, station.longitude) }))
+    .filter(matchesNonSpatialFilters)
+    .map(station => ({ station, distance: haversineKm(origin.lat, origin.lng, station.latitude, station.longitude) }))
     .sort((a, b) => a.distance - b.distance)
     .slice(0, MAX_LIST_ROWS)
     .map(item => item.station);
@@ -1109,7 +814,15 @@ function showNearest() {
   state.currentVisibleTotal = nearest.length;
   renderList();
   updateStats();
+  setTab('list');
   setStatus(`Pokazuję najbliższe stacje względem ${state.measure ? 'punktu pomiarowego' : 'środka mapy'}.`);
+}
+
+function matchesNonSpatialFilters(station) {
+  if (state.operator !== 'Wszyscy' && station.operator !== state.operator) return false;
+  if (state.band !== 'Wszystkie' && !(station.bands || []).includes(state.band)) return false;
+  if (state.search.length >= SEARCH_MIN_CHARS && !station._search.includes(normalizeText(state.search))) return false;
+  return true;
 }
 
 function locateUser() {
@@ -1120,9 +833,17 @@ function locateUser() {
   setStatus('Pobieram pozycję GPS…');
   navigator.geolocation.getCurrentPosition(
     pos => {
-      state.center = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-      state.measure = { ...state.center };
-      state.zoom = Math.max(state.zoom, 13);
+      const latlng = [pos.coords.latitude, pos.coords.longitude];
+      state.map.setView(latlng, Math.max(state.map.getZoom(), 13), { animate: true });
+      state.measure = { lat: latlng[0], lng: latlng[1] };
+      if (state.userMarker) state.userMarker.remove();
+      state.userMarker = L.circle(latlng, {
+        radius: Math.max(25, pos.coords.accuracy || 25),
+        color: '#0ea5e9',
+        weight: 1,
+        fillColor: '#0ea5e9',
+        fillOpacity: .09
+      }).addTo(state.map);
       setStatus(`Pozycja GPS ustawiona • dokładność ok. ${Math.round(pos.coords.accuracy)} m`);
       scheduleRender();
     },
@@ -1131,21 +852,30 @@ function locateUser() {
   );
 }
 
+async function loadStationsFromUrl(url = 'stations.json', options = {}) {
+  const result = await workerRequest({ type: 'loadUrl', url, forceNetwork: !!options.forceNetwork });
+  setStations(result.stations, result.sourceName || url, { save: !!options.save });
+}
+
 async function importDataFile() {
   const file = el.dataFileInput.files && el.dataFileInput.files[0];
   if (!file) return;
   try {
     setStatus(`Wczytuję ${file.name}…`);
     const name = file.name.toLowerCase();
-    let stations;
-    if (name.endsWith('.json') || file.type.includes('json')) {
-      stations = parseStationsPayload(JSON.parse(await file.text()));
-    } else if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
-      stations = await parseXlsxStations(file);
+    let result;
+    if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+      if (!window.XLSX) throw new Error(XLSX_CDN_NOTE);
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: 'array' });
+      const firstSheetName = workbook.SheetNames[0];
+      if (!firstSheetName) throw new Error('Plik XLSX nie ma arkuszy.');
+      const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName], { defval: '' });
+      result = await workerRequest({ type: 'parseRows', rows, name: file.name });
     } else {
-      stations = parseCsvStations(await file.text());
+      result = await workerRequest({ type: 'parseText', text: await file.text(), name: file.name, contentType: file.type });
     }
-    setStations(stations, file.name, { save: true });
+    setStations(result.stations, result.sourceName || file.name, { save: true });
   } catch (err) {
     setStatus(`Błąd importu pliku: ${err.message}`);
   } finally {
@@ -1170,83 +900,64 @@ async function installPwa() {
   el.installBtn.classList.add('hidden');
 }
 
-function bindMapPointerEvents() {
-  let pointer = null;
-  el.map.addEventListener('pointerdown', (event) => {
-    if (event.button !== undefined && event.button !== 0) return;
-    el.map.setPointerCapture(event.pointerId);
-    pointer = {
-      id: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      lastX: event.clientX,
-      lastY: event.clientY,
-      centerPoint: latLonToPoint(state.center.lat, state.center.lon, state.zoom),
-      moved: false
-    };
-  });
-
-  el.map.addEventListener('pointermove', (event) => {
-    if (!pointer || pointer.id !== event.pointerId) return;
-    const dx = event.clientX - pointer.startX;
-    const dy = event.clientY - pointer.startY;
-    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) pointer.moved = true;
-    const p = { x: pointer.centerPoint.x - dx, y: pointer.centerPoint.y - dy };
-    state.center = pointToLatLon(p.x, p.y, state.zoom);
-    renderTiles();
-    drawOverlay();
-    updateMeasureMarker();
-  });
-
-  el.map.addEventListener('pointerup', (event) => {
-    if (!pointer || pointer.id !== event.pointerId) return;
-    const wasMoved = pointer.moved;
-    pointer = null;
-    if (!wasMoved) handleMapClick(event.clientX, event.clientY);
-    else scheduleRender();
-  });
-
-  el.map.addEventListener('pointercancel', () => { pointer = null; scheduleRender(); });
-  el.map.addEventListener('wheel', (event) => {
-    event.preventDefault();
-    zoomTo(state.zoom + (event.deltaY < 0 ? 1 : -1), event.clientX, event.clientY);
-  }, { passive: false });
+function setTab(tabName) {
+  if (!el.tabPanels[tabName]) return;
+  state.activeTab = tabName;
+  el.tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.tab === tabName));
+  Object.entries(el.tabPanels).forEach(([name, panel]) => panel.classList.toggle('active', name === tabName));
+  const titles = { filters: 'Filtry', list: 'Lista stacji', details: 'Szczegóły', settings: 'Ustawienia' };
+  el.panelTitle.textContent = titles[tabName] || 'Panel';
+  saveSettings();
 }
 
-function handleMapClick(clientX, clientY) {
-  if (state.setPointMode) {
-    setMeasurePoint(screenToLatLon(clientX, clientY));
-    return;
-  }
-  const rect = el.map.getBoundingClientRect();
-  const x = clientX - rect.left;
-  const y = clientY - rect.top;
-  let best = null;
-  let bestDist = Infinity;
-  for (const item of state.currentItems) {
-    const dx = item.x - x;
-    const dy = item.y - y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const hit = item.type === 'cluster' ? clamp(15 + Math.log10(item.count) * 8, 20, 38) : 18;
-    if (dist <= hit && dist < bestDist) {
-      best = item;
-      bestDist = dist;
-    }
-  }
-  if (!best) return;
-  if (best.type === 'cluster') {
-    state.center = { lat: best.lat, lon: best.lon };
-    state.zoom = clamp(state.zoom + 2, MIN_ZOOM, MAX_ZOOM);
+function bindEvents() {
+  el.searchInput.addEventListener('input', () => {
+    state.search = normalizeText(el.searchInput.value);
     scheduleRender();
-  } else {
-    selectStation(best.station, false);
-  }
+  });
+  el.clearSearchBtn.addEventListener('click', () => {
+    el.searchInput.value = '';
+    state.search = '';
+    scheduleRender();
+  });
+  el.operatorSelect.addEventListener('change', () => { state.operator = el.operatorSelect.value; scheduleRender(); });
+  el.bandSelect.addEventListener('change', () => { state.band = el.bandSelect.value; scheduleRender(); });
+  el.radiusSelect.addEventListener('change', () => { state.radiusKm = el.radiusSelect.value ? Number(el.radiusSelect.value) : null; scheduleRender(); });
+  el.themeBtn.addEventListener('click', () => { state.theme = state.theme === 'dark' ? 'light' : 'dark'; applyTheme(); saveSettings(); });
+  el.closeDetailBtn.addEventListener('click', hideDetails);
+  el.refreshBtn.addEventListener('click', () => loadStationsFromUrl('stations.json', { forceNetwork: true, save: true }).catch(showLoadError));
+  el.importFileBtn.addEventListener('click', () => el.dataFileInput.click());
+  el.dataFileInput.addEventListener('change', importDataFile);
+  el.loadUrlBtn.addEventListener('click', loadRemoteInput);
+  el.clearCacheBtn.addEventListener('click', clearActiveDataset);
+  el.locateBtn.addEventListener('click', locateUser);
+  el.clearPointBtn.addEventListener('click', clearMeasurePoint);
+  el.setPointBtn.addEventListener('click', toggleSetPointMode);
+  el.mapPlanBtn.addEventListener('click', () => setMapType('plan'));
+  el.mapSatBtn.addEventListener('click', () => setMapType('sat'));
+  el.nearestBtn.addEventListener('click', showNearest);
+  el.installBtn.addEventListener('click', installPwa);
+  el.menuBtn.addEventListener('click', () => { setTab('settings'); el.appPanel.classList.remove('collapsed'); });
+  el.collapsePanelBtn.addEventListener('click', () => el.appPanel.classList.toggle('collapsed'));
+  el.tabs.forEach(tab => tab.addEventListener('click', () => {
+    setTab(tab.dataset.tab);
+    el.appPanel.classList.remove('collapsed');
+  }));
+  window.addEventListener('resize', () => {
+    if (state.map) state.map.invalidateSize();
+    scheduleRender();
+  });
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    state.deferredInstallPrompt = event;
+    el.installBtn.classList.remove('hidden');
+  });
 }
 
 function showLoadError(err) {
   console.error(err);
   setStatus(`Nie udało się wczytać bazy: ${err.message}. Uruchom przez serwer lokalny albo zaimportuj JSON/CSV/XLSX.`);
-  el.stationList.innerHTML = '<div class="loading-box">Nie udało się wczytać bazy. Kliknij „Import pliku” albo uruchom przez serwer HTTP.</div>';
+  el.stationList.innerHTML = '<div class="empty-state">Nie udało się wczytać bazy. Kliknij „Import JSON / CSV / XLSX” albo uruchom przez serwer HTTP.</div>';
   setStorageStatus('Pamięć lokalna: brak działającej bazy.');
 }
 
@@ -1256,20 +967,61 @@ function registerServiceWorker() {
   }
 }
 
+function formatDistance(km) {
+  if (!Number.isFinite(km)) return '—';
+  if (km < 1) return `${Math.round(km * 1000)} m`;
+  if (km < 10) return `${km.toFixed(2).replace('.', ',')} km`;
+  return `${km.toFixed(1).replace('.', ',')} km`;
+}
+
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const toRad = deg => deg * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function azimuthDeg(lat1, lon1, lat2, lon2) {
+  const toRad = deg => deg * Math.PI / 180;
+  const toDeg = rad => rad * 180 / Math.PI;
+  const phi1 = toRad(lat1);
+  const phi2 = toRad(lat2);
+  const dLon = toRad(lon2 - lon1);
+  const y = Math.sin(dLon) * Math.cos(phi2);
+  const x = Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Math.cos(dLon);
+  return (toDeg(Math.atan2(y, x)) + 360) % 360;
+}
+
+function destinationPoint(lat, lon, bearingDeg, distanceKm) {
+  const R = 6371;
+  const brng = bearingDeg * Math.PI / 180;
+  const phi1 = lat * Math.PI / 180;
+  const lambda1 = lon * Math.PI / 180;
+  const delta = distanceKm / R;
+  const phi2 = Math.asin(Math.sin(phi1) * Math.cos(delta) + Math.cos(phi1) * Math.sin(delta) * Math.cos(brng));
+  const lambda2 = lambda1 + Math.atan2(
+    Math.sin(brng) * Math.sin(delta) * Math.cos(phi1),
+    Math.cos(delta) - Math.sin(phi1) * Math.sin(phi2)
+  );
+  return { lat: phi2 * 180 / Math.PI, lng: ((lambda2 * 180 / Math.PI + 540) % 360) - 180 };
+}
+
 async function boot() {
   initElements();
   loadSettings();
   applyTheme();
   bindEvents();
-  setMapType(state.mapType);
+  setTab(state.activeTab || 'filters');
   el.radiusSelect.value = state.radiusKm ?? '';
   registerServiceWorker();
-  renderTiles();
+  initMap();
   setStorageStatus('Pamięć lokalna: sprawdzanie…');
   const saved = await loadActiveDataset();
   if (saved) {
     const date = saved.savedAt ? new Date(saved.savedAt).toLocaleString('pl-PL') : 'brak daty';
-    setStations(saved.stations.map(normalizeStation).filter(Boolean), `${saved.sourceName || 'zapisana baza'} • zapis ${date}`, { save: false });
+    setStations(saved.stations, `${saved.sourceName || 'zapisana baza'} • zapis ${date}`, { save: false });
     setStorageStatus(`Pamięć lokalna: użyto zapisanej bazy z ${date}.`);
     return;
   }

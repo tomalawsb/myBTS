@@ -1,34 +1,35 @@
-# myBTS Web Pro v2
+# myBTS Web Pro 3.0 - 1205261329
 
-Pierwsza poprawiona wersja web/PWA po przepisaniu z kierunku Kivy na HTML/CSS/JavaScript.
+Wersja przebudowana od początku pod układ mobilny i bibliotekę Leaflet.
 
-## Uruchomienie lokalne
+## Najważniejsze zmiany
 
-Kliknij `run_local.bat`, potem otwórz:
+- Usunięto własny silnik mapy oparty o ręczne kafelki i `canvas`.
+- Dodano Leaflet 1.9.4 jako normalną bibliotekę mapową.
+- Dodano układ mobilny: mapa jako główny ekran + dolny wysuwany panel.
+- Uproszczono górny pasek: GPS + menu, reszta funkcji jest w panelu.
+- Dodano zakładki: Filtry, Lista, Szczegóły, Ustawienia.
+- Dodano Web Worker do pobierania i parsowania JSON/CSV oraz przetwarzania arkuszy XLSX po odczycie przez SheetJS.
+- Service worker nie cache'uje już dużego `stations.json`, żeby nie dublować ciężkiej bazy w cache i IndexedDB.
+- Zachowano lokalną bazę w IndexedDB.
+- Dodano widoczną atrybucję map przez kontrolkę Leaflet.
 
-`http://localhost:8000`
+## Uruchamianie lokalne
 
-Nie uruchamiaj przez dwuklik na `index.html`, bo przeglądarka może blokować wczytanie `stations.json`.
+Najpewniej uruchomić przez lokalny serwer HTTP, np.:
 
-## Zrobione w v2
+```bat
+python -m http.server 8000
+```
 
-- PWA bez Kivy.
-- Mapa OSM i satelitarna.
-- GPS, punkt pomiarowy, odległość i azymut.
-- Klastry markerów.
-- Sektory orientacyjne i realne azymuty, jeśli są w danych.
-- Import JSON.
-- Import CSV.
-- Import XLSX/XLS przez SheetJS z CDN.
-- Pobieranie bazy z linku JSON/CSV/XLSX.
-- Obsługa linków Google Sheets jako CSV.
-- Próba obsługi publicznych linków Google Drive i Dropbox.
-- IndexedDB: zapamiętanie aktywnej bazy w przeglądarce.
-- Przycisk czyszczenia zapisanej bazy.
-- Indeks przestrzenny, żeby filtrowanie widoku nie musiało za każdym razem sprawdzać całych 46k stacji.
+Następnie wejść w przeglądarce:
 
-## Ważne ograniczenia
+```text
+http://localhost:8000
+```
 
-- Pełny import XLSX wymaga dostępu do biblioteki SheetJS z CDN. Bez internetu działa nadal JSON/CSV i zapisana baza.
-- Publiczny link Google Drive/Dropbox może zostać zablokowany przez CORS albo uprawnienia pliku. Najpewniejszy jest raw JSON/CSV albo Google Sheets opublikowany jako CSV.
-- Kafelki mapy pełnego offline nadal nie są pakowane lokalnie. Aplikacja działa offline, ale mapa wymaga kafelków pobranych wcześniej lub internetu.
+Bez serwera część przeglądarek może blokować `fetch`, Web Workera albo service workera.
+
+## Uwaga
+
+Leaflet i SheetJS są pobierane z CDN. Po pierwszym uruchomieniu service worker może je zachować w cache, ale pierwsze uruchomienie wymaga internetu.

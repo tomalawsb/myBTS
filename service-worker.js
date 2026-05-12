@@ -1,11 +1,12 @@
 'use strict';
 
-const CACHE_NAME = 'mybts-web-pro-v2';
+const CACHE_NAME = 'mybts-web-pro-v3-1205261329';
 const CORE_ASSETS = [
   './',
   './index.html',
   './style.css',
   './app.js',
+  './data-worker.js',
   './manifest.json',
   './icon.svg',
   './stations_sample.json'
@@ -17,17 +18,19 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))).then(() => self.clients.claim())
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
+      .then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', event => {
   const request = event.request;
-  const url = new URL(request.url);
   if (request.method !== 'GET') return;
+  const url = new URL(request.url);
 
   if (url.pathname.endsWith('/stations.json')) {
-    event.respondWith(networkThenCache(request));
+    event.respondWith(networkOnly(request));
     return;
   }
 
@@ -36,27 +39,35 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  event.respondWith(networkThenCache(request));
+  if (url.hostname.includes('cdnjs.cloudflare.com') || url.hostname.includes('cdn.sheetjs.com')) {
+    event.respondWith(staleWhileRevalidate(request));
+    return;
+  }
+
+  event.respondWith(fetch(request));
 });
 
 async function cacheFirst(request) {
   const cached = await caches.match(request);
   if (cached) return cached;
   const response = await fetch(request);
-  const cache = await caches.open(CACHE_NAME);
-  if (response.ok) cache.put(request, response.clone());
+  if (response.ok) {
+    const cache = await caches.open(CACHE_NAME);
+    cache.put(request, response.clone());
+  }
   return response;
 }
 
-async function networkThenCache(request) {
+async function staleWhileRevalidate(request) {
   const cache = await caches.open(CACHE_NAME);
-  try {
-    const response = await fetch(request);
+  const cached = await cache.match(request);
+  const network = fetch(request).then(response => {
     if (response.ok) cache.put(request, response.clone());
     return response;
-  } catch (err) {
-    const cached = await cache.match(request);
-    if (cached) return cached;
-    throw err;
-  }
+  }).catch(() => cached);
+  return cached || network;
+}
+
+async function networkOnly(request) {
+  return fetch(request);
 }
