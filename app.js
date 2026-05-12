@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '3.10 - 1205261740';
+const APP_VERSION = '3.11 - 1205261805';
 const DEFAULT_CENTER = [50.2872, 21.4231];
 const DEFAULT_ZOOM = 10;
 const MIN_ZOOM = 5;
@@ -436,19 +436,34 @@ async function clearActiveDataset() {
 function ensureWorker() {
   if (state.worker) return state.worker;
   if (!window.Worker) return null;
-  state.worker = new Worker('data-worker.js');
-  return state.worker;
+  try {
+    state.worker = new Worker('data-worker.js');
+    return state.worker;
+  } catch (err) {
+    console.warn('Worker niedostępny, używam parsera awaryjnego:', err);
+    state.worker = null;
+    return null;
+  }
 }
 
 function workerRequest(payload) {
   return new Promise((resolve, reject) => {
     const worker = ensureWorker();
     if (!worker) {
-      reject(new Error('Ta przeglądarka nie obsługuje Web Workera.'));
+      fallbackWorkerRequest(payload).then(resolve, reject);
       return;
     }
     const id = ++state.workerSeq;
-    const cleanup = () => worker.removeEventListener('message', onMessage);
+    const cleanup = () => {
+      worker.removeEventListener('message', onMessage);
+      worker.removeEventListener('error', onError);
+      worker.removeEventListener('messageerror', onError);
+    };
+    const onError = (event) => {
+      cleanup();
+      console.warn('Worker przerwany, używam parsera awaryjnego:', event);
+      fallbackWorkerRequest(payload).then(resolve, reject);
+    };
     const onMessage = (event) => {
       const msg = event.data || {};
       if (msg.id !== id) return;
@@ -461,8 +476,42 @@ function workerRequest(payload) {
       else resolve(msg);
     };
     worker.addEventListener('message', onMessage);
-    worker.postMessage({ ...payload, id });
+    worker.addEventListener('error', onError);
+    worker.addEventListener('messageerror', onError);
+    try {
+      worker.postMessage({ ...payload, id });
+    } catch (err) {
+      cleanup();
+      fallbackWorkerRequest(payload).then(resolve, reject);
+    }
   });
+}
+
+async function fallbackWorkerRequest(payload) {
+  const id = payload.id || ++state.workerSeq;
+  if (payload.type === 'loadUrl') {
+    setStatus('Pobieram bazę…');
+    const url = normalizeRemoteUrlMain(payload.url || 'stations.json');
+    const response = await fetch(url, { cache: payload.forceNetwork ? 'reload' : 'default' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const contentType = response.headers.get('content-type') || '';
+    const kind = detectRemoteTypeMain(url, contentType);
+    const text = await response.text();
+    setStatus('Przetwarzam bazę…');
+    const stations = parseTextPayloadMain(text, kind);
+    return { id, type: 'result', stations, sourceName: sourceNameFromUrlSafe(url) };
+  }
+  if (payload.type === 'parseText') {
+    setStatus('Przetwarzam plik…');
+    const stations = parseTextPayloadMain(String(payload.text || ''), payload.kind || detectRemoteTypeMain(payload.name || '', payload.contentType || ''));
+    return { id, type: 'result', stations, sourceName: payload.name || 'import' };
+  }
+  if (payload.type === 'parseRows') {
+    setStatus('Przetwarzam arkusz…');
+    const stations = parseImportedRowsMain(Array.isArray(payload.rows) ? payload.rows : []);
+    return { id, type: 'result', stations, sourceName: payload.name || 'import' };
+  }
+  throw new Error('Nieznane polecenie parsera.');
 }
 
 function initMap() {
@@ -2102,21 +2151,13 @@ async function parseUkeRemoteFile(link) {
   const url = link.url;
   const lower = url.toLowerCase();
   const band = inferBandFromName(`${link.name} ${url}`);
-  if (lower.includes('.csv')) {
+  if (lower.includes('.csv') || lower.includes('.txt')) {
     const text = await fetchTextNoStore(url);
     const result = await workerRequest({ type: 'parseText', text, name: `UKE ${link.name}`, contentType: 'text/csv' });
     return result.stations.map(station => enrichUkeStation(station, band, link.name));
   }
-
   const buffer = await fetchArrayBufferNoStore(url);
-  const workbook = XLSX.read(buffer, { type: 'array' });
-  const rows = [];
-  for (const sheetName of workbook.SheetNames) {
-    const sheetRows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
-    for (const row of sheetRows) rows.push(enrichUkeRow(row, band, link.name));
-  }
-  if (!rows.length) return [];
-  const result = await workerRequest({ type: 'parseRows', rows, name: `UKE ${link.name}` });
+  const result = await parseSpreadsheetBuffer(buffer, link.name || sourceNameFromUrlSafe(url), 'UKE ');
   return result.stations.map(station => enrichUkeStation(station, band, link.name));
 }
 
@@ -2218,6 +2259,8 @@ async function importDataFile() {
       result = await importZipStationFile(file);
     } else if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
       result = await parseSpreadsheetStationFile(file);
+    } else if (name.endsWith('.xml') || name.endsWith('.html') || name.endsWith('.htm')) {
+      result = await parseXmlOrHtmlStationFile(file);
     } else {
       result = await workerRequest({ type: 'parseText', text: await file.text(), name: file.name, contentType: file.type });
     }
@@ -2238,53 +2281,563 @@ async function importDataFile() {
 }
 
 async function parseSpreadsheetStationFile(file, sourcePrefix = '') {
-  if (!window.XLSX) throw new Error(XLSX_CDN_NOTE);
   const buffer = await file.arrayBuffer();
   return parseSpreadsheetBuffer(buffer, file.name, sourcePrefix);
 }
 
 async function parseSpreadsheetBuffer(buffer, name, sourcePrefix = '') {
-  if (!window.XLSX) throw new Error(XLSX_CDN_NOTE);
-  const workbook = XLSX.read(buffer, { type: 'array' });
-  const rows = [];
   const band = inferBandFromName(name);
-  for (const sheetName of workbook.SheetNames) {
-    const sheetRows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
-    for (const row of sheetRows) rows.push(enrichUkeRow(row, band, name));
+  let rows = [];
+  const errors = [];
+
+  if (window.XLSX) {
+    try {
+      const workbook = XLSX.read(buffer, { type: 'array' });
+      for (const sheetName of workbook.SheetNames) {
+        const matrix = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, defval: '', raw: false });
+        for (const row of matrixToObjects(matrix)) rows.push(enrichUkeRow(row, band, `${name} / ${sheetName}`));
+      }
+    } catch (err) {
+      errors.push(`SheetJS: ${err.message}`);
+      rows = [];
+    }
   }
-  if (!rows.length) throw new Error(`Plik ${name} nie ma arkuszy z danymi.`);
-  const result = await workerRequest({ type: 'parseRows', rows, name: `${sourcePrefix}${name}` });
-  return { stations: result.stations.map(station => enrichUkeStation(station, band, name)), sourceName: result.sourceName || name };
+
+  if (!rows.length) {
+    try {
+      const sheets = await parseXlsxBufferMinimal(buffer, name);
+      for (const sheet of sheets) {
+        for (const row of matrixToObjects(sheet.matrix)) rows.push(enrichUkeRow(row, band, `${name} / ${sheet.name}`));
+      }
+    } catch (err) {
+      errors.push(`parser wbudowany: ${err.message}`);
+    }
+  }
+
+  if (!rows.length) {
+    throw new Error(`Plik ${name} nie ma czytelnych arkuszy z danymi. ${errors.join(' / ')}`.trim());
+  }
+
+  try {
+    const result = await workerRequest({ type: 'parseRows', rows, name: `${sourcePrefix}${name}` });
+    return { stations: result.stations.map(station => enrichUkeStation(station, band, name)), sourceName: result.sourceName || name };
+  } catch (err) {
+    throw new Error(`${err.message} Plik: ${name}. Odczytano ${rows.length} wierszy, ale nie udało się rozpoznać współrzędnych/kolumn.`);
+  }
 }
 
 async function importZipStationFile(file) {
-  if (!window.JSZip) throw new Error(ZIP_CDN_NOTE);
-  if (!window.XLSX) throw new Error(XLSX_CDN_NOTE);
   showStatusToast('Import ZIP', `Rozpakowuję ${file.name}…`, 'busy', { sticky: true, progress: 12 });
-  const zip = await JSZip.loadAsync(await file.arrayBuffer());
-  const entries = Object.values(zip.files)
-    .filter(entry => !entry.dir && /\.(xlsx|xls|csv|json)$/i.test(entry.name))
+  const entries = await readZipEntriesFromBuffer(await file.arrayBuffer());
+  const importable = entries
+    .filter(entry => !entry.dir && /\.(xlsx|xls|csv|json|xml|html|htm)$/i.test(entry.name))
     .sort((a, b) => a.name.localeCompare(b.name, 'pl'));
-  if (!entries.length) throw new Error('ZIP nie zawiera plików JSON/CSV/XLSX.');
+  if (!importable.length) throw new Error('ZIP nie zawiera plików JSON/CSV/XLSX/XML/HTML.');
 
   const allStations = [];
-  for (let index = 0; index < entries.length; index++) {
-    const entry = entries[index];
-    const progress = Math.round(12 + ((index + 1) / entries.length) * 78);
-    showStatusToast('Import ZIP', `Czytam ${index + 1}/${entries.length}: ${entry.name}`, 'busy', { sticky: true, progress });
+  const errors = [];
+  for (let index = 0; index < importable.length; index++) {
+    const entry = importable[index];
+    const progress = Math.round(12 + ((index + 1) / importable.length) * 78);
+    showStatusToast('Import ZIP', `Czytam ${index + 1}/${importable.length}: ${entry.name}`, 'busy', { sticky: true, progress });
     const lower = entry.name.toLowerCase();
-    let parsed;
-    if (lower.endsWith('.xlsx') || lower.endsWith('.xls')) {
-      const buffer = await entry.async('arraybuffer');
-      parsed = await parseSpreadsheetBuffer(buffer, entry.name, 'ZIP ');
-    } else {
-      const text = await entry.async('text');
-      parsed = await workerRequest({ type: 'parseText', text, name: entry.name, contentType: lower.endsWith('.json') ? 'application/json' : 'text/csv' });
+    try {
+      let parsed;
+      if (lower.endsWith('.xlsx') || lower.endsWith('.xls')) {
+        parsed = await parseSpreadsheetBuffer(await entry.arrayBuffer(), entry.name, 'ZIP ');
+      } else if (lower.endsWith('.xml') || lower.endsWith('.html') || lower.endsWith('.htm')) {
+        parsed = await parseXmlOrHtmlText(await entry.text(), entry.name);
+      } else {
+        const text = await entry.text();
+        parsed = await workerRequest({ type: 'parseText', text, name: entry.name, contentType: lower.endsWith('.json') ? 'application/json' : 'text/csv' });
+      }
+      if (parsed && Array.isArray(parsed.stations)) allStations.push(...parsed.stations);
+    } catch (err) {
+      errors.push(`${entry.name}: ${err.message}`);
     }
-    if (parsed && Array.isArray(parsed.stations)) allStations.push(...parsed.stations);
   }
-  if (!allStations.length) throw new Error('ZIP został odczytany, ale nie znaleziono stacji z poprawnymi współrzędnymi.');
-  return { stations: allStations, sourceName: `${file.name} • ZIP` };
+  const stations = dedupeStationsForImport(allStations);
+  if (!stations.length) {
+    throw new Error(`ZIP został odczytany, ale nie znaleziono stacji z poprawnymi współrzędnymi. ${errors.slice(0, 5).join(' / ')}`.trim());
+  }
+  if (errors.length) console.warn('Część plików ZIP pominięto:', errors);
+  return { stations, sourceName: `${file.name} • ZIP` };
+}
+
+
+function dedupeStationsForImport(stations) {
+  const out = [];
+  const seen = new Set();
+  for (const station of stations || []) {
+    if (!station) continue;
+    const key = `${normalizeText(station.operator)}|${normalizeText(station.station_id)}|${Number(station.latitude).toFixed(6)}|${Number(station.longitude).toFixed(6)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(station);
+  }
+  return out;
+}
+
+function matrixToObjects(matrix) {
+  const rows = (matrix || []).map(row => Array.from(row || []).map(value => String(value ?? '').trim()));
+  const nonEmpty = rows.filter(row => row.some(Boolean));
+  if (!nonEmpty.length) return [];
+  let headerIndex = 0;
+  let bestScore = -1;
+  for (let i = 0; i < Math.min(nonEmpty.length, 30); i++) {
+    const score = scoreHeaderRow(nonEmpty[i]);
+    if (score > bestScore) {
+      bestScore = score;
+      headerIndex = i;
+    }
+  }
+  if (bestScore < 2) headerIndex = 0;
+  const headers = nonEmpty[headerIndex].map((header, index) => header || `kolumna_${index + 1}`);
+  const objects = [];
+  for (const values of nonEmpty.slice(headerIndex + 1)) {
+    if (!values.some(Boolean)) continue;
+    const object = {};
+    headers.forEach((header, index) => {
+      if (!header) return;
+      object[header] = values[index] ?? '';
+    });
+    if (Object.values(object).some(value => String(value || '').trim())) objects.push(object);
+  }
+  return objects;
+}
+
+function scoreHeaderRow(row) {
+  const joined = normalizeText((row || []).join(' '));
+  let score = 0;
+  const tokens = ['szerokosc', 'dlugosc', 'wspolrzed', 'miejscowosc', 'operator', 'uzytkownik', 'adres', 'stacja', 'pozwolen', 'azymut', 'moc', 'eirp', 'technologia', 'pasmo', 'system', 'standard', 'wojewodztwo', 'powiat', 'gmina'];
+  for (const token of tokens) if (joined.includes(token)) score++;
+  return score;
+}
+
+async function parseXmlOrHtmlStationFile(file) {
+  return parseXmlOrHtmlText(await file.text(), file.name);
+}
+
+async function parseXmlOrHtmlText(text, name) {
+  const rows = parseXmlOrHtmlRows(text);
+  if (!rows.length) throw new Error(`Plik ${name} nie zawiera czytelnej tabeli.`);
+  const result = await workerRequest({ type: 'parseRows', rows, name });
+  return { stations: result.stations, sourceName: result.sourceName || name };
+}
+
+function parseXmlOrHtmlRows(text) {
+  const raw = String(text || '').trim();
+  if (!raw) return [];
+  const parser = new DOMParser();
+  let doc = parser.parseFromString(raw, raw.slice(0, 200).toLowerCase().includes('<html') ? 'text/html' : 'application/xml');
+  if (doc.querySelector('parsererror')) doc = parser.parseFromString(raw, 'text/html');
+
+  const table = doc.querySelector('table');
+  if (table) {
+    const matrix = Array.from(table.querySelectorAll('tr')).map(tr => Array.from(tr.children).map(cell => cell.textContent.trim()));
+    return matrixToObjects(matrix);
+  }
+
+  const excelRows = Array.from(doc.getElementsByTagName('Row'));
+  if (excelRows.length) {
+    const matrix = excelRows.map(row => {
+      const values = [];
+      for (const cell of Array.from(row.getElementsByTagName('Cell'))) {
+        const indexAttr = cell.getAttribute('ss:Index') || cell.getAttribute('Index');
+        if (indexAttr) {
+          const wanted = Number(indexAttr) - 1;
+          while (values.length < wanted) values.push('');
+        }
+        const data = cell.getElementsByTagName('Data')[0];
+        values.push((data ? data.textContent : cell.textContent).trim());
+      }
+      return values;
+    });
+    return matrixToObjects(matrix);
+  }
+
+  const candidates = Array.from(doc.querySelectorAll('row, record, item, pozwolenie, stacja, station'));
+  if (candidates.length) {
+    const objects = [];
+    for (const node of candidates) {
+      const object = {};
+      for (const child of Array.from(node.children)) object[child.tagName] = child.textContent.trim();
+      if (Object.keys(object).length) objects.push(object);
+    }
+    return objects;
+  }
+
+  return [];
+}
+
+async function readZipEntriesFromBuffer(buffer) {
+  if (window.JSZip) {
+    try {
+      const zip = await JSZip.loadAsync(buffer);
+      return Object.values(zip.files).map(entry => ({
+        name: entry.name,
+        dir: entry.dir,
+        arrayBuffer: () => entry.async('arraybuffer'),
+        text: () => entry.async('text')
+      }));
+    } catch (err) {
+      console.warn('JSZip nie odczytał pliku, próbuję parserem wbudowanym:', err);
+    }
+  }
+  return readZipEntriesMinimal(buffer);
+}
+
+async function readZipEntriesMinimal(buffer) {
+  const view = new DataView(buffer);
+  const bytes = new Uint8Array(buffer);
+  const decoder = new TextDecoder('utf-8');
+  const eocdOffset = findEndOfCentralDirectory(view);
+  if (eocdOffset < 0) throw new Error('Nieprawidłowy plik ZIP albo brak biblioteki JSZip.');
+  const totalEntries = view.getUint16(eocdOffset + 10, true);
+  let offset = view.getUint32(eocdOffset + 16, true);
+  const entries = [];
+
+  for (let i = 0; i < totalEntries; i++) {
+    if (view.getUint32(offset, true) !== 0x02014b50) break;
+    const method = view.getUint16(offset + 10, true);
+    const compressedSize = view.getUint32(offset + 20, true);
+    const uncompressedSize = view.getUint32(offset + 24, true);
+    const nameLen = view.getUint16(offset + 28, true);
+    const extraLen = view.getUint16(offset + 30, true);
+    const commentLen = view.getUint16(offset + 32, true);
+    const localOffset = view.getUint32(offset + 42, true);
+    const name = decoder.decode(bytes.slice(offset + 46, offset + 46 + nameLen));
+    const dir = name.endsWith('/');
+    entries.push({ name, dir, method, compressedSize, uncompressedSize, localOffset, _buffer: buffer });
+    offset += 46 + nameLen + extraLen + commentLen;
+  }
+
+  return entries.map(entry => ({
+    name: entry.name,
+    dir: entry.dir,
+    arrayBuffer: async () => extractZipEntryBuffer(entry),
+    text: async () => new TextDecoder('utf-8').decode(await extractZipEntryBuffer(entry))
+  }));
+}
+
+function findEndOfCentralDirectory(view) {
+  for (let offset = view.byteLength - 22; offset >= Math.max(0, view.byteLength - 66000); offset--) {
+    if (view.getUint32(offset, true) === 0x06054b50) return offset;
+  }
+  return -1;
+}
+
+async function extractZipEntryBuffer(entry) {
+  const view = new DataView(entry._buffer);
+  const bytes = new Uint8Array(entry._buffer);
+  const local = entry.localOffset;
+  if (view.getUint32(local, true) !== 0x04034b50) throw new Error(`Uszkodzony wpis ZIP: ${entry.name}`);
+  const nameLen = view.getUint16(local + 26, true);
+  const extraLen = view.getUint16(local + 28, true);
+  const dataStart = local + 30 + nameLen + extraLen;
+  const compressed = bytes.slice(dataStart, dataStart + entry.compressedSize);
+  if (entry.method === 0) return compressed.buffer.slice(compressed.byteOffset, compressed.byteOffset + compressed.byteLength);
+  if (entry.method === 8) {
+    if (!window.DecompressionStream) throw new Error(`ZIP wymaga rozpakowania Deflate, a przeglądarka go nie obsługuje: ${entry.name}`);
+    const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return new Response(stream).arrayBuffer();
+  }
+  throw new Error(`Nieobsługiwana kompresja ZIP (${entry.method}) w pliku ${entry.name}`);
+}
+
+async function parseXlsxBufferMinimal(buffer, name) {
+  const entries = await readZipEntriesFromBuffer(buffer);
+  const map = new Map(entries.map(entry => [entry.name.replace(/^\//, ''), entry]));
+  const getText = async path => {
+    const entry = map.get(path) || map.get(path.replace(/^xl\//, ''));
+    return entry ? entry.text() : '';
+  };
+  const workbookText = await getText('xl/workbook.xml');
+  if (!workbookText) throw new Error('Brak xl/workbook.xml. To nie wygląda na XLSX.');
+  const parser = new DOMParser();
+  const workbook = parser.parseFromString(workbookText, 'application/xml');
+  const relsText = await getText('xl/_rels/workbook.xml.rels');
+  const relsDoc = parser.parseFromString(relsText || '<Relationships/>', 'application/xml');
+  const rels = new Map(Array.from(relsDoc.getElementsByTagName('Relationship')).map(rel => [rel.getAttribute('Id'), rel.getAttribute('Target')]));
+  const sharedStrings = await readXlsxSharedStrings(map, parser);
+  const sheets = [];
+  for (const sheet of Array.from(workbook.getElementsByTagName('sheet'))) {
+    const sheetName = sheet.getAttribute('name') || 'Arkusz';
+    const relId = sheet.getAttribute('r:id') || sheet.getAttribute('id');
+    let target = rels.get(relId) || `worksheets/sheet${sheets.length + 1}.xml`;
+    if (!target.startsWith('xl/')) target = `xl/${target.replace(/^\//, '')}`;
+    const sheetEntry = map.get(target);
+    if (!sheetEntry) continue;
+    const matrix = parseXlsxSheet(await sheetEntry.text(), sharedStrings, parser);
+    if (matrix.length) sheets.push({ name: sheetName, matrix });
+  }
+  if (!sheets.length) throw new Error(`Nie znalazłem arkuszy w ${name}.`);
+  return sheets;
+}
+
+async function readXlsxSharedStrings(map, parser) {
+  const entry = map.get('xl/sharedStrings.xml');
+  if (!entry) return [];
+  const doc = parser.parseFromString(await entry.text(), 'application/xml');
+  return Array.from(doc.getElementsByTagName('si')).map(si => Array.from(si.getElementsByTagName('t')).map(t => t.textContent).join(''));
+}
+
+function parseXlsxSheet(text, sharedStrings, parser) {
+  const doc = parser.parseFromString(text, 'application/xml');
+  const rows = [];
+  for (const row of Array.from(doc.getElementsByTagName('row'))) {
+    const values = [];
+    for (const cell of Array.from(row.getElementsByTagName('c'))) {
+      const ref = cell.getAttribute('r') || '';
+      const col = xlsxColumnIndex(ref.replace(/\d+/g, ''));
+      while (values.length < col) values.push('');
+      values[col] = readXlsxCell(cell, sharedStrings);
+    }
+    rows.push(values);
+  }
+  return rows;
+}
+
+function readXlsxCell(cell, sharedStrings) {
+  const type = cell.getAttribute('t') || '';
+  if (type === 'inlineStr') return Array.from(cell.getElementsByTagName('t')).map(t => t.textContent).join('');
+  const valueNode = cell.getElementsByTagName('v')[0];
+  const raw = valueNode ? valueNode.textContent : '';
+  if (type === 's') return sharedStrings[Number(raw)] || '';
+  return raw;
+}
+
+function xlsxColumnIndex(col) {
+  let index = 0;
+  for (const ch of String(col || 'A').toUpperCase()) index = index * 26 + (ch.charCodeAt(0) - 64);
+  return Math.max(0, index - 1);
+}
+
+function normalizeColumnNameMain(value) {
+  return normalizeText(value).replace(/[^a-z0-9]+/g, '');
+}
+
+function numberFromCellMain(value) {
+  if (typeof value === 'number') return value;
+  const text = String(value ?? '').trim().replace(',', '.');
+  const match = text.match(/-?\d+(?:\.\d+)?/);
+  return match ? Number(match[0]) : NaN;
+}
+
+function coordinateFromCellMain(value) {
+  if (typeof value === 'number') return value;
+  const text = String(value ?? '').trim();
+  if (!text) return NaN;
+  const numbers = text.replace(/,/g, '.').match(/-?\d+(?:\.\d+)?/g) || [];
+  if (numbers.length >= 3 && /[°'"NSWE]/i.test(text)) {
+    const deg = Math.abs(Number(numbers[0]));
+    const min = Math.abs(Number(numbers[1]));
+    const sec = Math.abs(Number(numbers[2]));
+    if ([deg, min, sec].every(Number.isFinite)) {
+      let out = deg + min / 60 + sec / 3600;
+      if (/[SW]/i.test(text) || String(numbers[0]).startsWith('-')) out *= -1;
+      return out;
+    }
+  }
+  const decimal = text.replace(',', '.').match(/-?\d+(?:\.\d+)?/);
+  return decimal ? Number(decimal[0]) : NaN;
+}
+
+function getAliasedMain(row, aliases) {
+  for (const alias of aliases) {
+    const key = normalizeColumnNameMain(alias);
+    if (Object.prototype.hasOwnProperty.call(row, key) && row[key] !== '') return row[key];
+  }
+  return '';
+}
+
+function getFuzzyCoordinateMain(row, kind) {
+  for (const [key, value] of Object.entries(row || {})) {
+    const k = normalizeColumnNameMain(key);
+    const isLat = kind === 'lat' && (k.includes('szerokosc') || k.includes('latitude') || k === 'lat' || k.endsWith('lat') || k === 'y');
+    const isLon = kind === 'lon' && ((k.includes('dlugosc') && !k.includes('wysokosc')) || k.includes('longitude') || k === 'lon' || k === 'lng' || k.endsWith('lon') || k.endsWith('lng') || k === 'x');
+    if (!isLat && !isLon) continue;
+    const coord = coordinateFromCellMain(value);
+    if (Number.isFinite(coord)) return coord;
+  }
+  return NaN;
+}
+
+function coordinatePairFromTextMain(value) {
+  const text = String(value || '');
+  if (!text) return null;
+  const dms = [];
+  const dmsRe = /(\d{1,3})\D+(\d{1,2})\D+(\d{1,2}(?:[,.]\d+)?)\s*([NSEW])/gi;
+  let match;
+  while ((match = dmsRe.exec(text))) {
+    let val = Math.abs(Number(match[1])) + Math.abs(Number(match[2])) / 60 + Math.abs(Number(String(match[3]).replace(',', '.'))) / 3600;
+    const dir = match[4].toUpperCase();
+    if (dir === 'S' || dir === 'W') val *= -1;
+    dms.push({ val, dir });
+  }
+  if (dms.length >= 2) {
+    const lat = dms.find(item => item.dir === 'N' || item.dir === 'S')?.val;
+    const lon = dms.find(item => item.dir === 'E' || item.dir === 'W')?.val;
+    if (Number.isFinite(lat) && Number.isFinite(lon)) return { lat, lon };
+  }
+  const nums = text.replace(/,/g, '.').match(/-?\d+(?:\.\d+)?/g)?.map(Number).filter(Number.isFinite) || [];
+  for (let i = 0; i < nums.length - 1; i++) {
+    const lat = nums[i];
+    const lon = nums[i + 1];
+    if (lat >= 40 && lat <= 60 && lon >= 10 && lon <= 30) return { lat, lon };
+  }
+  return null;
+}
+
+function coordinatePairFromRowMain(row) {
+  for (const value of Object.values(row || {})) {
+    const pair = coordinatePairFromTextMain(value);
+    if (pair) return pair;
+  }
+  return null;
+}
+
+function splitListCellMain(value) {
+  if (Array.isArray(value)) return value.map(String).map(s => s.trim()).filter(Boolean);
+  const text = String(value ?? '').trim();
+  if (!text) return [];
+  return text.split(/[;,|/]+|\s{2,}/).map(s => s.trim()).filter(Boolean);
+}
+
+function buildAddressMain(row) {
+  const direct = getAliasedMain(row, ['address', 'adres', 'adresstacji', 'lokalizacja', 'lokalizacjastacji', 'location']);
+  if (direct) return direct;
+  const parts = [
+    getAliasedMain(row, ['ulica', 'ul']),
+    getAliasedMain(row, ['nr', 'numer', 'nrdomu', 'numernieruchomosci']),
+    getAliasedMain(row, ['miejscowosc', 'miejscowość', 'miejscowoscstacji', 'miasto']),
+    getAliasedMain(row, ['gmina']),
+    getAliasedMain(row, ['powiat']),
+    getAliasedMain(row, ['wojewodztwo'])
+  ].map(v => String(v || '').trim()).filter(Boolean);
+  return [...new Set(parts)].join(', ');
+}
+
+function normalizeImportedRowMain(rawRow) {
+  const row = {};
+  for (const [key, value] of Object.entries(rawRow || {})) row[normalizeColumnNameMain(key)] = value;
+  const pair = coordinatePairFromRowMain(row);
+  let lat = coordinateFromCellMain(getAliasedMain(row, ['latitude', 'lat', 'szerokosc', 'szerokoscgeograficzna', 'szerokoscgeograficznastacji', 'wgs84lat', 'latwgs84', 'y']));
+  let lon = coordinateFromCellMain(getAliasedMain(row, ['longitude', 'lon', 'lng', 'dlugosc', 'dlugoscgeograficzna', 'dlugoscgeograficznastacji', 'wgs84lon', 'lonwgs84', 'lngwgs84', 'x']));
+  if (!Number.isFinite(lat)) lat = getFuzzyCoordinateMain(row, 'lat');
+  if (!Number.isFinite(lon)) lon = getFuzzyCoordinateMain(row, 'lon');
+  if (!Number.isFinite(lat) && pair) lat = pair.lat;
+  if (!Number.isFinite(lon) && pair) lon = pair.lon;
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+  const address = buildAddressMain(row);
+  const bandsRaw = getAliasedMain(row, ['bands', 'pasma', 'pasmo', 'band', 'technologia', 'technology', 'system', 'standard', 'zakres', 'ukeband']);
+  const azRaw = getAliasedMain(row, ['azimuths', 'azymuty', 'azymut', 'azimuth', 'azymutanteny', 'kierunek']);
+  const powerRaw = getAliasedMain(row, ['power', 'power_w', 'moc', 'mocw', 'mocpromieniowana', 'eirp', 'eirp_dbm', 'eirpdbm', 'erp', 'max_eirp_dbm', 'maksymalnamoc']);
+  return normalizeStationForMain({
+    station_id: getAliasedMain(row, ['station_id', 'stationid', 'id', 'nrstacji', 'idstacji', 'identyfikatorstacji', 'nazwaobiektu', 'nazwastacji', 'pozwolenie', 'nrpozwolenia', 'numerpozwolenia', 'numerdecyzji', 'nrdecyzji', 'znaksprawy', 'btssid', 'siteid']) || '—',
+    operator: getAliasedMain(row, ['operator', 'siec', 'sieć', 'network', 'mno', 'uzytkownik', 'uzytkownikpozwolenia', 'nazwauzytkownika', 'nazwaoperatora', 'nazwauzytkownika', 'podmiot', 'przedsiebiorca']) || 'Nieznany',
+    latitude: lat,
+    longitude: lon,
+    address,
+    city: getAliasedMain(row, ['city', 'miasto', 'miejscowosc', 'miejscowość', 'miejscowoscstacji', 'gmina']) || address.split(',')[0] || '',
+    bands: mergeUnique(splitListCellMain(bandsRaw), extractBandsFromText([bandsRaw, address, Object.values(row).join(' ')].join(' '))),
+    azimuths: splitListCellMain(azRaw).map(numberFromCellMain).filter(Number.isFinite),
+    sector_ids: splitListCellMain(getAliasedMain(row, ['sector_ids', 'sektory', 'sector', 'sektor', 'cellid', 'clid'])),
+    cell_names: splitListCellMain(getAliasedMain(row, ['cell_names', 'komorki', 'komórki', 'cells', 'cellname'])),
+    records_count: 1,
+    range_km: numberFromCellMain(getAliasedMain(row, ['range_km', 'zasieg', 'zasiegkm', 'promien', 'promienkm'])),
+    power: powerRaw,
+    source: getAliasedMain(row, ['source', 'zrodlo', 'źródło'])
+  });
+}
+
+function parseImportedRowsMain(rows) {
+  const stations = [];
+  const seen = new Set();
+  for (const rawRow of rows || []) {
+    const station = normalizeImportedRowMain(rawRow);
+    if (!station) continue;
+    const key = `${station.operator}|${station.station_id}|${station.latitude}|${station.longitude}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    stations.push(station);
+  }
+  if (!stations.length) throw new Error('Nie znaleziono stacji z poprawnymi współrzędnymi. Sprawdź, czy plik ma kolumny szerokości/długości geograficznej albo współrzędne WGS84.');
+  return stations;
+}
+
+function parseStationsPayloadMain(payload) {
+  const source = Array.isArray(payload) ? payload : (payload.stations || payload.data || payload.items || []);
+  if (!Array.isArray(source)) throw new Error('Plik JSON nie zawiera listy stacji.');
+  const stations = dedupeStationsForImport(source.map(normalizeStationForMain).filter(Boolean));
+  if (!stations.length) throw new Error('Nie znaleziono stacji z poprawnymi współrzędnymi.');
+  return stations;
+}
+
+function parseTextPayloadMain(text, kind) {
+  const trimmed = String(text || '').trim();
+  if (!trimmed) throw new Error('Pusty plik.');
+  if (trimmed.startsWith('{') || trimmed.startsWith('[') || kind === 'json') return parseStationsPayloadMain(JSON.parse(trimmed));
+  if (trimmed.startsWith('<') || kind === 'xml' || kind === 'html') return parseImportedRowsMain(parseXmlOrHtmlRows(trimmed));
+  return parseImportedRowsMain(parseCsvMain(text));
+}
+
+function parseCsvMain(text) {
+  const sample = String(text || '').slice(0, 5000);
+  const delimiters = [';', ',', '\t'];
+  let delimiter = ';';
+  let best = -1;
+  for (const d of delimiters) {
+    const pattern = d === '\t' ? /\t/g : new RegExp(`\\${d}`, 'g');
+    const score = (sample.match(pattern) || []).length;
+    if (score > best) { best = score; delimiter = d === '\t' ? '\t' : d; }
+  }
+  const rows = [];
+  let row = [];
+  let cell = '';
+  let quoted = false;
+  const input = String(text || '');
+  for (let i = 0; i < input.length; i++) {
+    const ch = input[i];
+    const next = input[i + 1];
+    if (ch === '"') {
+      if (quoted && next === '"') { cell += '"'; i++; }
+      else quoted = !quoted;
+      continue;
+    }
+    if (!quoted && ch === delimiter) { row.push(cell); cell = ''; continue; }
+    if (!quoted && (ch === '\n' || ch === '\r')) {
+      if (ch === '\r' && next === '\n') i++;
+      row.push(cell); cell = '';
+      if (row.some(v => String(v).trim() !== '')) rows.push(row);
+      row = [];
+      continue;
+    }
+    cell += ch;
+  }
+  row.push(cell);
+  if (row.some(v => String(v).trim() !== '')) rows.push(row);
+  return matrixToObjects(rows);
+}
+
+function normalizeRemoteUrlMain(url) {
+  let out = String(url || '').trim();
+  if (!out) throw new Error('Podaj link do bazy.');
+  if (out.includes('dropbox.com/') && out.includes('dl=0')) out = out.replace('dl=0', 'dl=1');
+  if (out.includes('drive.google.com/file/d/')) {
+    const match = out.match(/\/d\/([^/]+)/);
+    if (match) out = `https://drive.google.com/uc?export=download&id=${match[1]}`;
+  }
+  return out;
+}
+
+function detectRemoteTypeMain(url, contentType) {
+  const lower = String(url || '').toLowerCase();
+  const ct = String(contentType || '').toLowerCase();
+  if (lower.endsWith('.csv') || ct.includes('csv')) return 'csv';
+  if (lower.endsWith('.xml') || ct.includes('xml')) return 'xml';
+  if (lower.endsWith('.html') || lower.endsWith('.htm') || ct.includes('html')) return 'html';
+  return 'json';
 }
 
 
@@ -2697,7 +3250,7 @@ function warnIfFileProtocol() {
 function showLoadError(err) {
   console.error(err);
   setStatus(`Nie udało się wczytać bazy: ${err.message}. Uruchom przez serwer lokalny albo zaimportuj JSON/CSV/XLSX/ZIP.`);
-  el.stationList.innerHTML = '<div class="empty-state">Nie udało się wczytać bazy. Kliknij „Import JSON / CSV / XLSX / ZIP” albo uruchom przez serwer HTTP.</div>';
+  el.stationList.innerHTML = '<div class="empty-state">Nie udało się wczytać bazy. Kliknij „Import JSON / CSV / XLSX / XML / ZIP” albo uruchom przez serwer HTTP.</div>';
   setStorageStatus('Pamięć lokalna: brak działającej bazy.');
 }
 

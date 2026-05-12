@@ -1,4 +1,4 @@
-# myBTS Web Pro 3.10 - 1205261740
+# myBTS Web Pro 3.11 - 1205261805
 
 Wersja web/PWA do przeglądania stacji BTS na mapie Leaflet.
 
@@ -39,9 +39,16 @@ Najpewniejsza metoda:
 
 1. Kliknij „Otwórz stronę UKE”.
 2. Pobierz „wszystkie załączniki w formacie .zip” albo wybrane arkusze XLSX.
-3. W aplikacji kliknij „Import JSON / CSV / XLSX / ZIP”.
+3. W aplikacji kliknij „Import JSON / CSV / XLSX / XML / ZIP”.
 4. Wskaż pobrany ZIP/XLSX.
 
 ## Skąd brać PDF/TXT
 
 PDF/TXT bierz z raportów pomiarowych albo SI2PEM. W aplikacji kliknij „Skąd wziąć PDF”, wyszukaj stację/raport w SI2PEM i pobierz raport, jeśli jest dostępny. PDF musi mieć warstwę tekstową. Skan-obraz bez tekstu nie zostanie odczytany bez OCR.
+
+
+## 3.11 - 1205261805
+- Naprawiony import JSON/CSV/XLSX/XML/ZIP.
+- Dodany awaryjny parser bez Web Workera.
+- Dodany wbudowany odczyt ZIP/XLSX, gdy CDN/SheetJS/JSZip nie działa.
+- Lepsze rozpoznawanie kolumn UKE: szerokość/długość WGS84, miejscowość, operator, pozwolenie, pasmo.

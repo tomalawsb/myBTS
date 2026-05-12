@@ -92,7 +92,6 @@ function coordinateFromCell(value) {
   if (typeof value === 'number') return value;
   const text = String(value ?? '').trim();
   if (!text) return NaN;
-  const decimal = text.replace(',', '.').match(/-?\d+(?:\.\d+)?/);
   const numbers = text.replace(/,/g, '.').match(/-?\d+(?:\.\d+)?/g) || [];
   if (numbers.length >= 3 && /[°'"NSWE]/i.test(text)) {
     const deg = Math.abs(Number(numbers[0]));
@@ -104,7 +103,54 @@ function coordinateFromCell(value) {
       return out;
     }
   }
+  const decimal = text.replace(',', '.').match(/-?\d+(?:\.\d+)?/);
   return decimal ? Number(decimal[0]) : NaN;
+}
+
+function coordinatePairFromText(value) {
+  const text = String(value || '');
+  if (!text) return null;
+  const dms = [];
+  const dmsRe = /(\d{1,3})\D+(\d{1,2})\D+(\d{1,2}(?:[,.]\d+)?)\s*([NSEW])/gi;
+  let match;
+  while ((match = dmsRe.exec(text))) {
+    let val = Math.abs(Number(match[1])) + Math.abs(Number(match[2])) / 60 + Math.abs(Number(String(match[3]).replace(',', '.'))) / 3600;
+    const dir = match[4].toUpperCase();
+    if (dir === 'S' || dir === 'W') val *= -1;
+    dms.push({ val, dir });
+  }
+  if (dms.length >= 2) {
+    const lat = dms.find(item => item.dir === 'N' || item.dir === 'S')?.val;
+    const lon = dms.find(item => item.dir === 'E' || item.dir === 'W')?.val;
+    if (Number.isFinite(lat) && Number.isFinite(lon)) return { lat, lon };
+  }
+  const nums = text.replace(/,/g, '.').match(/-?\d+(?:\.\d+)?/g)?.map(Number).filter(Number.isFinite) || [];
+  for (let i = 0; i < nums.length - 1; i++) {
+    const lat = nums[i];
+    const lon = nums[i + 1];
+    if (lat >= 40 && lat <= 60 && lon >= 10 && lon <= 30) return { lat, lon };
+  }
+  return null;
+}
+
+function coordinatePairFromRow(row) {
+  for (const value of Object.values(row || {})) {
+    const pair = coordinatePairFromText(value);
+    if (pair) return pair;
+  }
+  return null;
+}
+
+function getFuzzyCoordinate(row, kind) {
+  for (const [key, value] of Object.entries(row || {})) {
+    const k = normalizeColumnName(key);
+    const isLat = kind === 'lat' && (k.includes('szerokosc') || k.includes('latitude') || k === 'lat' || k.endsWith('lat') || k === 'y');
+    const isLon = kind === 'lon' && ((k.includes('dlugosc') && !k.includes('wysokosc')) || k.includes('longitude') || k === 'lon' || k === 'lng' || k.endsWith('lon') || k.endsWith('lng') || k === 'x');
+    if (!isLat && !isLon) continue;
+    const coord = coordinateFromCell(value);
+    if (Number.isFinite(coord)) return coord;
+  }
+  return NaN;
 }
 
 function splitListCell(value) {
@@ -112,6 +158,45 @@ function splitListCell(value) {
   const text = String(value ?? '').trim();
   if (!text) return [];
   return text.split(/[;,|/]+|\s{2,}/).map(s => s.trim()).filter(Boolean);
+}
+
+function mergeUnique(a, b) {
+  const out = [];
+  const push = value => {
+    const text = String(value ?? '').trim();
+    if (!text) return;
+    if (!out.some(item => normalizeText(item) === normalizeText(text))) out.push(text);
+  };
+  (Array.isArray(a) ? a : splitListCell(a)).forEach(push);
+  (Array.isArray(b) ? b : splitListCell(b)).forEach(push);
+  return out;
+}
+
+function matrixToObjects(matrix) {
+  const rows = (matrix || []).map(row => Array.from(row || []).map(value => String(value ?? '').trim()));
+  const nonEmpty = rows.filter(row => row.some(Boolean));
+  if (!nonEmpty.length) return [];
+  let headerIndex = 0;
+  let bestScore = -1;
+  for (let i = 0; i < Math.min(nonEmpty.length, 30); i++) {
+    const score = scoreHeaderRow(nonEmpty[i]);
+    if (score > bestScore) { bestScore = score; headerIndex = i; }
+  }
+  if (bestScore < 2) headerIndex = 0;
+  const headers = nonEmpty[headerIndex].map((header, index) => header || `kolumna_${index + 1}`);
+  return nonEmpty.slice(headerIndex + 1).map(values => {
+    const out = {};
+    headers.forEach((header, index) => { if (header) out[header] = values[index] ?? ''; });
+    return out;
+  }).filter(row => Object.values(row).some(value => String(value || '').trim()));
+}
+
+function scoreHeaderRow(row) {
+  const joined = normalizeText((row || []).join(' '));
+  let score = 0;
+  const tokens = ['szerokosc', 'dlugosc', 'wspolrzed', 'miejscowosc', 'operator', 'uzytkownik', 'adres', 'stacja', 'pozwolen', 'azymut', 'moc', 'eirp', 'technologia', 'pasmo', 'system', 'standard', 'wojewodztwo', 'powiat', 'gmina'];
+  for (const token of tokens) if (joined.includes(token)) score++;
+  return score;
 }
 
 
@@ -171,12 +256,12 @@ function getAliased(row, aliases) {
 
 
 function buildAddress(row) {
-  const direct = getAliased(row, ['address', 'adres', 'lokalizacja', 'location', 'ulica', 'adresstacji']);
+  const direct = getAliased(row, ['address', 'adres', 'adresstacji', 'lokalizacja', 'lokalizacjastacji', 'location']);
   if (direct) return direct;
   const parts = [
     getAliased(row, ['ulica']),
     getAliased(row, ['nr', 'numer', 'numernieruchomosci', 'nrnieruchomosci']),
-    getAliased(row, ['miejscowosc', 'miejscowość', 'miasto']),
+    getAliased(row, ['miejscowosc', 'miejscowość', 'miejscowoscstacji', 'miasto']),
     getAliased(row, ['gmina']),
     getAliased(row, ['powiat']),
     getAliased(row, ['wojewodztwo'])
@@ -185,8 +270,13 @@ function buildAddress(row) {
 }
 
 function normalizeImportedRow(row) {
-  const lat = coordinateFromCell(getAliased(row, ['latitude', 'lat', 'szerokosc', 'szerokoscgeograficzna', 'szerokoscgeograficznastacji', 'wgs84lat', 'latwgs84', 'y']));
-  const lon = coordinateFromCell(getAliased(row, ['longitude', 'lon', 'lng', 'dlugosc', 'dlugoscgeograficzna', 'dlugoscgeograficznastacji', 'wgs84lon', 'lonwgs84', 'lngwgs84', 'x']));
+  const pair = coordinatePairFromRow(row);
+  let lat = coordinateFromCell(getAliased(row, ['latitude', 'lat', 'szerokosc', 'szerokoscgeograficzna', 'szerokoscgeograficznastacji', 'wgs84lat', 'latwgs84', 'y']));
+  let lon = coordinateFromCell(getAliased(row, ['longitude', 'lon', 'lng', 'dlugosc', 'dlugoscgeograficzna', 'dlugoscgeograficznastacji', 'wgs84lon', 'lonwgs84', 'lngwgs84', 'x']));
+  if (!Number.isFinite(lat)) lat = getFuzzyCoordinate(row, 'lat');
+  if (!Number.isFinite(lon)) lon = getFuzzyCoordinate(row, 'lon');
+  if (!Number.isFinite(lat) && pair) lat = pair.lat;
+  if (!Number.isFinite(lon) && pair) lon = pair.lon;
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
   const bandsRaw = getAliased(row, ['bands', 'pasma', 'pasmo', 'band', 'technologia', 'technology', 'system', 'standard', 'zakres', 'ukeband']);
   const azRaw = getAliased(row, ['azimuths', 'azymuty', 'azymut', 'azimuth', 'azymutanteny', 'kierunek']);
@@ -195,7 +285,7 @@ function normalizeImportedRow(row) {
   const textForBands = [bandsRaw, address, Object.values(row).join(' ')].join(' ');
   const extractedBands = extractBandsFromText(textForBands);
   return normalizeStation({
-    station_id: getAliased(row, ['station_id', 'stationid', 'id', 'nrstacji', 'idstacji', 'nazwaobiektu', 'nazwastacji', 'pozwolenie', 'nrpozwolenia', 'numerpozwolenia', 'numerdecyzji', 'nrdecyzji', 'znaksprawy', 'btssid', 'siteid']) || '—',
+    station_id: getAliased(row, ['station_id', 'stationid', 'id', 'nrstacji', 'idstacji', 'identyfikatorstacji', 'nazwaobiektu', 'nazwastacji', 'pozwolenie', 'nrpozwolenia', 'numerpozwolenia', 'numerdecyzji', 'nrdecyzji', 'znaksprawy', 'btssid', 'siteid']) || '—',
     operator: getAliased(row, ['operator', 'sieć', 'siec', 'network', 'mno', 'uzytkownik', 'uzytkownikpozwolenia', 'nazwaoperatora', 'nazwauzytkownika', 'podmiot', 'przedsiebiorca']) || 'Nieznany',
     latitude: lat,
     longitude: lon,
@@ -269,6 +359,9 @@ function parseTextPayload(text, kind) {
   const trimmed = String(text || '').trim();
   if (!trimmed) throw new Error('Pusty plik.');
   if (trimmed.startsWith('{') || trimmed.startsWith('[') || kind === 'json') return parseStationsPayload(JSON.parse(trimmed));
+  if (trimmed.startsWith('<') || kind === 'xml' || kind === 'html') {
+    throw new Error('XML/HTML jest odczytywany w głównym wątku aplikacji. Użyj importu pliku, nie workera.');
+  }
   return parseCsvStations(text);
 }
 
@@ -309,10 +402,9 @@ function parseCsv(text) {
   if (row.some(v => String(v).trim() !== '')) rows.push(row);
   if (!rows.length) return [];
 
-  const headers = rows[0].map(normalizeColumnName);
-  return rows.slice(1).map(values => {
+  return matrixToObjects(rows).map(object => {
     const out = {};
-    headers.forEach((key, i) => { if (key) out[key] = String(values[i] ?? '').trim(); });
+    for (const [key, value] of Object.entries(object)) out[normalizeColumnName(key)] = String(value ?? '').trim();
     return out;
   });
 }
@@ -353,6 +445,8 @@ function detectRemoteType(url, contentType) {
   const lower = String(url || '').toLowerCase();
   const ct = String(contentType || '').toLowerCase();
   if (lower.endsWith('.csv') || ct.includes('csv')) return 'csv';
+  if (lower.endsWith('.xml') || ct.includes('xml')) return 'xml';
+  if (lower.endsWith('.html') || lower.endsWith('.htm') || ct.includes('html')) return 'html';
   if (lower.endsWith('.xlsx') || lower.endsWith('.xls')) throw new Error(XLSX_CDN_NOTE);
   return 'json';
 }
