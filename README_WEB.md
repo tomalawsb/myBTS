@@ -1,4 +1,4 @@
-# myBTS Web Pro 3.7 - 1205261555
+# myBTS Web Pro 3.8 - 1205261630
 
 Wersja przebudowana od początku pod układ mobilny i bibliotekę Leaflet.
 
@@ -7,7 +7,7 @@ Wersja przebudowana od początku pod układ mobilny i bibliotekę Leaflet.
 - Usunięto własny silnik mapy oparty o ręczne kafelki i `canvas`.
 - Dodano Leaflet 1.9.4 jako normalną bibliotekę mapową.
 - Dodano układ mobilny: mapa jako główny ekran + dolny wysuwany panel.
-- Uproszczono górny pasek: GPS + menu, reszta funkcji jest w panelu.
+- Uproszczono górny pasek: zostało samo wyszukiwanie, GPS przeniesiono na przezroczysty przycisk na mapie, opcje są wysuwane dolnym uchwytem.
 - Dodano zakładki: Filtry, Lista, Szczegóły, Ustawienia.
 - Dodano Web Worker do pobierania i parsowania JSON/CSV oraz przetwarzania arkuszy XLSX po odczycie przez SheetJS.
 - Service worker nie cache'uje już dużego `stations.json`, żeby nie dublować ciężkiej bazy w cache i IndexedDB.
@@ -50,3 +50,12 @@ Leaflet i SheetJS są pobierane z CDN. Po pierwszym uruchomieniu service worker 
 - Jeżeli nie ma azymutu, aplikacja pokazuje orientacyjne koła zasięgu.
 - Zasięg może być korygowany mocą/EIRP, jeśli taka informacja jest w bazie.
 - Popup BTS pokazuje źródło pewności zasięgu i przycisk „Uzupełnij z UKE”.
+
+## Zmiany 3.8
+- Zmniejszono aplet/popup BTS na mapie.
+- Usunięto krzyżyk zamykania popupu; zamykanie działa kliknięciem obok na mapie.
+- Usunięto przycisk menu z trzema kreskami z górnego paska.
+- Opcje na telefonie otwiera się przez przeciągnięcie dolnego uchwytu panelu.
+- Przycisk OK w wyszukiwarce jest ukryty, Enter nadal uruchamia szukanie.
+- Krzyżyk czyszczenia wyszukiwarki pokazuje się dopiero po wpisaniu tekstu.
+- GPS jest osobnym, przezroczystym przyciskiem na mapie.

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#f6f8fc" />
-  <title>myBTS Web Pro 3.7 - 1205261555</title>
+  <title>myBTS Web Pro 3.8 - 1205261630</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
   <link rel="stylesheet" href="style.css" />
@@ -17,13 +17,13 @@
       <form id="searchForm" class="search-card glass-panel" autocomplete="off" role="search">
         <span id="statusText" class="visually-hidden" aria-live="polite">Ładowanie aplikacji…</span>
         <input id="searchInput" class="input search-input" type="text" inputmode="search" enterkeyhint="search" placeholder="Szukaj miejscowości, adresu, ID stacji…" autocomplete="off" />
-        <button id="locateBtn" class="btn primary icon-btn gps-btn" type="button" aria-label="Pokaż moją pozycję" title="Pokaż moją pozycję">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2 20.7 21l-8.7-3.6L3.3 21 12 2.2Zm0 4.8-4.5 9.7 4.5-1.9 4.5 1.9L12 7Z"/></svg>
-        </button>
         <button id="submitSearchBtn" class="btn primary search-submit" type="submit" aria-label="Zatwierdź wyszukiwanie">OK</button>
-        <button id="clearSearchBtn" class="btn ghost icon-btn" type="button" aria-label="Wyczyść wyszukiwanie">×</button>
-        <button id="menuBtn" class="btn ghost icon-btn" type="button" aria-label="Menu">☰</button>
+        <button id="clearSearchBtn" class="btn ghost icon-btn clear-search-btn" type="button" aria-label="Wyczyść wyszukiwanie">×</button>
       </form>
+
+      <button id="locateBtn" class="map-locate-btn glass-panel" type="button" aria-label="Pokaż moją pozycję" title="Pokaż moją pozycję">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2 20.7 21l-8.7-3.6L3.3 21 12 2.2Zm0 4.8-4.5 9.7 4.5-1.9 4.5 1.9L12 7Z"/></svg>
+      </button>
 
       <div id="statusToast" class="status-toast hidden info" role="status" aria-live="polite">
         <div class="status-dot" aria-hidden="true"></div>
@@ -151,8 +151,8 @@
           </div>
 
           <div class="notice-box small">
-            Wersja: <strong>3.7 - 1205261555</strong><br />
-            Widok główny to mapa. Dotknięcie BTS pokazuje okienko na mapie z odległością, gradientem zasięgu, azymutem i informacją o współdzieleniu lokalizacji. Dane UKE są pobierane online przez dane.gov/BIP UKE. Gdy przeglądarka blokuje CORS, aplikacja próbuje zapasowej ścieżki proxy.
+            Wersja: <strong>3.8 - 1205261630</strong><br />
+            Widok główny to mapa. Dotknięcie BTS pokazuje małe okienko na mapie z odległością, gradientem zasięgu, azymutem i informacją o współdzieleniu lokalizacji. Opcje są dostępne po przeciągnięciu dolnego uchwytu panelu. Dane UKE są pobierane online przez dane.gov/BIP UKE. Gdy przeglądarka blokuje CORS, aplikacja próbuje zapasowej ścieżki proxy.
           </div>
         </section>
       </div>
@@ -163,5 +163,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" defer></script>
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js" defer></script>
   <script src="app.js" defer></script>
+</body>
+</html>
+ipt>
 </body>
 </html>

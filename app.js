@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '3.7 - 1205261555';
+const APP_VERSION = '3.8 - 1205261630';
 const DEFAULT_CENTER = [50.2872, 21.4231];
 const DEFAULT_ZOOM = 10;
 const MIN_ZOOM = 5;
@@ -213,6 +213,11 @@ function setStatus(text) {
 
 function setStorageStatus(text) {
   if (el.storageStatus) el.storageStatus.textContent = text;
+}
+
+function updateSearchControls() {
+  if (!el.searchForm || !el.searchInput) return;
+  el.searchForm.classList.toggle('has-query', el.searchInput.value.trim().length > 0);
 }
 
 function showStatusToast(title, message, type = 'info', options = {}) {
@@ -926,13 +931,13 @@ function openStationPopup(station) {
   if (!state.stationPopup) {
     state.stationPopup = L.popup({
       className: 'bts-leaflet-popup',
-      closeButton: true,
+      closeButton: false,
       autoPan: true,
-      autoClose: false,
-      closeOnClick: false,
+      autoClose: true,
+      closeOnClick: true,
       keepInView: true,
-      maxWidth: 330,
-      minWidth: 260
+      maxWidth: 280,
+      minWidth: 230
     });
     state.stationPopup.on('remove', () => {
       if (!state.suppressPopupClose) state.selectedPopupOpen = false;
@@ -2212,10 +2217,11 @@ function setTab(tabName) {
 function bindEvents() {
   el.searchForm.addEventListener('submit', event => {
     event.preventDefault();
-    void runSearch({ center: true, showPanel: true });
+    void runSearch({ center: true, showPanel: false });
     el.searchInput.blur();
   });
   el.searchInput.addEventListener('input', () => {
+    updateSearchControls();
     state.search = normalizeText(el.searchInput.value);
     clearTimeout(state.searchTimer);
     if (state.search.length < SEARCH_MIN_CHARS) {
@@ -2230,6 +2236,7 @@ function bindEvents() {
   el.clearSearchBtn.addEventListener('click', () => {
     clearTimeout(state.searchTimer);
     el.searchInput.value = '';
+    updateSearchControls();
     state.search = '';
     setStatus(state.stations.length ? `Wczytano ${compactNumber(state.stations.length)} stacji.` : 'Wyszukiwanie wyczyszczone.');
     scheduleRender();
@@ -2264,7 +2271,7 @@ function bindEvents() {
   el.mapSatBtn.addEventListener('click', () => setMapType('sat'));
   el.nearestBtn.addEventListener('click', showNearest);
   el.installBtn.addEventListener('click', installPwa);
-  el.menuBtn.addEventListener('click', () => { setTab('settings'); setPanelMode(isMobileLayout() ? 'full' : 'half'); });
+  if (el.menuBtn) el.menuBtn.addEventListener('click', () => { setTab('settings'); setPanelMode(isMobileLayout() ? 'full' : 'half'); });
   el.collapsePanelBtn.addEventListener('click', () => togglePanelCollapsed());
   bindPanelDrag();
   el.tabs.forEach(tab => tab.addEventListener('click', () => {
@@ -2341,6 +2348,7 @@ async function boot() {
   loadSettings();
   applyTheme();
   bindEvents();
+  updateSearchControls();
   setTab(state.activeTab || 'filters');
   setPanelMode(isMobileLayout() ? 'collapsed' : (state.panelMode || 'half'), false);
   el.radiusSelect.value = state.radiusKm ?? '';

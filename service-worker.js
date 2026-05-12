@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_NAME = 'mybts-web-pro-v3-7-1205261555';
+const CACHE_NAME = 'mybts-web-pro-v3-8-1205261630';
 const CORE_ASSETS = [
   './',
   './index.html',
