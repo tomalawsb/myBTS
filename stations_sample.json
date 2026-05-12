@@ -1,0 +1,15 @@
+[
+  {
+    "station_id": "5263",
+    "operator": "Orange",
+    "latitude": 51.463611,
+    "longitude": 22.3025,
+    "address": "Abramów, ul. Spółdzielcza - wieża Cellnex / Towerlink [LUB:5263:L2100FDD] [eNBI:286931 CLID:21]",
+    "city": "Abramów",
+    "bands": ["GSM900"],
+    "sector_ids": ["15650", "15651", "15652"],
+    "cell_names": ["5263_15650", "5263_15651", "5263_15652"],
+    "records_count": 15,
+    "source": "Google Drive"
+  }
+]
