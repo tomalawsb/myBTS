@@ -1084,3 +1084,10 @@ h3 { margin: 0; font-size: 15px; line-height: 1.25; }
   }
   .search-card { right: 60px; }
 }
+
+/* v3.9: dwa małe przyciski w popupie i status importu parametrów */
+.bts-popup-actions { gap: 6px; }
+.bts-popup-actions button { flex: 1 1 0; width: auto; }
+.notice-box.busy { border-color: rgba(29, 78, 216, .35); background: #edf4ff; color: #17346f; }
+.notice-box.success { border-color: rgba(22, 163, 74, .35); background: #ecfdf3; color: #14532d; }
+.notice-box.error { border-color: rgba(220, 38, 38, .35); background: #fef2f2; color: #7f1d1d; }

@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '3.9 - 1205261715';
+const APP_VERSION = '3.10 - 1205261740';
 const DEFAULT_CENTER = [50.2872, 21.4231];
 const DEFAULT_ZOOM = 10;
 const MIN_ZOOM = 5;
@@ -17,6 +17,7 @@ const ACTIVE_DATASET_ID = 'active';
 const SPATIAL_CELL_DEG = 0.25;
 const XLSX_CDN_NOTE = 'Import XLSX wymaga biblioteki SheetJS z CDN albo połączenia z internetem.';
 const PDF_CDN_NOTE = 'Import PDF wymaga biblioteki PDF.js z CDN albo połączenia z internetem.';
+const ZIP_CDN_NOTE = 'Import ZIP wymaga biblioteki JSZip z CDN albo połączenia z internetem.';
 const UKE_BIP_PAGE = 'https://bip.uke.gov.pl/pozwolenia-radiowe/wykaz-pozwolen-radiowych-tresci/stacje-gsm-umts-lte-5gnr-oraz-cdma%2C12%2C0.html';
 const UKE_DATA_GOV_RESOURCES = 'https://api.dane.gov.pl/1.4/datasets/1075/resources?lang=pl&per_page=100';
 const UKE_DATA_GOV_METADATA = 'https://api.dane.gov.pl/1.4/datasets/1075/resources/metadata.csv?lang=pl';
@@ -149,6 +150,8 @@ function initElements() {
     compassTargetLabel: document.getElementById('compassTargetLabel'),
     refreshBtn: document.getElementById('refreshBtn'),
     ukeUpdateBtn: document.getElementById('ukeUpdateBtn'),
+    openUkePageBtn: document.getElementById('openUkePageBtn'),
+    openSi2pemBtn: document.getElementById('openSi2pemBtn'),
     importFileBtn: document.getElementById('importFileBtn'),
     importParamFileBtn: document.getElementById('importParamFileBtn'),
     dataFileInput: document.getElementById('dataFileInput'),
@@ -1910,7 +1913,7 @@ async function updateFromUkeOnline(options = {}) {
     setPanelMode(isMobileLayout() ? 'collapsed' : state.panelMode, false);
   } catch (err) {
     console.error(err);
-    setUkeStatus(`Aktualizacja z UKE nieudana: ${err.message}`, null, 'error', false);
+    setUkeStatus(`Aktualizacja z UKE nieudana: ${describeUkeDownloadError(err)} Użyj importu ręcznie pobranego ZIP/XLSX z UKE.`, null, 'error', false);
   } finally {
     state.ukeUpdateRunning = false;
     if (el.ukeUpdateBtn) {
@@ -1962,6 +1965,15 @@ function findBestStationMatch(reference, stations) {
     }
   }
   return bestScore >= 45 ? best : null;
+}
+
+
+function describeUkeDownloadError(err) {
+  const message = String(err?.message || err || 'nieznany błąd');
+  if (/403|failed to fetch|cors|load failed|networkerror/i.test(message)) {
+    return `${message}. To zwykle oznacza blokadę pobierania plików UKE/Box bezpośrednio z przeglądarki.`;
+  }
+  return message;
 }
 
 async function collectUkeDownloadLinks() {
@@ -2174,6 +2186,17 @@ function sourceNameFromUrlSafe(url) {
   }
 }
 
+
+function openUkePage() {
+  window.open(UKE_BIP_PAGE, '_blank', 'noopener,noreferrer');
+  setUkeStatus('Otworzyłem stronę UKE. Pobierz „wszystkie załączniki w formacie .zip” albo wybrane XLSX, potem użyj importu JSON/CSV/XLSX/ZIP.', null, 'info', false);
+}
+
+function openSi2pemPage() {
+  window.open('https://si2pem.gov.pl/map/', '_blank', 'noopener,noreferrer');
+  showStatusToast('PDF/TXT z SI2PEM', 'PDF z parametrami bierz z SI2PEM albo raportów pomiarowych PEM. W aplikacji SI2PEM szukaj stacji, raportu lub pomiaru, pobierz raport i wgraj go przez „Uzupełnij parametry z PDF/TXT”.', 'info', { sticky: true });
+}
+
 async function loadStationsFromUrl(url = 'stations.json', options = {}) {
   const result = await workerRequest({ type: 'loadUrl', url, forceNetwork: !!options.forceNetwork });
   setStations(result.stations, result.sourceName || url, { save: !!options.save, fit: !!options.fit });
@@ -2184,30 +2207,84 @@ async function importDataFile() {
   if (!file) return;
   try {
     setStatus(`Wczytuję ${file.name}…`);
+    showStatusToast('Import bazy', `Wczytuję ${file.name}…`, 'busy', { sticky: true, progress: 8 });
     const name = file.name.toLowerCase();
     let result;
     if (name.endsWith('.pdf')) {
       await importParameterFile(file);
       return;
     }
-    if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
-      if (!window.XLSX) throw new Error(XLSX_CDN_NOTE);
-      const buffer = await file.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type: 'array' });
-      const firstSheetName = workbook.SheetNames[0];
-      if (!firstSheetName) throw new Error('Plik XLSX nie ma arkuszy.');
-      const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName], { defval: '' });
-      result = await workerRequest({ type: 'parseRows', rows, name: file.name });
+    if (name.endsWith('.zip')) {
+      result = await importZipStationFile(file);
+    } else if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+      result = await parseSpreadsheetStationFile(file);
     } else {
       result = await workerRequest({ type: 'parseText', text: await file.text(), name: file.name, contentType: file.type });
     }
+    if (!result || !Array.isArray(result.stations) || !result.stations.length) {
+      throw new Error('Plik został odczytany, ale nie znaleziono stacji z poprawnymi współrzędnymi.');
+    }
     setStations(result.stations, result.sourceName || file.name, { save: true, fit: true });
-    setStatus(`Zaimportowano ${compactNumber(result.stations.length)} stacji z ${file.name}. Baza jest aktywna od razu.`);
+    const msg = `Zaimportowano ${compactNumber(result.stations.length)} stacji z ${file.name}. Baza jest aktywna od razu.`;
+    setStatus(msg);
+    showStatusToast('Import bazy', msg, 'success', { sticky: false, progress: 100, timeout: 7000 });
   } catch (err) {
-    setStatus(`Błąd importu pliku: ${err.message}`);
+    const message = `Błąd importu pliku: ${err.message}`;
+    setStatus(message);
+    showStatusToast('Import bazy', message, 'error', { sticky: true });
   } finally {
     el.dataFileInput.value = '';
   }
+}
+
+async function parseSpreadsheetStationFile(file, sourcePrefix = '') {
+  if (!window.XLSX) throw new Error(XLSX_CDN_NOTE);
+  const buffer = await file.arrayBuffer();
+  return parseSpreadsheetBuffer(buffer, file.name, sourcePrefix);
+}
+
+async function parseSpreadsheetBuffer(buffer, name, sourcePrefix = '') {
+  if (!window.XLSX) throw new Error(XLSX_CDN_NOTE);
+  const workbook = XLSX.read(buffer, { type: 'array' });
+  const rows = [];
+  const band = inferBandFromName(name);
+  for (const sheetName of workbook.SheetNames) {
+    const sheetRows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+    for (const row of sheetRows) rows.push(enrichUkeRow(row, band, name));
+  }
+  if (!rows.length) throw new Error(`Plik ${name} nie ma arkuszy z danymi.`);
+  const result = await workerRequest({ type: 'parseRows', rows, name: `${sourcePrefix}${name}` });
+  return { stations: result.stations.map(station => enrichUkeStation(station, band, name)), sourceName: result.sourceName || name };
+}
+
+async function importZipStationFile(file) {
+  if (!window.JSZip) throw new Error(ZIP_CDN_NOTE);
+  if (!window.XLSX) throw new Error(XLSX_CDN_NOTE);
+  showStatusToast('Import ZIP', `Rozpakowuję ${file.name}…`, 'busy', { sticky: true, progress: 12 });
+  const zip = await JSZip.loadAsync(await file.arrayBuffer());
+  const entries = Object.values(zip.files)
+    .filter(entry => !entry.dir && /\.(xlsx|xls|csv|json)$/i.test(entry.name))
+    .sort((a, b) => a.name.localeCompare(b.name, 'pl'));
+  if (!entries.length) throw new Error('ZIP nie zawiera plików JSON/CSV/XLSX.');
+
+  const allStations = [];
+  for (let index = 0; index < entries.length; index++) {
+    const entry = entries[index];
+    const progress = Math.round(12 + ((index + 1) / entries.length) * 78);
+    showStatusToast('Import ZIP', `Czytam ${index + 1}/${entries.length}: ${entry.name}`, 'busy', { sticky: true, progress });
+    const lower = entry.name.toLowerCase();
+    let parsed;
+    if (lower.endsWith('.xlsx') || lower.endsWith('.xls')) {
+      const buffer = await entry.async('arraybuffer');
+      parsed = await parseSpreadsheetBuffer(buffer, entry.name, 'ZIP ');
+    } else {
+      const text = await entry.async('text');
+      parsed = await workerRequest({ type: 'parseText', text, name: entry.name, contentType: lower.endsWith('.json') ? 'application/json' : 'text/csv' });
+    }
+    if (parsed && Array.isArray(parsed.stations)) allStations.push(...parsed.stations);
+  }
+  if (!allStations.length) throw new Error('ZIP został odczytany, ale nie znaleziono stacji z poprawnymi współrzędnymi.');
+  return { stations: allStations, sourceName: `${file.name} • ZIP` };
 }
 
 
@@ -2559,6 +2636,8 @@ function bindEvents() {
   el.closeDetailBtn.addEventListener('click', hideDetails);
   el.refreshBtn.addEventListener('click', () => loadStationsFromUrl('stations.json', { forceNetwork: true, save: true }).catch(showLoadError));
   if (el.ukeUpdateBtn) el.ukeUpdateBtn.addEventListener('click', updateFromUkeOnline);
+  if (el.openUkePageBtn) el.openUkePageBtn.addEventListener('click', openUkePage);
+  if (el.openSi2pemBtn) el.openSi2pemBtn.addEventListener('click', openSi2pemPage);
   if (el.statusToastClose) el.statusToastClose.addEventListener('click', hideStatusToast);
   if (el.map) {
     el.map.addEventListener('click', event => {
@@ -2607,10 +2686,18 @@ function bindEvents() {
   });
 }
 
+
+function warnIfFileProtocol() {
+  if (location.protocol !== 'file:') return;
+  const message = 'Aplikacja jest otwarta jako plik file://. Na komputerze import, Worker, IndexedDB, UKE i PDF mogą wtedy nie działać poprawnie. Uruchom run_local.bat albo: python -m http.server 8000.';
+  setStatus(message);
+  showStatusToast('Uruchom przez serwer lokalny', message, 'error', { sticky: true });
+}
+
 function showLoadError(err) {
   console.error(err);
-  setStatus(`Nie udało się wczytać bazy: ${err.message}. Uruchom przez serwer lokalny albo zaimportuj JSON/CSV/XLSX.`);
-  el.stationList.innerHTML = '<div class="empty-state">Nie udało się wczytać bazy. Kliknij „Import JSON / CSV / XLSX” albo uruchom przez serwer HTTP.</div>';
+  setStatus(`Nie udało się wczytać bazy: ${err.message}. Uruchom przez serwer lokalny albo zaimportuj JSON/CSV/XLSX/ZIP.`);
+  el.stationList.innerHTML = '<div class="empty-state">Nie udało się wczytać bazy. Kliknij „Import JSON / CSV / XLSX / ZIP” albo uruchom przez serwer HTTP.</div>';
   setStorageStatus('Pamięć lokalna: brak działającej bazy.');
 }
 
@@ -2663,6 +2750,7 @@ function destinationPoint(lat, lon, bearingDeg, distanceKm) {
 
 async function boot() {
   initElements();
+  warnIfFileProtocol();
   loadSettings();
   applyTheme();
   bindEvents();

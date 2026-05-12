@@ -1,69 +1,47 @@
-# myBTS Web Pro 3.9 - 1205261715
+# myBTS Web Pro 3.10 - 1205261740
 
-Wersja przebudowana od początku pod układ mobilny i bibliotekę Leaflet.
+Wersja web/PWA do przeglądania stacji BTS na mapie Leaflet.
 
-## Najważniejsze zmiany
+## Najważniejsze zmiany 3.10
 
-- Usunięto własny silnik mapy oparty o ręczne kafelki i `canvas`.
-- Dodano Leaflet 1.9.4 jako normalną bibliotekę mapową.
-- Dodano układ mobilny: mapa jako główny ekran + dolny wysuwany panel.
-- Uproszczono górny pasek: zostało samo wyszukiwanie, GPS przeniesiono na przezroczysty przycisk na mapie, opcje są wysuwane dolnym uchwytem.
-- Dodano zakładki: Filtry, Lista, Szczegóły, Ustawienia.
-- Dodano Web Worker do pobierania i parsowania JSON/CSV oraz przetwarzania arkuszy XLSX po odczycie przez SheetJS.
-- Service worker nie cache'uje już dużego `stations.json`, żeby nie dublować ciężkiej bazy w cache i IndexedDB.
-- Zachowano lokalną bazę w IndexedDB.
-- Dodano widoczną atrybucję map przez kontrolkę Leaflet.
-- Ustabilizowano kompas: wygładzanie odczytów, ograniczenie częstotliwości odświeżania i ignorowanie zdublowanych zdarzeń orientacji.
-- Okienko BTS na mapie zostaje przypięte po kliknięciu nadajnika i nie znika przy odświeżaniu markerów/GPS/kompasu.
-- Aktualizacja z UKE próbuje pobrać dane przez dane.gov, BIP UKE oraz zapasową ścieżkę proxy, gdy przeglądarka blokuje CORS.
+- Dodany import paczki ZIP z UKE, np. „pobierz wszystkie załączniki w formacie .zip”.
+- Import bazy obsługuje teraz JSON / CSV / XLSX / ZIP.
+- Przy problemie HTTP 403 / CORS aplikacja pokazuje wyraźny komunikat i kieruje do importu ręcznego.
+- Dodane przyciski: „Otwórz stronę UKE” oraz „Skąd wziąć PDF”.
+- Dodane ostrzeżenie, jeśli aplikacja jest uruchomiona jako `file://` zamiast przez lokalny serwer HTTP.
+- PDF/TXT służy do uzupełniania parametrów wybranej stacji, np. pasm, mocy, azymutów, zasięgu, jeżeli raport zawiera takie dane tekstowe.
 
-## Uruchamianie lokalne
+## Uruchomienie na komputerze
 
-Najpewniej uruchomić przez lokalny serwer HTTP, np.:
+Nie otwieraj samego `index.html` dwuklikiem. Uruchom lokalny serwer:
+
+```bat
+run_local.bat
+```
+
+albo ręcznie:
 
 ```bat
 python -m http.server 8000
 ```
 
-Następnie wejść w przeglądarce:
+Potem wejdź w przeglądarce:
 
 ```text
 http://localhost:8000
 ```
 
-Bez serwera część przeglądarek może blokować `fetch`, Web Workera albo service workera.
+## Aktualizacja danych UKE
 
-## Uwaga
+Przycisk „Aktualizuj z UKE online” próbuje pobrać dane bezpośrednio z dane.gov/BIP UKE. Część plików UKE bywa hostowana przez Box/app.box.com i przeglądarka może zablokować pobranie przez CORS albo HTTP 403.
 
-Leaflet i SheetJS są pobierane z CDN. Po pierwszym uruchomieniu service worker może je zachować w cache, ale pierwsze uruchomienie wymaga internetu.
+Najpewniejsza metoda:
 
+1. Kliknij „Otwórz stronę UKE”.
+2. Pobierz „wszystkie załączniki w formacie .zip” albo wybrane arkusze XLSX.
+3. W aplikacji kliknij „Import JSON / CSV / XLSX / ZIP”.
+4. Wskaż pobrany ZIP/XLSX.
 
-## Zmiany 3.6
-- Widoczny komunikat aktualizacji UKE na mapie.
-- Pasek postępu pobierania arkuszy UKE.
-- Blokada podwójnego kliknięcia podczas aktualizacji.
-- Informacja o sukcesie albo błędzie zostaje pokazana użytkownikowi.
+## Skąd brać PDF/TXT
 
-## Zmiany 3.7
-- Dodano gradient zasięgu BTS: najmocniejszy kolor blisko nadajnika, słabszy na granicy zasięgu.
-- Jeżeli są azymuty, gradient jest rysowany jako sektory kierunkowe.
-- Jeżeli nie ma azymutu, aplikacja pokazuje orientacyjne koła zasięgu.
-- Zasięg może być korygowany mocą/EIRP, jeśli taka informacja jest w bazie.
-- Popup BTS pokazuje źródło pewności zasięgu i przycisk „Uzupełnij z UKE”.
-
-## Zmiany 3.8
-- Zmniejszono aplet/popup BTS na mapie.
-- Usunięto krzyżyk zamykania popupu; zamykanie działa kliknięciem obok na mapie.
-- Usunięto przycisk menu z trzema kreskami z górnego paska.
-- Opcje na telefonie otwiera się przez przeciągnięcie dolnego uchwytu panelu.
-- Przycisk OK w wyszukiwarce jest ukryty, Enter nadal uruchamia szukanie.
-- Krzyżyk czyszczenia wyszukiwarki pokazuje się dopiero po wpisaniu tekstu.
-- GPS jest osobnym, przezroczystym przyciskiem na mapie.
-
-
-## Zmiany 3.9
-- Dodano uzupełnianie parametrów stacji z PDF/TXT: pasma, azymuty, moc/EIRP, zasięg i współrzędne, jeśli występują w tekście raportu.
-- Dodano przycisk „PDF/TXT” w popupie BTS oraz przycisk „Uzupełnij parametry z PDF/TXT” w ustawieniach.
-- Import PDF/TXT nie zastępuje całej bazy, tylko dopasowuje dane do wybranej/najbliższej stacji i zapisuje je w IndexedDB.
-- Poprawiono wyciąganie pasm z opisów typu `[L1800FDD]`, `[LTE2100]`, `[5G: n1]`.
-- Szczegóły stacji pokazują źródła parametrów.
+PDF/TXT bierz z raportów pomiarowych albo SI2PEM. W aplikacji kliknij „Skąd wziąć PDF”, wyszukaj stację/raport w SI2PEM i pobierz raport, jeśli jest dostępny. PDF musi mieć warstwę tekstową. Skan-obraz bez tekstu nie zostanie odczytany bez OCR.
