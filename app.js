@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '3.17 - 1305260732';
+const APP_VERSION = '3.18 - 1305260910';
 const DEFAULT_CENTER = [50.2872, 21.4231];
 const DEFAULT_ZOOM = 10;
 const MIN_ZOOM = 5;
@@ -28,7 +28,9 @@ const UKE_DATA_GOV_RESOURCES = 'https://api.dane.gov.pl/1.4/datasets/1075/resour
 const UKE_DATA_GOV_METADATA = 'https://api.dane.gov.pl/1.4/datasets/1075/resources/metadata.csv?lang=pl';
 const UKE_LINK_LIMIT = 24;
 const UKE_ONLINE_IMPORT_ENABLED = false;
-const UKE_ONLINE_DISABLED_MESSAGE = 'Automatyczne pobieranie UKE online jest wyłączone, bo aplikacja nie korzysta już z publicznych CORS-proxy. Pobierz ZIP/XLSX/CSV z UKE ręcznie i użyj importu pliku.';
+const UKE_ONLINE_DISABLED_MESSAGE = 'Automatyczne pobieranie UKE online z frontendu jest wyłączone. Użyj importu ZIP/XLSX/CSV albo własnego backendu.';
+const SI2PEM_BACKEND_ENDPOINT = '/api/si2pem/enrich';
+const SI2PEM_BACKEND_BATCH_LIMIT = 80;
 const COMPASS_UI_INTERVAL_MS = 140;
 const COMPASS_MIN_DELTA_DEG = 2.4;
 const COMPASS_SMOOTHING = 0.22;
@@ -104,7 +106,9 @@ const state = {
   selectedPopupOpen: false,
   suppressPopupClose: false,
   statusHideTimer: null,
-  ukeUpdateRunning: false
+  ukeUpdateRunning: false,
+  si2pemBackendUrl: '',
+  si2pemBackendRunning: false
 };
 
 const el = {};
@@ -155,6 +159,10 @@ function initElements() {
     ukeUpdateBtn: document.getElementById('ukeUpdateBtn'),
     openUkePageBtn: document.getElementById('openUkePageBtn'),
     openSi2pemBtn: document.getElementById('openSi2pemBtn'),
+    si2pemBackendUrlInput: document.getElementById('si2pemBackendUrlInput'),
+    saveSi2pemBackendBtn: document.getElementById('saveSi2pemBackendBtn'),
+    autoEnrichSelectedBtn: document.getElementById('autoEnrichSelectedBtn'),
+    autoEnrichVisibleBtn: document.getElementById('autoEnrichVisibleBtn'),
     openTechSourcesBtn: document.getElementById('openTechSourcesBtn'),
     downloadParamTemplateBtn: document.getElementById('downloadParamTemplateBtn'),
     importFileBtn: document.getElementById('importFileBtn'),
@@ -194,6 +202,7 @@ function loadSettings() {
     if (parsed.band) state.band = parsed.band;
     if (parsed.activeTab) state.activeTab = parsed.activeTab;
     if (['collapsed', 'half', 'full'].includes(parsed.panelMode)) state.panelMode = parsed.panelMode;
+    if (parsed.si2pemBackendUrl) state.si2pemBackendUrl = String(parsed.si2pemBackendUrl).trim();
     state.radiusKm = parsed.radiusKm === null || parsed.radiusKm === '' || parsed.radiusKm === undefined ? null : Number(parsed.radiusKm);
   } catch (_) {}
 }
@@ -210,7 +219,8 @@ function saveSettings() {
     band: state.band,
     radiusKm: state.radiusKm,
     activeTab: state.activeTab,
-    panelMode: state.panelMode
+    panelMode: state.panelMode,
+    si2pemBackendUrl: state.si2pemBackendUrl
   };
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(payload));
 }
@@ -1035,7 +1045,7 @@ function popupHtml(station) {
       </div>
       <div class="bts-popup-share"><span>Współdzielenie</span><b>${escapeHtml(formatSharedOperators(station))}</b></div>
       <div class="bts-popup-note">Mapa pokazuje gradient orientacyjny: najmocniej blisko BTS, słabiej przy granicy zasięgu. Źródło: ${escapeHtml(coverageReliability(station))}.</div>
-      <div class="bts-popup-actions"><button type="button" data-action="enrich-selected-uke">UKE</button><button type="button" data-action="import-selected-pdf">Parametry</button></div>
+      <div class="bts-popup-actions"><button type="button" data-action="enrich-selected-si2pem">SI2PEM</button><button type="button" data-action="import-selected-pdf">Plik parametrów</button></div>
     </div>
   `;
 }
@@ -3145,13 +3155,13 @@ function isUsefulSupplement(supplement) {
   );
 }
 
-function applyStationSupplementsBatch(supplements, sourceName) {
+function applyStationSupplementsBatch(supplements, sourceName, options = {}) {
   const fields = new Set();
   let count = 0;
   const records = Array.isArray(supplements) ? supplements.length : 0;
   for (const supplement of supplements || []) {
     if (!isUsefulSupplement(supplement)) continue;
-    const changed = applyStationSupplement(supplement, sourceName);
+    const changed = applyStationSupplement(supplement, sourceName, options);
     if (!changed.count) continue;
     count += changed.count;
     for (const field of changed.fields) fields.add(field);
@@ -3236,7 +3246,7 @@ function extractStationSupplementFromText(text, sourceName) {
   };
 }
 
-function applyStationSupplement(supplement, sourceName) {
+function applyStationSupplement(supplement, sourceName, options = {}) {
   const targets = findSupplementTargets(supplement);
   const fields = [];
   if (supplement.bands?.length) fields.push('pasma');
@@ -3248,7 +3258,7 @@ function applyStationSupplement(supplement, sourceName) {
   if (Number.isFinite(supplement.latitude) && Number.isFinite(supplement.longitude)) fields.push('współrzędne');
 
   if (!targets.length) {
-    if (state.selected) targets.push(state.selected);
+    if (!options.strict && state.selected) targets.push(state.selected);
     else if (Number.isFinite(supplement.latitude) && Number.isFinite(supplement.longitude)) {
       const newStation = normalizeStationForMain({
         station_id: supplement.station_id || 'PDF/TXT',
@@ -3484,6 +3494,128 @@ function extractLikelyCityFromText(text) {
   return match ? match[1].trim() : '';
 }
 
+
+function normalizeSi2pemBackendUrl(url) {
+  const text = String(url || '').trim().replace(/\/+$/, '');
+  if (!text) return '';
+  try {
+    const parsed = new URL(text, location.href);
+    if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('Nieprawidłowy protokół.');
+    return parsed.href.replace(/\/+$/, '');
+  } catch (_) {
+    return '';
+  }
+}
+
+function getSi2pemBackendBaseUrl() {
+  const input = normalizeSi2pemBackendUrl(el.si2pemBackendUrlInput?.value || state.si2pemBackendUrl);
+  if (input) return input;
+  throw new Error('Najpierw wpisz adres własnego backendu SI2PEM, np. https://twoj-serwer.pl');
+}
+
+function saveSi2pemBackendUrl() {
+  const url = normalizeSi2pemBackendUrl(el.si2pemBackendUrlInput?.value || '');
+  if (!url) {
+    showStatusToast('Backend SI2PEM', 'Podaj poprawny adres backendu HTTP/HTTPS. Token SI2PEM ma być zapisany na backendzie, nie w aplikacji PWA.', 'error', { sticky: true });
+    return;
+  }
+  state.si2pemBackendUrl = url;
+  if (el.si2pemBackendUrlInput) el.si2pemBackendUrlInput.value = url;
+  saveSettings();
+  showStatusToast('Backend SI2PEM', `Zapisano backend: ${url}`, 'success', { sticky: false });
+}
+
+function stationToSi2pemLookup(station) {
+  return {
+    station_id: station.station_id || '',
+    operator: station.operator || '',
+    city: station.city || '',
+    address: station.address || '',
+    latitude: Number.isFinite(station.latitude) ? station.latitude : null,
+    longitude: Number.isFinite(station.longitude) ? station.longitude : null,
+    bands: Array.isArray(station.bands) ? station.bands : [],
+    azimuths: Array.isArray(station.azimuths) ? station.azimuths : [],
+    power: station.power || station.eirp_dbm || '',
+    antenna_height_m: station.antenna_height_m ?? null,
+    tilt_deg: station.tilt_deg ?? null
+  };
+}
+
+function getVisibleStationsForBackend() {
+  const visible = Array.isArray(state.currentList) && state.currentList.length ? state.currentList : state.stations;
+  return visible
+    .filter(station => Number.isFinite(station.latitude) && Number.isFinite(station.longitude))
+    .slice(0, SI2PEM_BACKEND_BATCH_LIMIT);
+}
+
+async function requestSi2pemBackendSupplements(stations, mode) {
+  if (!Array.isArray(stations) || !stations.length) throw new Error('Brak stacji do uzupełnienia.');
+  const baseUrl = getSi2pemBackendBaseUrl();
+  const endpoint = `${baseUrl}${SI2PEM_BACKEND_ENDPOINT}`;
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    cache: 'no-store',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({
+      app: 'myBTS Web Pro',
+      version: APP_VERSION,
+      mode,
+      requested_at: new Date().toISOString(),
+      stations: stations.map(stationToSi2pemLookup)
+    })
+  });
+  if (!response.ok) {
+    let detail = '';
+    try { detail = (await response.json()).detail || ''; } catch (_) {}
+    throw new Error(`Backend SI2PEM zwrócił HTTP ${response.status}${detail ? ': ' + detail : ''}`);
+  }
+  const payload = await response.json();
+  const raw = Array.isArray(payload) ? payload : (payload.supplements || payload.parameters || payload.stations || payload.data || payload.items || []);
+  if (!Array.isArray(raw) || !raw.length) throw new Error('Backend nie zwrócił żadnych parametrów do dopisania.');
+  return rowsToSupplements(raw, `SI2PEM backend ${baseUrl}`);
+}
+
+async function autoEnrichStationsFromSi2pem(stations, modeLabel) {
+  if (state.si2pemBackendRunning) {
+    showStatusToast('Backend SI2PEM', 'Uzupełnianie już trwa. Poczekaj na zakończenie.', 'busy', { sticky: true });
+    return;
+  }
+  state.si2pemBackendRunning = true;
+  try {
+    showStatusToast('Backend SI2PEM', `Szukam parametrów dla ${stations.length} stacji…`, 'busy', { sticky: true, progress: 15 });
+    const supplements = await requestSi2pemBackendSupplements(stations, modeLabel);
+    const changed = applyStationSupplementsBatch(supplements, 'SI2PEM backend', { strict: true });
+    if (!changed.count) throw new Error('Backend zwrócił dane, ale nie udało się ich jednoznacznie dopasować do stacji.');
+    finalizeParameterImport();
+    const message = `Uzupełniono ${changed.count} dopasowań: ${changed.fields.join(', ')}.`;
+    setStatus(message);
+    showStatusToast('Backend SI2PEM', message, 'success', { sticky: false, progress: 100 });
+  } catch (err) {
+    const message = `Nie udało się uzupełnić z backendu SI2PEM: ${err.message}`;
+    setStatus(message);
+    showStatusToast('Backend SI2PEM', message, 'error', { sticky: true });
+  } finally {
+    state.si2pemBackendRunning = false;
+  }
+}
+
+async function autoEnrichSelectedFromSi2pem() {
+  if (!state.selected) {
+    showStatusToast('Backend SI2PEM', 'Najpierw wybierz stację BTS na mapie albo na liście.', 'error', { sticky: true });
+    return;
+  }
+  await autoEnrichStationsFromSi2pem([state.selected], 'selected');
+}
+
+async function autoEnrichVisibleFromSi2pem() {
+  const stations = getVisibleStationsForBackend();
+  if (!stations.length) {
+    showStatusToast('Backend SI2PEM', 'Brak widocznych stacji do uzupełnienia.', 'error', { sticky: true });
+    return;
+  }
+  await autoEnrichStationsFromSi2pem(stations, 'visible');
+}
+
 async function loadRemoteInput() {
   try {
     const url = el.remoteUrlInput.value.trim();
@@ -3563,6 +3695,7 @@ function bindEvents() {
   el.radiusSelect.addEventListener('change', () => { state.radiusKm = el.radiusSelect.value ? Number(el.radiusSelect.value) : null; scheduleRender(); });
   el.themeBtn.addEventListener('click', () => { state.theme = state.theme === 'dark' ? 'light' : 'dark'; applyTheme(); saveSettings(); });
   el.closeDetailBtn.addEventListener('click', hideDetails);
+  if (el.si2pemBackendUrlInput) el.si2pemBackendUrlInput.value = state.si2pemBackendUrl || '';
   el.refreshBtn.addEventListener('click', () => loadStationsFromUrl('stations.json', { forceNetwork: true, save: true }).catch(showLoadError));
   if (el.ukeUpdateBtn) {
     el.ukeUpdateBtn.addEventListener('click', updateFromUkeOnline);
@@ -3573,12 +3706,20 @@ function bindEvents() {
   }
   if (el.openUkePageBtn) el.openUkePageBtn.addEventListener('click', openUkePage);
   if (el.openSi2pemBtn) el.openSi2pemBtn.addEventListener('click', openSi2pemPage);
+  if (el.saveSi2pemBackendBtn) el.saveSi2pemBackendBtn.addEventListener('click', saveSi2pemBackendUrl);
+  if (el.autoEnrichSelectedBtn) el.autoEnrichSelectedBtn.addEventListener('click', autoEnrichSelectedFromSi2pem);
+  if (el.autoEnrichVisibleBtn) el.autoEnrichVisibleBtn.addEventListener('click', autoEnrichVisibleFromSi2pem);
   if (el.openTechSourcesBtn) el.openTechSourcesBtn.addEventListener('click', openTechnicalSources);
   if (el.downloadParamTemplateBtn) el.downloadParamTemplateBtn.addEventListener('click', downloadParameterTemplate);
   if (el.statusToastClose) el.statusToastClose.addEventListener('click', hideStatusToast);
   if (el.map) {
     el.map.addEventListener('click', event => {
       const action = event.target?.closest?.('[data-action]')?.dataset?.action;
+      if (action === 'enrich-selected-si2pem') {
+        event.preventDefault();
+        event.stopPropagation();
+        void autoEnrichSelectedFromSi2pem();
+      }
       if (action === 'enrich-selected-uke') {
         event.preventDefault();
         event.stopPropagation();

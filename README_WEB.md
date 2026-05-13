@@ -1,17 +1,29 @@
-# myBTS Web Pro 3.17 - 1305260732
+# myBTS Web Pro 3.18 - 1305260910
 
 Wersja web/PWA do przeglądania stacji BTS na mapie Leaflet.
 
-## Najważniejsze zmiany 3.10
+## Najważniejsze zmiany 3.18
 
-- Dodany import paczki ZIP z UKE, np. „pobierz wszystkie załączniki w formacie .zip”.
-- Import bazy obsługuje teraz JSON / CSV / XLSX / XML / ZIP.
-- Przy problemie HTTP 403 / CORS aplikacja pokazuje wyraźny komunikat i kieruje do importu ręcznego.
-- Dodane przyciski: „Otwórz stronę UKE”, „SI2PEM / raporty PEM”, „Źródła azymutu i mocy” oraz „Pobierz szablon CSV parametrów”.
-- Dodane ostrzeżenie, jeśli aplikacja jest uruchomiona jako `file://` zamiast przez lokalny serwer HTTP.
-- PDF/TXT/CSV/XLSX/JSON/XML/ZIP służy do uzupełniania parametrów stacji: pasm, azymutów, mocy/EIRP, wysokości anteny, pochylenia i zasięgu, jeżeli dokument zawiera takie dane tekstowe.
+- Ukryto mylący przycisk „UKE online wyłączone”.
+- Dodano panel „Automatyczne uzupełnianie SI2PEM”.
+- Dodano zapis adresu własnego backendu SI2PEM.
+- Dodano przyciski:
+  - „Uzupełnij wybraną BTS”,
+  - „Uzupełnij widoczne BTS z SI2PEM”.
+- Dodano backend `backend_si2pem_proxy.py`, który trzyma token SI2PEM po stronie serwera.
+- Dodano przykład konfiguracji `si2pem_backend_config.example.txt`.
+- Dodano `backend_requirements.txt`.
+- Frontend nie zapisuje tokenu API, tylko wysyła do backendu dane stacji: ID, operator, adres, pasma i współrzędne.
 
-## Uruchomienie na komputerze
+## Jak to działa
+
+```text
+myBTS PWA → Twój backend SI2PEM → SI2PEM REST API → backend normalizuje dane → myBTS dopisuje parametry do BTS
+```
+
+Aplikacja dopisuje tylko dane, które da się dopasować do stacji. Nie dopisuje parametrów na siłę.
+
+## Uruchomienie aplikacji PWA na komputerze
 
 Nie otwieraj samego `index.html` dwuklikiem. Uruchom lokalny serwer:
 
@@ -31,33 +43,59 @@ Potem wejdź w przeglądarce:
 http://localhost:8000
 ```
 
-## Aktualizacja danych UKE
+## Uruchomienie backendu SI2PEM
 
-Przycisk „Aktualizuj z UKE online” próbuje pobrać dane bezpośrednio z dane.gov/BIP UKE. Część plików UKE bywa hostowana przez Box/app.box.com i przeglądarka może zablokować pobranie przez CORS albo HTTP 403.
+```bat
+pip install -r backend_requirements.txt
+set SI2PEM_TOKEN=TU_WKLEJ_TOKEN
+set SI2PEM_API_BASE=https://si2pem.gov.pl
+set SI2PEM_ENDPOINT_TEMPLATE=/api/TUTAJ_SCIEZKA_ZE_SWAGGERA?lat={lat}&lon={lon}&radius={radius_m}
+uvicorn backend_si2pem_proxy:app --host 0.0.0.0 --port 8787
+```
 
-Najpewniejsza metoda:
+W aplikacji wpisz:
 
-1. Kliknij „Otwórz stronę UKE”.
-2. Pobierz „wszystkie załączniki w formacie .zip” albo wybrane arkusze XLSX.
-3. W aplikacji kliknij „Import JSON / CSV / XLSX / XML / ZIP”.
-4. Wskaż pobrany ZIP/XLSX.
+```text
+http://localhost:8787
+```
 
-## Skąd brać parametry techniczne
+Następnie kliknij:
 
-Najlepsze źródła uzupełniające to raporty/zgłoszenia PEM z SI2PEM, BIP gmin/powiatów oraz własny backend, który pobiera API SI2PEM i wystawia gotowy JSON/CSV. W aplikacji kliknij „SI2PEM / raporty PEM”, wyszukaj stację/raport i wgraj znaleziony PDF/TXT/CSV/XLSX/JSON/XML/ZIP przez „Uzupełnij parametry”. PDF musi mieć warstwę tekstową. Skan-obraz bez tekstu nie zostanie odczytany bez OCR.
+```text
+Zapisz backend
+Uzupełnij wybraną BTS
+```
 
+## Ważne
 
-## 3.11 - 1205261805
-- Naprawiony import JSON/CSV/XLSX/XML/ZIP.
-- Dodany awaryjny parser bez Web Workera.
-- Dodany wbudowany odczyt ZIP/XLSX, gdy CDN/SheetJS/JSZip nie działa.
-- Lepsze rozpoznawanie kolumn UKE: szerokość/długość WGS84, miejscowość, operator, pozwolenie, pasmo.
+Do pełnego działania trzeba mieć token SI2PEM i konkretną ścieżkę endpointu ze Swaggera. Bez tego backend uruchomi się, ale zwróci komunikat, że brakuje `SI2PEM_TOKEN` albo `SI2PEM_ENDPOINT_TEMPLATE`.
 
+## Aktualizacja głównej bazy UKE
 
-## 3.17 - 1305260732
-- Dodany import parametrów technicznych z PDF/TXT/CSV/XLSX/JSON/XML/HTML/ZIP oraz z linku.
-- Program uzupełnia teraz: azymuty, moc/EIRP, wysokość anteny, pochylenie anteny, zasięg i pasma.
-- Dodany szablon CSV parametrów generowany z aplikacji.
-- Dodane pola w szczegółach stacji: wysokość anteny, pochylenie anteny i jakość danych technicznych.
-- Zmieniono mylący przycisk „Skąd wziąć PDF” na „SI2PEM / raporty PEM”.
-- Przygotowano aplikację pod przyszły backend SI2PEM, bez dodawania tokenu/API bezpośrednio do frontendu.
+Automatyczne pobieranie UKE bezpośrednio z frontendu zostało ukryte. Główna baza stacji dalej może być aktualizowana przez:
+
+1. ręczny import ZIP/XLSX/CSV z UKE,
+2. gotowy `stations.json`,
+3. przyszły backend, który wygeneruje `stations.json` po stronie serwera.
+
+## Import ręczny parametrów technicznych
+
+Nadal działa import z:
+
+```text
+PDF / TXT / CSV / XLSX / JSON / XML / HTML / ZIP
+```
+
+Program próbuje wyciągnąć:
+
+```text
+azymut
+moc / EIRP
+wysokość anteny
+pochylenie anteny
+zasięg
+pasma
+źródło danych
+```
+
+PDF musi mieć warstwę tekstową. Skan-obraz bez OCR nie zostanie odczytany.

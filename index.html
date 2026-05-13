@@ -9,11 +9,11 @@
                  script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.sheetjs.com;
                  style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com;
                  img-src 'self' data: blob: https:;
-                 connect-src 'self' https:;
+                 connect-src 'self' https: http://localhost:* http://127.0.0.1:*;
                  worker-src 'self' blob: https://cdnjs.cloudflare.com;
                  object-src 'none';
                  base-uri 'self';" />
-  <title>myBTS Web Pro 3.17 - 1305260732</title>
+  <title>myBTS Web Pro 3.18 - 1305260910</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
   <link rel="stylesheet" href="style.css" />
@@ -141,8 +141,8 @@
           <div class="settings-group">
             <h3>Dane</h3>
             <button id="refreshBtn" class="btn ghost" type="button">Odśwież stations.json</button>
-            <button id="ukeUpdateBtn" class="btn primary" type="button">UKE online wyłączone</button>
-            <div id="ukeStatusBox" class="notice-box small update-status-box info">UKE online: wyłączone. Pobierz paczkę ZIP/XLSX/CSV z UKE ręcznie i użyj importu pliku. Publiczne CORS-proxy zostały usunięte.</div>
+            <button id="ukeUpdateBtn" class="btn primary hidden" type="button">UKE online wyłączone</button>
+            <div id="ukeStatusBox" class="notice-box small update-status-box info hidden">UKE online z frontendu wyłączone. Do automatyki użyj backendu SI2PEM albo importu pliku.</div>
             <div class="action-grid compact-actions">
               <button id="openUkePageBtn" class="btn ghost" type="button">Otwórz stronę UKE</button>
               <button id="openSi2pemBtn" class="btn ghost" type="button">SI2PEM / raporty PEM</button>
@@ -152,6 +152,17 @@
             <button id="downloadParamTemplateBtn" class="btn ghost" type="button">Pobierz szablon CSV parametrów</button>
             <button id="openTechSourcesBtn" class="btn ghost" type="button">Źródła azymutu i mocy</button>
             <button id="clearCacheBtn" class="btn danger" type="button">Wyczyść lokalną bazę</button>
+          </div>
+
+          <div class="settings-group">
+            <h3>Automatyczne uzupełnianie SI2PEM</h3>
+            <input id="si2pemBackendUrlInput" class="input" type="url" placeholder="Adres backendu, np. https://twoj-serwer.pl" autocomplete="off" />
+            <div class="action-grid compact-actions">
+              <button id="saveSi2pemBackendBtn" class="btn ghost" type="button">Zapisz backend</button>
+              <button id="autoEnrichSelectedBtn" class="btn primary" type="button">Uzupełnij wybraną BTS</button>
+            </div>
+            <button id="autoEnrichVisibleBtn" class="btn ghost" type="button">Uzupełnij widoczne BTS z SI2PEM</button>
+            <div class="notice-box small">Token SI2PEM zapisuje się wyłącznie na backendzie. Aplikacja PWA wysyła do backendu ID, operatora, adres, pasma i współrzędne stacji, a backend odsyła gotowe parametry: azymut, EIRP/moc, wysokość, pochylenie i źródło.</div>
           </div>
 
           <div class="settings-group">
@@ -168,9 +179,9 @@
           </div>
 
           <div class="notice-box small">
-            Wersja: <strong>3.17 - 1305260732</strong><br />
+            Wersja: <strong>3.18 - 1305260910</strong><br />
             Import PDF/TXT/CSV/XLSX/JSON uzupełnia wybraną lub najbliższą stację o pasma, azymuty, moc/EIRP, wysokość anteny, pochylenie anteny i zasięg, jeżeli takie dane są w raporcie lub tabeli.
-            Widok główny to mapa. Dotknięcie BTS pokazuje małe okienko na mapie z odległością, gradientem zasięgu, azymutem i informacją o współdzieleniu lokalizacji. Opcje są dostępne po przeciągnięciu dolnego uchwytu panelu. Dane UKE są pobierane online przez dane.gov/BIP UKE. Gdy przeglądarka blokuje CORS/HTTP 403, użyj importu ręcznie pobranej paczki ZIP albo arkuszy XLSX z UKE. Parametry techniczne bierz głównie ze zgłoszeń/raportów PEM z SI2PEM, BIP gmin/powiatów albo z własnego backendu, który zamienia API/tabele na JSON/CSV.
+            Automatyczne uzupełnianie działa przez własny backend SI2PEM, bo token API nie może być zapisany w publicznym frontendzie PWA. UKE online z frontendu jest ukryte; baza główna nadal może być odświeżana przez plik ZIP/XLSX/CSV albo gotowy stations.json.
           </div>
         </section>
       </div>

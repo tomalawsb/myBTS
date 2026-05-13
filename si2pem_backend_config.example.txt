@@ -1,0 +1,23 @@
+Przykładowa konfiguracja backendu SI2PEM
+
+Wymagane po uzyskaniu dostępu/tokena i sprawdzeniu Swaggera:
+
+Windows CMD:
+set SI2PEM_TOKEN=TU_WKLEJ_TOKEN
+set SI2PEM_API_BASE=https://si2pem.gov.pl
+set SI2PEM_ENDPOINT_TEMPLATE=/api/TUTAJ_SCIEZKA_ZE_SWAGGERA?lat={lat}&lon={lon}&radius={radius_m}
+set SI2PEM_ALLOWED_ORIGINS=*
+uvicorn backend_si2pem_proxy:app --host 0.0.0.0 --port 8787
+
+PowerShell:
+$env:SI2PEM_TOKEN="TU_WKLEJ_TOKEN"
+$env:SI2PEM_API_BASE="https://si2pem.gov.pl"
+$env:SI2PEM_ENDPOINT_TEMPLATE="/api/TUTAJ_SCIEZKA_ZE_SWAGGERA?lat={lat}&lon={lon}&radius={radius_m}"
+$env:SI2PEM_ALLOWED_ORIGINS="*"
+uvicorn backend_si2pem_proxy:app --host 0.0.0.0 --port 8787
+
+Adres backendu wpisywany w myBTS:
+http://localhost:8787
+
+Dostępne zmienne w szablonie endpointu:
+{station_id}, {operator}, {city}, {address}, {lat}, {lon}, {latitude}, {longitude}, {radius_m}, {radius}
