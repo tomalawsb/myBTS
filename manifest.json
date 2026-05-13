@@ -1,7 +1,7 @@
 {
-  "name": "myBTS Web Pro 3.16",
-  "short_name": "myBTS 3.16",
-  "description": "Webowa PWA do przeglądania stacji BTS z mapą Leaflet, importem JSON/CSV/XLSX/ZIP oraz uzupełnianiem parametrów z PDF/TXT, szybkim wyszukiwaniem i lokalną bazą IndexedDB.",
+  "name": "myBTS Web Pro 3.17",
+  "short_name": "myBTS 3.17",
+  "description": "Webowa PWA do przeglądania stacji BTS z mapą Leaflet, importem JSON/CSV/XLSX/XML/ZIP oraz uzupełnianiem parametrów technicznych z PDF/TXT/CSV/XLSX/JSON/XML/ZIP i linku: azymut, EIRP/moc, wysokość anteny, pochylenie, zasięg.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

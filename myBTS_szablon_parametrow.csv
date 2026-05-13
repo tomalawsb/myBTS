@@ -1,0 +1,2 @@
+"station_id";"operator";"city";"address";"latitude";"longitude";"bands";"azimuths";"power";"eirp_dbm";"range_km";"antenna_height_m";"tilt_deg";"source"
+"BT12345";"Orange";"Mielec";"ul. Przykładowa 1";"50.287200";"21.423100";"LTE800;LTE1800;NR78";"0;120;240";"120 W";"";"4.5";"32";"3";"SI2PEM / BIP / raport PEM"

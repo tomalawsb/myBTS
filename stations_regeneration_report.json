@@ -1,5 +1,5 @@
 {
-  "version": "3.14 - 1205262100",
+  "version": "3.17 - 1305260732",
   "stations_total": 46949,
   "stations_changed": 9224,
   "stations_set_to_unknown_after_cleaning": 8424,
@@ -134,5 +134,6 @@
     "GSM900": 32078,
     "Nieznane": 8424,
     "UMTS900": 1
-  }
+  },
+  "note_package": "Parametry techniczne dodano w aplikacji; sama baza stations.json nie była przebudowywana."
 }

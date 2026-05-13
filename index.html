@@ -13,7 +13,7 @@
                  worker-src 'self' blob: https://cdnjs.cloudflare.com;
                  object-src 'none';
                  base-uri 'self';" />
-  <title>myBTS Web Pro 3.16 - 1205262109</title>
+  <title>myBTS Web Pro 3.17 - 1305260732</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
   <link rel="stylesheet" href="style.css" />
@@ -145,17 +145,20 @@
             <div id="ukeStatusBox" class="notice-box small update-status-box info">UKE online: wyłączone. Pobierz paczkę ZIP/XLSX/CSV z UKE ręcznie i użyj importu pliku. Publiczne CORS-proxy zostały usunięte.</div>
             <div class="action-grid compact-actions">
               <button id="openUkePageBtn" class="btn ghost" type="button">Otwórz stronę UKE</button>
-              <button id="openSi2pemBtn" class="btn ghost" type="button">Skąd wziąć PDF</button>
+              <button id="openSi2pemBtn" class="btn ghost" type="button">SI2PEM / raporty PEM</button>
             </div>
             <button id="importFileBtn" class="btn ghost" type="button">Import JSON / CSV / XLSX / XML / ZIP</button>
-            <button id="importParamFileBtn" class="btn ghost" type="button">Uzupełnij parametry z PDF/TXT</button>
+            <button id="importParamFileBtn" class="btn ghost" type="button">Uzupełnij parametry z PDF/TXT/CSV/XLSX/JSON</button>
+            <button id="downloadParamTemplateBtn" class="btn ghost" type="button">Pobierz szablon CSV parametrów</button>
+            <button id="openTechSourcesBtn" class="btn ghost" type="button">Źródła azymutu i mocy</button>
             <button id="clearCacheBtn" class="btn danger" type="button">Wyczyść lokalną bazę</button>
           </div>
 
           <div class="settings-group">
             <h3>Baza z linku</h3>
             <input id="remoteUrlInput" class="input" type="url" placeholder="Link do JSON/CSV/XLSX, Dropbox, Google Drive, raw GitHub" autocomplete="off" />
-            <button id="loadUrlBtn" class="btn ghost" type="button">Pobierz z linku</button>
+            <button id="loadUrlBtn" class="btn ghost" type="button">Pobierz bazę z linku</button>
+            <button id="loadParamUrlBtn" class="btn ghost" type="button">Uzupełnij parametry z linku</button>
           </div>
 
           <div class="settings-group">
@@ -165,9 +168,9 @@
           </div>
 
           <div class="notice-box small">
-            Wersja: <strong>3.16 - 1205262109</strong><br />
-            Import PDF/TXT uzupełnia wybraną lub najbliższą stację o pasma, azymuty, moc/EIRP i zasięg, jeżeli takie dane są w tekście raportu.
-            Widok główny to mapa. Dotknięcie BTS pokazuje małe okienko na mapie z odległością, gradientem zasięgu, azymutem i informacją o współdzieleniu lokalizacji. Opcje są dostępne po przeciągnięciu dolnego uchwytu panelu. Dane UKE są pobierane online przez dane.gov/BIP UKE. Gdy przeglądarka blokuje CORS/HTTP 403, użyj importu ręcznie pobranej paczki ZIP albo arkuszy XLSX z UKE. PDF/TXT bierz głównie z SI2PEM albo raportów pomiarowych.
+            Wersja: <strong>3.17 - 1305260732</strong><br />
+            Import PDF/TXT/CSV/XLSX/JSON uzupełnia wybraną lub najbliższą stację o pasma, azymuty, moc/EIRP, wysokość anteny, pochylenie anteny i zasięg, jeżeli takie dane są w raporcie lub tabeli.
+            Widok główny to mapa. Dotknięcie BTS pokazuje małe okienko na mapie z odległością, gradientem zasięgu, azymutem i informacją o współdzieleniu lokalizacji. Opcje są dostępne po przeciągnięciu dolnego uchwytu panelu. Dane UKE są pobierane online przez dane.gov/BIP UKE. Gdy przeglądarka blokuje CORS/HTTP 403, użyj importu ręcznie pobranej paczki ZIP albo arkuszy XLSX z UKE. Parametry techniczne bierz głównie ze zgłoszeń/raportów PEM z SI2PEM, BIP gmin/powiatów albo z własnego backendu, który zamienia API/tabele na JSON/CSV.
           </div>
         </section>
       </div>
@@ -175,7 +178,7 @@
   </div>
 
   <input id="dataFileInput" class="hidden" type="file" accept="application/json,.json,text/csv,.csv,.xlsx,.xls,.xml,.html,.htm,.zip,application/zip" />
-  <input id="paramFileInput" class="hidden" type="file" accept="application/pdf,.pdf,text/plain,.txt" />
+  <input id="paramFileInput" class="hidden" type="file" accept="application/pdf,.pdf,text/plain,.txt,text/csv,.csv,application/json,.json,.xlsx,.xls,.xml,.html,.htm,.zip,application/zip" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" defer></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>

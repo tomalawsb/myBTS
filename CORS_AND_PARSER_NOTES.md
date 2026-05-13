@@ -35,3 +35,10 @@ Parser pasm nadal jest zdublowany w:
 Dodano komentarze ostrzegawcze przy `VALID_NR_BANDS`. Przy każdej zmianie reguł parsera trzeba poprawiać oba pliki.
 
 Docelowo warto wydzielić wspólny plik, np. `parser.js`, i ładować go w kodzie głównym oraz w workerze.
+
+
+## Etap 9 — parametry techniczne BTS
+
+Dodano ręczne i półautomatyczne uzupełnianie parametrów technicznych z PDF/TXT/CSV/XLSX/JSON/XML/HTML/ZIP oraz z linku. Obsługiwane pola: `azimuths`, `power`, `eirp_dbm`, `antenna_height_m`, `tilt_deg`, `range_km`, `bands`, `source`.
+
+Bezpośrednie wywołanie SI2PEM API z frontendu nie zostało dodane, ponieważ token/API nie powinien być umieszczany w kodzie publicznej aplikacji PWA. Docelowy model: SI2PEM/BIP → własny backend/skrypt → JSON/CSV → myBTS.

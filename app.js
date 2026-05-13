@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '3.16 - 1205262109';
+const APP_VERSION = '3.17 - 1305260732';
 const DEFAULT_CENTER = [50.2872, 21.4231];
 const DEFAULT_ZOOM = 10;
 const MIN_ZOOM = 5;
@@ -21,6 +21,9 @@ const ZIP_CDN_NOTE = 'Import ZIP wymaga biblioteki JSZip z CDN albo połączenia
 const PDFJS_MODULE_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.149/pdf.min.mjs';
 const PDFJS_WORKER_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.149/pdf.worker.min.mjs';
 const UKE_BIP_PAGE = 'https://bip.uke.gov.pl/pozwolenia-radiowe/wykaz-pozwolen-radiowych-tresci/stacje-gsm-umts-lte-5gnr-oraz-cdma%2C12%2C0.html';
+const SI2PEM_MAP_URL = 'https://si2pem.gov.pl/map/';
+const SI2PEM_API_DOCS_URL = 'https://si2pem.gov.pl/api-docs/';
+const GOV_SI2PEM_HELP_URL = 'https://www.gov.pl/web/si2pem/jak-korzystac-z-systemu-si2pem';
 const UKE_DATA_GOV_RESOURCES = 'https://api.dane.gov.pl/1.4/datasets/1075/resources?lang=pl&per_page=100';
 const UKE_DATA_GOV_METADATA = 'https://api.dane.gov.pl/1.4/datasets/1075/resources/metadata.csv?lang=pl';
 const UKE_LINK_LIMIT = 24;
@@ -152,12 +155,15 @@ function initElements() {
     ukeUpdateBtn: document.getElementById('ukeUpdateBtn'),
     openUkePageBtn: document.getElementById('openUkePageBtn'),
     openSi2pemBtn: document.getElementById('openSi2pemBtn'),
+    openTechSourcesBtn: document.getElementById('openTechSourcesBtn'),
+    downloadParamTemplateBtn: document.getElementById('downloadParamTemplateBtn'),
     importFileBtn: document.getElementById('importFileBtn'),
     importParamFileBtn: document.getElementById('importParamFileBtn'),
     dataFileInput: document.getElementById('dataFileInput'),
     paramFileInput: document.getElementById('paramFileInput'),
     remoteUrlInput: document.getElementById('remoteUrlInput'),
     loadUrlBtn: document.getElementById('loadUrlBtn'),
+    loadParamUrlBtn: document.getElementById('loadParamUrlBtn'),
     clearCacheBtn: document.getElementById('clearCacheBtn'),
     storageStatus: document.getElementById('storageStatus'),
     themeBtn: document.getElementById('themeBtn'),
@@ -292,6 +298,22 @@ function compactNumber(value) {
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
+}
+
+function numberOrNull(value) {
+  if (value === null || value === undefined || value === '') return null;
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  const match = String(value).replace(',', '.').match(/-?\d+(?:\.\d+)?/);
+  if (!match) return null;
+  const number = Number(match[0]);
+  return Number.isFinite(number) ? number : null;
+}
+
+function formatOptionalNumber(value, unit = '') {
+  const number = numberOrNull(value);
+  if (!Number.isFinite(number)) return '—';
+  const text = Number.isInteger(number) ? String(number) : number.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+  return unit ? `${text.replace('.', ',')} ${unit}` : text.replace('.', ',');
 }
 
 function operatorColor(operator) {
@@ -639,6 +661,8 @@ function normalizeStationForMain(raw) {
   station.supplement_power = station.supplement_power ?? '';
   station.supplement_eirp = station.supplement_eirp ?? '';
   station.supplement_eirp_dbm = station.supplement_eirp_dbm ?? '';
+  station.antenna_height_m = numberOrNull(station.antenna_height_m ?? station.height_m ?? station.wysokosc_anteny_m ?? station.wysokosc);
+  station.tilt_deg = numberOrNull(station.tilt_deg ?? station.antenna_tilt_deg ?? station.pochylenie_anteny_deg ?? station.pochylenie);
   station.param_sources = Array.isArray(station.param_sources) ? station.param_sources.map(String).filter(Boolean) : [];
   station.shared_operators = Array.isArray(station.shared_operators) ? station.shared_operators.map(String).filter(Boolean) : [];
   station.shared_site = !!station.shared_site;
@@ -698,6 +722,8 @@ function mergeStationInto(target, source) {
   if (!target.supplement_power && source.supplement_power) target.supplement_power = source.supplement_power;
   if (!target.supplement_eirp && source.supplement_eirp) target.supplement_eirp = source.supplement_eirp;
   if (!target.supplement_eirp_dbm && source.supplement_eirp_dbm) target.supplement_eirp_dbm = source.supplement_eirp_dbm;
+  if (!Number.isFinite(target.antenna_height_m) && Number.isFinite(source.antenna_height_m)) target.antenna_height_m = source.antenna_height_m;
+  if (!Number.isFinite(target.tilt_deg) && Number.isFinite(source.tilt_deg)) target.tilt_deg = source.tilt_deg;
   target.param_sources = mergeUnique(target.param_sources, source.param_sources);
   if (!target.range_km && source.range_km) target.range_km = source.range_km;
   target.source = mergeSourceNames(target.source, source.source);
@@ -1009,7 +1035,7 @@ function popupHtml(station) {
       </div>
       <div class="bts-popup-share"><span>Współdzielenie</span><b>${escapeHtml(formatSharedOperators(station))}</b></div>
       <div class="bts-popup-note">Mapa pokazuje gradient orientacyjny: najmocniej blisko BTS, słabiej przy granicy zasięgu. Źródło: ${escapeHtml(coverageReliability(station))}.</div>
-      <div class="bts-popup-actions"><button type="button" data-action="enrich-selected-uke">UKE</button><button type="button" data-action="import-selected-pdf">PDF/TXT</button></div>
+      <div class="bts-popup-actions"><button type="button" data-action="enrich-selected-uke">UKE</button><button type="button" data-action="import-selected-pdf">Parametry</button></div>
     </div>
   `;
 }
@@ -1204,6 +1230,15 @@ function formatCoverageInfo(station) {
   return `gradient ~${formatRangeShort(range)}; ${azimuths}; ${coverageReliability(station)}`;
 }
 
+function formatTechnicalDataQuality(station) {
+  const parts = [];
+  parts.push(station.azimuths && station.azimuths.length ? 'azymut: z danych' : 'azymut: brak');
+  parts.push(getBestPowerInfo(station) ? 'moc/EIRP: z danych' : 'moc/EIRP: brak');
+  parts.push(Number.isFinite(station.antenna_height_m) ? 'wysokość: z danych' : 'wysokość: brak');
+  const sources = station.param_sources && station.param_sources.length ? `źródło: ${station.param_sources.slice(0, 3).join(', ')}` : 'źródło: baza główna / brak uzupełnienia';
+  return `${parts.join(' • ')} • ${sources}`;
+}
+
 function showStationDetails(station) {
   el.emptyDetails.classList.add('hidden');
   el.detailCard.classList.remove('hidden');
@@ -1221,6 +1256,9 @@ function showStationDetails(station) {
     detailLine('Adres', station.address || '—'),
     detailLine('Pasma', formatBands(station.bands)),
     detailLine('Moc nadawania', formatPower(station)),
+    detailLine('Wysokość anteny', formatOptionalNumber(station.antenna_height_m, 'm')),
+    detailLine('Pochylenie anteny', formatOptionalNumber(station.tilt_deg, '°')),
+    detailLine('Jakość danych technicznych', formatTechnicalDataQuality(station)),
     detailLine('Współdzielony nadajnik', formatSharedOperators(station)),
     detailLine('Zasięg na mapie', formatCoverageInfo(station)),
     detailLine('Model gradientu', '0–33% mocny kolor, 33–66% średni, 66–100% słaby'),
@@ -1297,6 +1335,8 @@ function renderList() {
         <div class="station-meta">
           <span class="badge distance-badge">${escapeHtml(formatDistance(distance))}</span>
           <span class="badge">${escapeHtml(formatBands(station.bands))}</span>
+          <span class="badge">${escapeHtml(station.azimuths && station.azimuths.length ? `az. ${station.azimuths.length}` : 'az. brak')}</span>
+          <span class="badge">${escapeHtml(getBestPowerInfo(station) ? 'moc: tak' : 'moc: brak')}</span>
           <span class="badge">rek. ${escapeHtml(compactNumber(station.records_count))}</span>
         </div>
       </button>
@@ -2252,8 +2292,32 @@ function openUkePage() {
 }
 
 function openSi2pemPage() {
-  window.open('https://si2pem.gov.pl/map/', '_blank', 'noopener,noreferrer');
-  showStatusToast('PDF/TXT z SI2PEM', 'PDF z parametrami bierz z SI2PEM albo raportów pomiarowych PEM. W aplikacji SI2PEM szukaj stacji, raportu lub pomiaru, pobierz raport i wgraj go przez „Uzupełnij parametry z PDF/TXT”.', 'info', { sticky: true });
+  window.open(SI2PEM_MAP_URL, '_blank', 'noopener,noreferrer');
+  showStatusToast('SI2PEM / raporty PEM', 'Na mapie SI2PEM wyszukaj konkretną stację, pomiar albo zgłoszenie. Jeżeli znajdziesz raport PDF/TXT z EIRP, azymutem, wysokością lub pochyleniem anteny, wgraj go przez „Uzupełnij parametry”.', 'info', { sticky: true });
+}
+
+function openTechnicalSources() {
+  const text = 'Najpewniejsze źródła parametrów: 1) raporty/zgłoszenia PEM z SI2PEM, 2) BIP gmin i powiatów z PDF zgłoszeń instalacji, 3) własny backend pobierający API SI2PEM i zapisujący JSON/CSV, 4) CellMapper tylko pomocniczo do orientacyjnego kierunku, nie do mocy. Otwieram dokumentację SI2PEM API.';
+  window.open(SI2PEM_API_DOCS_URL, '_blank', 'noopener,noreferrer');
+  showStatusToast('Źródła azymutu i mocy', text, 'info', { sticky: true });
+}
+
+function downloadParameterTemplate() {
+  const rows = [
+    ['station_id', 'operator', 'city', 'address', 'latitude', 'longitude', 'bands', 'azimuths', 'power', 'eirp_dbm', 'range_km', 'antenna_height_m', 'tilt_deg', 'source'],
+    ['BT12345', 'Orange', 'Mielec', 'ul. Przykładowa 1', '50.287200', '21.423100', 'LTE800;LTE1800;NR78', '0;120;240', '120 W', '', '4.5', '32', '3', 'SI2PEM / BIP / raport PEM']
+  ];
+  const csv = rows.map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(';')).join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'myBTS_szablon_parametrow.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showStatusToast('Szablon CSV', 'Pobrano szablon do ręcznego dopisywania azymutów, mocy/EIRP, wysokości i pochylenia anten.', 'success', { sticky: false });
 }
 
 async function loadStationsFromUrl(url = 'stations.json', options = {}) {
@@ -2764,6 +2828,8 @@ function normalizeImportedRowMain(rawRow) {
     cell_names: splitListCellMain(getAliasedMain(row, ['cell_names', 'komorki', 'komórki', 'cells', 'cellname'])),
     records_count: 1,
     range_km: numberFromCellMain(getAliasedMain(row, ['range_km', 'zasieg', 'zasiegkm', 'promien', 'promienkm'])),
+    antenna_height_m: numberOrNull(getAliasedMain(row, ['antenna_height_m', 'height_m', 'wysokoscanteny', 'wysokosczawieszeniaanteny', 'wysokosc'])),
+    tilt_deg: numberOrNull(getAliasedMain(row, ['tilt_deg', 'antenna_tilt_deg', 'pochylenieanteny', 'downtilt', 'tilt', 'pochylenie'])),
     power: powerRaw,
     source: getAliasedMain(row, ['source', 'zrodlo', 'źródło'])
   });
@@ -2876,12 +2942,224 @@ async function importParameterFile(file) {
   if (!file) return;
   setStatus(`Czytam parametry z ${file.name}…`);
   showStatusToast('Import parametrów', `Czytam ${file.name}…`, 'busy', { sticky: true, progress: 12 });
-  const text = file.name.toLowerCase().endsWith('.pdf') ? await readPdfText(file) : await file.text();
-  const supplement = extractStationSupplementFromText(text, file.name);
-  const changed = applyStationSupplement(supplement, file.name);
+  const supplements = await parseParameterSupplementsFile(file);
+  const changed = applyStationSupplementsBatch(supplements, file.name);
   if (!changed.count) {
-    throw new Error('Nie znalazłem pasma, azymutu, mocy, zasięgu ani współrzędnych możliwych do dopasowania do stacji.');
+    throw new Error('Nie znalazłem pasma, azymutu, mocy, EIRP, wysokości, pochylenia ani zasięgu możliwych do dopasowania do stacji.');
   }
+  finalizeParameterImport();
+  const message = `Uzupełniono ${changed.count} dopasowań z ${file.name}: ${changed.fields.join(', ')}. Odczytano rekordów parametrów: ${changed.records}.`;
+  setStatus(message);
+  showStatusToast('Import parametrów', message, 'success', { sticky: false, progress: 100 });
+}
+
+async function parseParameterSupplementsFile(file) {
+  const lower = String(file.name || '').toLowerCase();
+  if (lower.endsWith('.zip')) return importZipParameterFile(file);
+  if (lower.endsWith('.pdf')) return [extractStationSupplementFromText(await readPdfText(file), file.name)];
+  if (lower.endsWith('.xlsx') || lower.endsWith('.xls')) {
+    const rows = await parseSpreadsheetRowsFromBuffer(await file.arrayBuffer(), file.name);
+    return rowsToSupplements(rows, file.name);
+  }
+  if (lower.endsWith('.xml') || lower.endsWith('.html') || lower.endsWith('.htm')) {
+    const text = await file.text();
+    const rows = parseXmlOrHtmlRows(text);
+    return rows.length ? rowsToSupplements(rows, file.name) : [extractStationSupplementFromText(text, file.name)];
+  }
+  const text = await file.text();
+  return parseParameterSupplementsFromText(text, file.name, lower);
+}
+
+async function parseParameterSupplementsFromUrl(url) {
+  const normalized = normalizeRemoteUrlMain(url);
+  const lower = normalized.toLowerCase();
+  const response = await fetch(normalized, { cache: 'no-store', headers: { Accept: 'application/json,text/csv,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,*/*' } });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const contentType = response.headers.get('content-type') || '';
+  if (lower.endsWith('.pdf') || contentType.includes('pdf')) {
+    const file = new File([await response.blob()], sourceNameFromUrlSafe(normalized), { type: 'application/pdf' });
+    return parseParameterSupplementsFile(file);
+  }
+  if (lower.endsWith('.xlsx') || lower.endsWith('.xls') || contentType.includes('spreadsheet')) {
+    const rows = await parseSpreadsheetRowsFromBuffer(await response.arrayBuffer(), sourceNameFromUrlSafe(normalized));
+    return rowsToSupplements(rows, sourceNameFromUrlSafe(normalized));
+  }
+  if (lower.endsWith('.zip') || contentType.includes('zip')) {
+    const file = new File([await response.blob()], sourceNameFromUrlSafe(normalized), { type: 'application/zip' });
+    return parseParameterSupplementsFile(file);
+  }
+  return parseParameterSupplementsFromText(await response.text(), sourceNameFromUrlSafe(normalized), lower);
+}
+
+function parseParameterSupplementsFromText(text, sourceName, lowerName = '') {
+  const trimmed = String(text || '').trim();
+  if (!trimmed) throw new Error('Pusty plik parametrów.');
+  if (trimmed.startsWith('{') || trimmed.startsWith('[') || lowerName.endsWith('.json')) {
+    return jsonPayloadToSupplements(JSON.parse(trimmed), sourceName);
+  }
+  const rows = parseCsvMain(trimmed);
+  const supplements = rowsToSupplements(rows, sourceName);
+  if (supplements.length) return supplements;
+  return [extractStationSupplementFromText(trimmed, sourceName)];
+}
+
+async function parseSpreadsheetRowsFromBuffer(buffer, name) {
+  const rows = [];
+  const errors = [];
+  if (window.XLSX) {
+    try {
+      const workbook = XLSX.read(buffer, { type: 'array' });
+      for (const sheetName of workbook.SheetNames) {
+        const matrix = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, defval: '', raw: false });
+        rows.push(...matrixToObjects(matrix));
+      }
+    } catch (err) {
+      errors.push(`SheetJS: ${err.message}`);
+    }
+  }
+  if (!rows.length) {
+    try {
+      const sheets = await parseXlsxBufferMinimal(buffer, name);
+      for (const sheet of sheets) rows.push(...matrixToObjects(sheet.matrix));
+    } catch (err) {
+      errors.push(`parser wbudowany: ${err.message}`);
+    }
+  }
+  if (!rows.length) throw new Error(`Nie znalazłem czytelnej tabeli w ${name}. ${errors.join(' / ')}`.trim());
+  return rows;
+}
+
+async function importZipParameterFile(file) {
+  const entries = await readZipEntriesFromBuffer(await file.arrayBuffer());
+  const importable = entries
+    .filter(entry => !entry.dir && /\.(pdf|txt|csv|json|xlsx|xls|xml|html|htm)$/i.test(entry.name))
+    .sort((a, b) => a.name.localeCompare(b.name, 'pl'));
+  if (!importable.length) throw new Error('ZIP nie zawiera plików PDF/TXT/CSV/JSON/XLSX/XML/HTML z parametrami.');
+  const supplements = [];
+  const errors = [];
+  for (let index = 0; index < importable.length; index++) {
+    const entry = importable[index];
+    const progress = Math.round(15 + ((index + 1) / importable.length) * 70);
+    showStatusToast('Import parametrów ZIP', `Czytam ${index + 1}/${importable.length}: ${entry.name}`, 'busy', { sticky: true, progress });
+    try {
+      const lower = entry.name.toLowerCase();
+      if (lower.endsWith('.xlsx') || lower.endsWith('.xls')) {
+        supplements.push(...rowsToSupplements(await parseSpreadsheetRowsFromBuffer(await entry.arrayBuffer(), entry.name), entry.name));
+      } else if (lower.endsWith('.pdf')) {
+        const fileLike = new File([await entry.arrayBuffer()], entry.name, { type: 'application/pdf' });
+        supplements.push(extractStationSupplementFromText(await readPdfText(fileLike), entry.name));
+      } else if (lower.endsWith('.xml') || lower.endsWith('.html') || lower.endsWith('.htm')) {
+        const text = await entry.text();
+        const rows = parseXmlOrHtmlRows(text);
+        supplements.push(...(rows.length ? rowsToSupplements(rows, entry.name) : [extractStationSupplementFromText(text, entry.name)]));
+      } else {
+        supplements.push(...parseParameterSupplementsFromText(await entry.text(), entry.name, lower));
+      }
+    } catch (err) {
+      errors.push(`${entry.name}: ${err.message}`);
+    }
+  }
+  if (!supplements.length) throw new Error(`Nie odczytano żadnych parametrów z ZIP. ${errors.slice(0, 4).join(' / ')}`.trim());
+  if (errors.length) console.warn('Część plików parametrów pominięto:', errors);
+  return supplements;
+}
+
+function jsonPayloadToSupplements(payload, sourceName) {
+  const source = Array.isArray(payload) ? payload : (payload.supplements || payload.parameters || payload.stations || payload.data || payload.items || []);
+  if (!Array.isArray(source)) throw new Error('JSON z parametrami musi zawierać tablicę albo pole supplements/parameters/stations/data/items.');
+  return rowsToSupplements(source, sourceName);
+}
+
+function rowsToSupplements(rows, sourceName) {
+  return (rows || [])
+    .map(row => normalizeParameterRowToSupplement(row, sourceName))
+    .filter(isUsefulSupplement);
+}
+
+function normalizeParameterRowToSupplement(rawRow, sourceName) {
+  const row = {};
+  for (const [key, value] of Object.entries(rawRow || {})) row[normalizeColumnNameMain(key)] = value;
+  const allText = Object.values(rawRow || {}).join(' ');
+  const pair = coordinatePairFromRowMain(row);
+  let lat = coordinateFromCellMain(getAliasedMain(row, ['latitude', 'lat', 'szerokosc', 'szerokoscgeograficzna', 'wgs84lat', 'y']));
+  let lon = coordinateFromCellMain(getAliasedMain(row, ['longitude', 'lon', 'lng', 'dlugosc', 'dlugoscgeograficzna', 'wgs84lon', 'x']));
+  if (!Number.isFinite(lat) && pair) lat = pair.lat;
+  if (!Number.isFinite(lon) && pair) lon = pair.lon;
+  const address = buildAddressMain(row);
+  const bandsRaw = getAliasedMain(row, ['bands', 'pasma', 'pasmo', 'band', 'technologia', 'technology', 'system', 'standard', 'zakres', 'czestotliwosc', 'częstotliwość']);
+  const azRaw = getAliasedMain(row, ['azimuths', 'azymuty', 'azymut', 'azimuth', 'azymutanteny', 'kierunek', 'kierunekanteny', 'azymutstopnie', 'azymutdeg']);
+  const powerRaw = getAliasedMain(row, ['power', 'powerw', 'power_w', 'moc', 'mocw', 'mocpromieniowana', 'eirp', 'eirpw', 'eirp_dbm', 'eirpdbm', 'erp', 'maxeirp', 'max_eirp_dbm', 'maksymalnamoc', 'rownowaznamocpromieniowanaizotropowo']);
+  const heightRaw = getAliasedMain(row, ['antenna_height_m', 'height_m', 'wysokoscanteny', 'wysokoscantenym', 'wysokosczawieszenia', 'wysokosczawieszeniaanteny', 'wysokosc', 'wysokoscm']);
+  const tiltRaw = getAliasedMain(row, ['tilt_deg', 'antenna_tilt_deg', 'pochylenieanteny', 'tilt', 'downtilt', 'katpochylenia', 'pochylenie']);
+  const rangeRaw = getAliasedMain(row, ['range_km', 'zasieg', 'zasiegkm', 'promien', 'promienkm']);
+  const source = getAliasedMain(row, ['source', 'zrodlo', 'źródło']) || sourceName || 'parametry';
+  const power = normalizePowerFromAny(powerRaw, allText);
+  const azimuths = mergeNumericLists(splitListCellMain(azRaw).map(numberFromCellMain), extractAzimuthsFromText(allText));
+  const stationId = getAliasedMain(row, ['station_id', 'stationid', 'id', 'nrstacji', 'idstacji', 'identyfikatorstacji', 'nazwaobiektu', 'nazwastacji', 'pozwolenie', 'nrpozwolenia', 'numerpozwolenia', 'numerdecyzji', 'nrdecyzji', 'znaksprawy', 'btssid', 'siteid']) || extractStationIdFromText(allText);
+  const operator = getAliasedMain(row, ['operator', 'siec', 'sieć', 'network', 'mno', 'uzytkownik', 'uzytkownikpozwolenia', 'nazwauzytkownika', 'nazwaoperatora', 'podmiot', 'przedsiebiorca']) || extractOperatorFromText(allText);
+  return {
+    station_id: stationId,
+    operator,
+    city: getAliasedMain(row, ['city', 'miasto', 'miejscowosc', 'miejscowość', 'gmina']) || extractLikelyCityFromText(allText),
+    address,
+    latitude: Number.isFinite(lat) ? lat : null,
+    longitude: Number.isFinite(lon) ? lon : null,
+    bands: cleanBands(mergeUnique(splitListCellMain(bandsRaw), extractBandsFromText(allText))),
+    azimuths,
+    range_km: numberOrNull(rangeRaw),
+    power: power?.text || '',
+    eirp_dbm: power?.unit === 'dBm' ? power.text : '',
+    antenna_height_m: numberOrNull(heightRaw) ?? extractHeightFromText(allText),
+    tilt_deg: numberOrNull(tiltRaw) ?? extractTiltFromText(allText),
+    source: `Parametry ${source}`.trim(),
+    param_sources: [source]
+  };
+}
+
+function mergeNumericLists(a, b) {
+  return [...new Set([...(a || []), ...(b || [])]
+    .map(Number)
+    .filter(value => Number.isFinite(value) && value >= 0 && value < 360)
+    .map(value => Math.round(value)))]
+    .sort((x, y) => x - y);
+}
+
+function normalizePowerFromAny(value, fallbackText = '') {
+  const direct = extractPowerFromText(String(value || ''));
+  if (direct) return direct;
+  const parsed = normalizePowerValue(value);
+  if (parsed && Number.isFinite(parsed.value)) return { ...parsed, text: formatPowerInfo(parsed) };
+  return extractPowerFromText(fallbackText);
+}
+
+function isUsefulSupplement(supplement) {
+  if (!supplement) return false;
+  return !!(
+    supplement.bands?.length ||
+    supplement.azimuths?.length ||
+    supplement.power ||
+    supplement.eirp_dbm ||
+    Number.isFinite(supplement.range_km) ||
+    Number.isFinite(supplement.antenna_height_m) ||
+    Number.isFinite(supplement.tilt_deg)
+  );
+}
+
+function applyStationSupplementsBatch(supplements, sourceName) {
+  const fields = new Set();
+  let count = 0;
+  const records = Array.isArray(supplements) ? supplements.length : 0;
+  for (const supplement of supplements || []) {
+    if (!isUsefulSupplement(supplement)) continue;
+    const changed = applyStationSupplement(supplement, sourceName);
+    if (!changed.count) continue;
+    count += changed.count;
+    for (const field of changed.fields) fields.add(field);
+  }
+  return { count, records, fields: fields.size ? Array.from(fields) : ['dopasowanie tekstowe'] };
+}
+
+function finalizeParameterImport() {
   annotateSharedOperatorInfo(state.stations);
   buildSpatialIndex(state.stations);
   buildFilterOptions();
@@ -2894,9 +3172,6 @@ async function importParameterFile(file) {
     refreshStationPopupContent(state.selected);
   }
   scheduleRender();
-  const message = `Uzupełniono ${changed.count} stację/stacje z ${file.name}: ${changed.fields.join(', ')}.`;
-  setStatus(message);
-  showStatusToast('Import parametrów', message, 'success', { sticky: false, progress: 100 });
 }
 
 async function ensurePdfJs() {
@@ -2941,15 +3216,19 @@ function extractStationSupplementFromText(text, sourceName) {
   const stationId = extractStationIdFromText(raw);
   const operator = extractOperatorFromText(raw);
   const city = extractLikelyCityFromText(raw);
+  const address = extractLikelyAddressFromText(raw);
   return {
     station_id: stationId,
     operator,
     city,
+    address,
     latitude: coords?.lat ?? null,
     longitude: coords?.lng ?? null,
     bands,
     azimuths,
     range_km: rangeKm,
+    antenna_height_m: extractHeightFromText(raw),
+    tilt_deg: extractTiltFromText(raw),
     power: power?.text || '',
     eirp_dbm: power?.unit === 'dBm' ? power.text : '',
     source: `PDF/TXT ${sourceName || ''}`.trim(),
@@ -2964,6 +3243,8 @@ function applyStationSupplement(supplement, sourceName) {
   if (supplement.azimuths?.length) fields.push('azymuty');
   if (supplement.power) fields.push('moc/EIRP');
   if (Number.isFinite(supplement.range_km) && supplement.range_km > 0) fields.push('zasięg');
+  if (Number.isFinite(supplement.antenna_height_m)) fields.push('wysokość anteny');
+  if (Number.isFinite(supplement.tilt_deg)) fields.push('pochylenie anteny');
   if (Number.isFinite(supplement.latitude) && Number.isFinite(supplement.longitude)) fields.push('współrzędne');
 
   if (!targets.length) {
@@ -2975,12 +3256,14 @@ function applyStationSupplement(supplement, sourceName) {
         latitude: supplement.latitude,
         longitude: supplement.longitude,
         city: supplement.city || '',
-        address: supplement.city || '',
+        address: supplement.address || supplement.city || '',
         bands: supplement.bands,
         azimuths: supplement.azimuths,
         power: supplement.power,
         eirp_dbm: supplement.eirp_dbm,
         range_km: supplement.range_km,
+        antenna_height_m: supplement.antenna_height_m,
+        tilt_deg: supplement.tilt_deg,
         source: supplement.source,
         param_sources: supplement.param_sources,
         records_count: 1
@@ -3017,10 +3300,17 @@ function scoreSupplementMatch(station, supplement) {
   const supOp = normalizeText(supplement.operator);
   const stCity = normalizeText(station.city || station.address);
   const supCity = normalizeText(supplement.city);
+  const stAddress = normalizeText(station.address || station.city);
+  const supAddress = normalizeText(supplement.address || supplement.city);
   if (stId && supId && stId === supId) score += 130;
   else if (stId && supId && (stId.includes(supId) || supId.includes(stId))) score += 70;
   if (stOp && supOp && (stOp.includes(supOp) || supOp.includes(stOp))) score += 30;
-  if (stCity && supCity && stCity.includes(supCity)) score += 25;
+  if (stCity && supCity && (stCity.includes(supCity) || supCity.includes(stCity))) score += 25;
+  if (stAddress && supAddress && (stAddress.includes(supAddress) || supAddress.includes(stAddress))) score += 45;
+  else if (stAddress && supAddress) {
+    const overlap = searchTokens(stAddress).filter(token => token.length > 2 && supAddress.includes(token)).length;
+    if (overlap >= 2) score += 25;
+  }
   if (Number.isFinite(supplement.latitude) && Number.isFinite(supplement.longitude)) {
     const distance = haversineKm(station.latitude, station.longitude, supplement.latitude, supplement.longitude);
     if (distance < 0.08) score += 120;
@@ -3036,6 +3326,8 @@ function mergeSupplementIntoStation(station, supplement, sourceName) {
   if (!station.power && supplement.power) station.power = supplement.power;
   if (!station.eirp_dbm && supplement.eirp_dbm) station.eirp_dbm = supplement.eirp_dbm;
   if (!station.range_km && Number.isFinite(supplement.range_km) && supplement.range_km > 0) station.range_km = supplement.range_km;
+  if (!Number.isFinite(station.antenna_height_m) && Number.isFinite(supplement.antenna_height_m)) station.antenna_height_m = supplement.antenna_height_m;
+  if (!Number.isFinite(station.tilt_deg) && Number.isFinite(supplement.tilt_deg)) station.tilt_deg = supplement.tilt_deg;
   station.param_sources = mergeUnique(station.param_sources, [sourceName || 'PDF/TXT']);
   station.source = mergeSourceNames(station.source, supplement.source);
   station._search = normalizeText([
@@ -3082,27 +3374,65 @@ function extractAzimuthsFromText(text) {
     const nums = String(chunk || '').match(/\b\d{1,3}(?:[,.]\d+)?\b/g) || [];
     for (const num of nums) {
       const value = Number(num.replace(',', '.'));
-      if (Number.isFinite(value) && value >= 0 && value < 360 && !values.includes(Math.round(value))) values.push(Math.round(value));
+      const rounded = Math.round(value);
+      if (Number.isFinite(value) && value >= 0 && value < 360 && !values.includes(rounded)) values.push(rounded);
     }
   };
   let match;
-  const labelled = /(?:azymut|azimuth|kierunek\s+anteny|bearing)[^\d]{0,35}((?:\d{1,3}(?:[,.]\d+)?\s*(?:°|deg|stopni)?\s*[,;/ ]*){1,8})/gi;
+  const labelled = /(?:azymut(?:y)?|azimuth|kierunek\s+(?:anteny|sektora)|bearing|k[aą]t\s+azymutu)[^\d]{0,55}((?:\d{1,3}(?:[,.]\d+)?\s*(?:°|deg|stopni)?\s*[,;\/ ]*){1,12})/gi;
   while ((match = labelled.exec(raw))) addNumbers(match[1]);
-  return values.slice(0, 12).sort((a, b) => a - b);
+  const lines = raw.split(/\r?\n/).filter(line => /azymut|azimuth|kierunek/i.test(line));
+  for (const line of lines) addNumbers(line);
+  return values.slice(0, 18).sort((a, b) => a - b);
 }
 
 function extractPowerFromText(text) {
   const raw = String(text || '');
   const patterns = [
-    /(?:EIRP|ERP|moc\s+promieniowana|moc\s+nadawania|maksymalna\s+moc|moc)[^\d-]{0,45}(-?\d+(?:[,.]\d+)?)\s*(dBm|dBW|kW|W)\b/i,
-    /(-?\d+(?:[,.]\d+)?)\s*(dBm|dBW|kW|W)\b[^\n]{0,30}(?:EIRP|ERP|moc)/i
+    /(?:EIRP|ERP|moc\s+promieniowana|moc\s+nadawania|maksymalna\s+moc|moc|r[oó]wnowa[zż]na\s+moc\s+promieniowana\s+izotropowo)[^\d-]{0,70}(-?\d+(?:[,.]\d+)?)\s*(dBm|dBW|kW|W)\b/i,
+    /(-?\d+(?:[,.]\d+)?)\s*(dBm|dBW|kW|W)\b[^\n]{0,45}(?:EIRP|ERP|moc)/i,
+    /(?:EIRP|ERP|moc\s+EIRP|moc\s+promieniowana)[^\n]{0,35}\[(dBm|dBW|kW|W)\][^\d-]{0,40}(-?\d+(?:[,.]\d+)?)/i
   ];
   for (const pattern of patterns) {
     const match = raw.match(pattern);
     if (!match) continue;
-    const value = Number(match[1].replace(',', '.'));
-    const unit = match[2];
+    const unitFirst = /\[(dBm|dBW|kW|W)\]/i.test(match[0]);
+    const value = Number((unitFirst ? match[2] : match[1]).replace(',', '.'));
+    const unit = unitFirst ? match[1] : match[2];
     if (Number.isFinite(value)) return { value, unit, text: `${String(value).replace('.', ',')} ${unit}` };
+  }
+  const implicitW = raw.match(/(?:EIRP|ERP|moc\s+EIRP|moc\s+promieniowana|r[oó]wnowa[zż]na\s+moc\s+promieniowana\s+izotropowo)[^\n]{0,80}(-?\d+(?:[,.]\d+)?)/i);
+  if (implicitW) {
+    const value = Number(implicitW[1].replace(',', '.'));
+    if (Number.isFinite(value) && value > 0) return { value, unit: 'W', text: `${String(value).replace('.', ',')} W` };
+  }
+  return null;
+}
+
+function extractHeightFromText(text) {
+  const raw = String(text || '');
+  const patterns = [
+    /(?:wysoko[sś][cć]\s+(?:zawieszenia\s+)?anteny|wysoko[sś][cć]\s+anteny|anteny\s+na\s+wysoko[sś]ci|height)[^\d]{0,50}(\d+(?:[,.]\d+)?)\s*m\b/i,
+    /(?:anteny|sektor)[^\n]{0,50}\[(?:m|metr)\][^\d]{0,30}(\d+(?:[,.]\d+)?)/i
+  ];
+  for (const pattern of patterns) {
+    const match = raw.match(pattern);
+    const value = match ? Number(match[1].replace(',', '.')) : NaN;
+    if (Number.isFinite(value) && value > 0 && value < 400) return value;
+  }
+  return null;
+}
+
+function extractTiltFromText(text) {
+  const raw = String(text || '');
+  const patterns = [
+    /(?:pochylenie\s+anteny|k[aą]t\s+pochylenia|downtilt|tilt)[^\d-]{0,45}(-?\d+(?:[,.]\d+)?)\s*(?:°|deg|stopni)?/i,
+    /(?:mechaniczne|elektryczne)[^\n]{0,30}(-?\d+(?:[,.]\d+)?)\s*(?:°|deg|stopni)/i
+  ];
+  for (const pattern of patterns) {
+    const match = raw.match(pattern);
+    const value = match ? Number(match[1].replace(',', '.')) : NaN;
+    if (Number.isFinite(value) && value >= -20 && value <= 30) return value;
   }
   return null;
 }
@@ -3122,6 +3452,12 @@ function extractCoordinatesFromText(text) {
   const plain = raw.match(/\b(5[0-4]\.\d{4,})\s*[,; ]\s*((?:1[4-9]|2[0-4])\.\d{4,})\b/);
   if (plain) return { lat: Number(plain[1]), lng: Number(plain[2]) };
   return null;
+}
+
+function extractLikelyAddressFromText(text) {
+  const raw = String(text || '');
+  const match = raw.match(/(?:adres|lokalizacja|miejsce\s+instalacji)\s*[:,-]?\s*([^\n]{5,120})/i);
+  return match ? match[1].trim().replace(/\s{2,}/g, ' ') : '';
 }
 
 function extractStationIdFromText(text) {
@@ -3154,6 +3490,26 @@ async function loadRemoteInput() {
     await loadStationsFromUrl(url, { forceNetwork: true, save: true, fit: true });
   } catch (err) {
     setStatus(`Błąd pobierania z linku: ${err.message}`);
+  }
+}
+
+async function loadParameterRemoteInput() {
+  try {
+    const url = el.remoteUrlInput.value.trim();
+    if (!url) throw new Error('Podaj link do JSON/CSV/XLSX/PDF z parametrami.');
+    setStatus('Pobieram parametry z linku…');
+    showStatusToast('Parametry z linku', 'Pobieram dane techniczne z podanego linku…', 'busy', { sticky: true, progress: 10 });
+    const supplements = await parseParameterSupplementsFromUrl(url);
+    const changed = applyStationSupplementsBatch(supplements, sourceNameFromUrlSafe(url));
+    if (!changed.count) throw new Error('Pobrano dane, ale nie udało się dopasować parametrów do stacji.');
+    finalizeParameterImport();
+    const message = `Uzupełniono ${changed.count} dopasowań z linku: ${changed.fields.join(', ')}.`;
+    setStatus(message);
+    showStatusToast('Parametry z linku', message, 'success', { sticky: false, progress: 100 });
+  } catch (err) {
+    const message = `Błąd pobierania parametrów z linku: ${err.message}`;
+    setStatus(message);
+    showStatusToast('Parametry z linku', message, 'error', { sticky: true });
   }
 }
 
@@ -3217,6 +3573,8 @@ function bindEvents() {
   }
   if (el.openUkePageBtn) el.openUkePageBtn.addEventListener('click', openUkePage);
   if (el.openSi2pemBtn) el.openSi2pemBtn.addEventListener('click', openSi2pemPage);
+  if (el.openTechSourcesBtn) el.openTechSourcesBtn.addEventListener('click', openTechnicalSources);
+  if (el.downloadParamTemplateBtn) el.downloadParamTemplateBtn.addEventListener('click', downloadParameterTemplate);
   if (el.statusToastClose) el.statusToastClose.addEventListener('click', hideStatusToast);
   if (el.map) {
     el.map.addEventListener('click', event => {
@@ -3238,6 +3596,7 @@ function bindEvents() {
   if (el.importParamFileBtn) el.importParamFileBtn.addEventListener('click', () => el.paramFileInput.click());
   if (el.paramFileInput) el.paramFileInput.addEventListener('change', importParameterDataFile);
   el.loadUrlBtn.addEventListener('click', loadRemoteInput);
+  if (el.loadParamUrlBtn) el.loadParamUrlBtn.addEventListener('click', loadParameterRemoteInput);
   el.clearCacheBtn.addEventListener('click', clearActiveDataset);
   el.locateBtn.addEventListener('click', locateUser);
   el.compassWidget.addEventListener('click', () => startCompassTracking(true));
