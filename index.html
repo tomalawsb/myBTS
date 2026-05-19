@@ -13,7 +13,7 @@
                  worker-src 'self' blob: https://cdnjs.cloudflare.com;
                  object-src 'none';
                  base-uri 'self';" />
-  <title>myBTS Web Pro 3.18 - 1305260910</title>
+  <title>myBTS Web Pro 3.19 - 1905260655</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
   <link rel="stylesheet" href="style.css" />
@@ -163,6 +163,7 @@
             </div>
             <button id="autoEnrichVisibleBtn" class="btn ghost" type="button">Uzupełnij widoczne BTS z SI2PEM</button>
             <div class="notice-box small">Token SI2PEM zapisuje się wyłącznie na backendzie. Aplikacja PWA wysyła do backendu ID, operatora, adres, pasma i współrzędne stacji, a backend odsyła gotowe parametry: azymut, EIRP/moc, wysokość, pochylenie i źródło.</div>
+            <div class="notice-box small">Jeżeli baza nie ma azymutów, mocy ani wysokości anten, promienie i sektory na mapie są tylko orientacyjne. Program pokaże to również przy informacji o bazie.</div>
           </div>
 
           <div class="settings-group">
@@ -179,7 +180,7 @@
           </div>
 
           <div class="notice-box small">
-            Wersja: <strong>3.18 - 1305260910</strong><br />
+            Wersja: <strong>3.19 - 1905260655</strong><br />
             Import PDF/TXT/CSV/XLSX/JSON uzupełnia wybraną lub najbliższą stację o pasma, azymuty, moc/EIRP, wysokość anteny, pochylenie anteny i zasięg, jeżeli takie dane są w raporcie lub tabeli.
             Automatyczne uzupełnianie działa przez własny backend SI2PEM, bo token API nie może być zapisany w publicznym frontendzie PWA. UKE online z frontendu jest ukryte; baza główna nadal może być odświeżana przez plik ZIP/XLSX/CSV albo gotowy stations.json.
           </div>

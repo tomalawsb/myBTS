@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '3.18 - 1305260910';
+const APP_VERSION = '3.19 - 1905260655';
 const DEFAULT_CENTER = [50.2872, 21.4231];
 const DEFAULT_ZOOM = 10;
 const MIN_ZOOM = 5;
@@ -707,12 +707,30 @@ function setStations(stations, sourceName, options = {}) {
   buildFilterOptions();
   fillSelect(el.operatorSelect, state.operators, state.operator);
   fillSelect(el.bandSelect, state.bands, state.band);
-  el.datasetInfo.textContent = `Baza: ${state.dataSourceName} • ${compactNumber(state.stations.length)} stacji`;
-  setStatus(`Wczytano ${compactNumber(state.stations.length)} stacji.`);
+  const coverageStats = getCoverageDataStats(state.stations);
+  const technicalInfo = coverageStats.hasTechnicalData
+    ? ` • dane techniczne: azymuty ${compactNumber(coverageStats.azimuths)}, moc ${compactNumber(coverageStats.power)}, wysokość ${compactNumber(coverageStats.height)}`
+    : ' • zasięgi orientacyjne: brak azymutów, mocy i wysokości anten';
+  el.datasetInfo.textContent = `Baza: ${state.dataSourceName} • ${compactNumber(state.stations.length)} stacji${technicalInfo}`;
+  setStatus(coverageStats.hasTechnicalData
+    ? `Wczytano ${compactNumber(state.stations.length)} stacji. Część ma dane techniczne.`
+    : `Wczytano ${compactNumber(state.stations.length)} stacji. Zasięgi są orientacyjne, bo baza nie zawiera azymutów, mocy ani wysokości anten.`);
   if (options.fit) fitMapToStations(state.stations);
   if (options.save) saveActiveDataset(state.stations, state.dataSourceName);
   if (state.search.length >= SEARCH_MIN_CHARS) void runSearch({ center: false, showPanel: false });
   else scheduleRender();
+}
+
+
+function getCoverageDataStats(stations) {
+  const stats = { azimuths: 0, power: 0, height: 0, hasTechnicalData: false };
+  for (const station of stations || []) {
+    if (Array.isArray(station.azimuths) && station.azimuths.length) stats.azimuths += 1;
+    if (getBestPowerInfo(station)) stats.power += 1;
+    if (Number.isFinite(station.antenna_height_m)) stats.height += 1;
+  }
+  stats.hasTechnicalData = !!(stats.azimuths || stats.power || stats.height);
+  return stats;
 }
 
 function mergeStationInto(target, source) {
@@ -1412,6 +1430,7 @@ function toggleSetPointMode() {
 }
 
 function setMeasurePoint(latlng, source = 'manual') {
+  if (source === 'manual') stopGpsTracking({ clearGpsMeasure: false });
   state.measure = { lat: latlng.lat, lng: latlng.lng };
   state.measureSource = source;
   state.setPointMode = false;
@@ -1424,6 +1443,7 @@ function setMeasurePoint(latlng, source = 'manual') {
 }
 
 function clearMeasurePoint() {
+  stopGpsTracking({ clearGpsMeasure: false });
   state.measure = null;
   state.measureSource = null;
   setStatus('Punkt pomiarowy wyczyszczony. Odległości liczone są od środka mapy.');
@@ -1707,22 +1727,52 @@ function bindPanelDrag() {
   el.panelHandle.addEventListener('pointercancel', finish);
 }
 
+function updateGpsButtonState() {
+  if (!el.locateBtn) return;
+  const active = !!state.gpsTracking;
+  el.locateBtn.classList.toggle('tracking', active);
+  el.locateBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
+  el.locateBtn.title = active ? 'Wyłącz śledzenie GPS' : 'Pokaż moją pozycję';
+  el.locateBtn.setAttribute('aria-label', active ? 'Wyłącz śledzenie GPS' : 'Pokaż moją pozycję');
+}
+
+function stopGpsTracking(options = {}) {
+  const hadWatch = state.userWatchId !== null;
+  if (hadWatch && navigator.geolocation) {
+    try { navigator.geolocation.clearWatch(state.userWatchId); } catch (_) {}
+  }
+  state.userWatchId = null;
+  state.gpsTracking = false;
+
+  if (options.clearGpsMeasure && state.measureSource === 'gps') {
+    state.measure = null;
+    state.measureSource = null;
+  }
+
+  updateGpsButtonState();
+  updateNavigationIndicator();
+  if (state.selected) showStationDetails(state.selected);
+  scheduleRender();
+  return hadWatch;
+}
+
 async function locateUser() {
   if (!navigator.geolocation) {
     setStatus('Ta przeglądarka nie obsługuje GPS.');
     return;
   }
 
-  await startCompassTracking(false);
-
-  if (state.userWatchId !== null) {
-    setStatus('GPS jest już aktywny. Odległości są liczone od Twojej pozycji.');
-    centerOnUser();
+  if (state.userWatchId !== null || state.gpsTracking) {
+    stopGpsTracking({ clearGpsMeasure: state.measureSource === 'gps' });
+    setStatus('GPS wyłączony. Możesz ustawić punkt ręcznie albo korzystać ze środka mapy.');
     return;
   }
 
+  await startCompassTracking(false);
+
   setStatus('Uruchamiam GPS i śledzenie pozycji…');
   state.gpsTracking = true;
+  updateGpsButtonState();
   let firstFix = true;
   state.userWatchId = navigator.geolocation.watchPosition(
     pos => {
@@ -1733,6 +1783,7 @@ async function locateUser() {
       setStatus(`GPS niedostępny: ${err.message}`);
       state.gpsTracking = false;
       state.userWatchId = null;
+      updateGpsButtonState();
     },
     { enableHighAccuracy: true, timeout: 15000, maximumAge: 3000 }
   );
@@ -1751,8 +1802,10 @@ function updateUserPosition(pos, centerFirst = false) {
     speed: Number.isFinite(pos.coords.speed) ? pos.coords.speed : null
   };
 
-  state.measure = { lat, lng };
-  state.measureSource = 'gps';
+  if (state.gpsTracking && state.measureSource !== 'manual') {
+    state.measure = { lat, lng };
+    state.measureSource = 'gps';
+  }
 
   updateUserLocationMarker();
   updateNavigationIndicator();
@@ -1760,7 +1813,9 @@ function updateUserPosition(pos, centerFirst = false) {
   if (centerFirst && state.map) centerOnUser();
 
   const accuracyText = state.userLocation.accuracy ? ` • dokładność ok. ${Math.round(state.userLocation.accuracy)} m` : '';
-  setStatus(`Pozycja GPS aktywna${accuracyText}`);
+  setStatus(state.measureSource === 'manual'
+    ? `Pozycja GPS odczytana${accuracyText}, ale pomiar zostaje przy punkcie ręcznym.`
+    : `Pozycja GPS aktywna${accuracyText}`);
   scheduleRender();
 }
 
@@ -1932,8 +1987,8 @@ function formatTurnHint(targetBearing, heading) {
 }
 
 function getNavigationOrigin() {
-  if (state.userLocation) return { lat: state.userLocation.lat, lng: state.userLocation.lng, source: 'gps' };
   if (state.measure) return { lat: state.measure.lat, lng: state.measure.lng, source: state.measureSource || 'manual' };
+  if (state.userLocation) return { lat: state.userLocation.lat, lng: state.userLocation.lng, source: 'gps' };
   return null;
 }
 
@@ -2307,7 +2362,7 @@ function openSi2pemPage() {
 }
 
 function openTechnicalSources() {
-  const text = 'Najpewniejsze źródła parametrów: 1) raporty/zgłoszenia PEM z SI2PEM, 2) BIP gmin i powiatów z PDF zgłoszeń instalacji, 3) własny backend pobierający API SI2PEM i zapisujący JSON/CSV, 4) CellMapper tylko pomocniczo do orientacyjnego kierunku, nie do mocy. Otwieram dokumentację SI2PEM API.';
+  const text = 'Najpewniejsze źródła parametrów: raporty/zgłoszenia PEM z SI2PEM, BIP gmin i powiatów z PDF zgłoszeń instalacji oraz własny backend pobierający API SI2PEM. CellMapper traktuj tylko pomocniczo do orientacji, nie jako źródło mocy. Otwieram dokumentację SI2PEM API, a szablon CSV pobiera osobny przycisk.';
   window.open(SI2PEM_API_DOCS_URL, '_blank', 'noopener,noreferrer');
   showStatusToast('Źródła azymutu i mocy', text, 'info', { sticky: true });
 }
@@ -3740,6 +3795,7 @@ function bindEvents() {
   if (el.loadParamUrlBtn) el.loadParamUrlBtn.addEventListener('click', loadParameterRemoteInput);
   el.clearCacheBtn.addEventListener('click', clearActiveDataset);
   el.locateBtn.addEventListener('click', locateUser);
+  updateGpsButtonState();
   el.compassWidget.addEventListener('click', () => startCompassTracking(true));
   el.clearPointBtn.addEventListener('click', clearMeasurePoint);
   el.setPointBtn.addEventListener('click', toggleSetPointMode);

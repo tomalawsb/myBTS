@@ -1,6 +1,8 @@
-# Backend SI2PEM dla myBTS Web Pro 3.18
+# Backend SI2PEM dla myBTS Web Pro 3.19
 
 Ten backend jest pośrednikiem między aplikacją PWA a SI2PEM API.
+
+Wersja 3.19 poprawia normalizację odpowiedzi API: backend analizuje nazwy pól i wartości, dzięki czemu lepiej rozpoznaje `azimuth`, `eirp_dbm`, `antennaHeight`, `tilt`, technologie oraz współrzędne GeoJSON `geometry.coordinates`.
 
 ## Dlaczego backend jest potrzebny
 

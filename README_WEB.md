@@ -1,9 +1,15 @@
-# myBTS Web Pro 3.18 - 1305260910
+# myBTS Web Pro 3.19 - 1905260655
 
 Wersja web/PWA do przeglądania stacji BTS na mapie Leaflet.
 
-## Najważniejsze zmiany 3.18
+## Najważniejsze zmiany 3.19
 
+
+- Poprawiono GPS: przycisk działa jako przełącznik, a ręczne ustawienie punktu wyłącza śledzenie GPS.
+- Ręczny punkt pomiarowy nie jest już nadpisywany kolejnymi odczytami GPS.
+- Informacja o bazie pokazuje, czy zasięgi są orientacyjne z powodu braku azymutów, mocy i wysokości anten.
+- Poprawiono przycisk „Źródła azymutu i mocy”.
+- Poprawiono parser backendu SI2PEM: rozpoznaje nazwy pól, GeoJSON `geometry.coordinates`, `azimuth`, `eirp_dbm`, `antennaHeight`, `tilt` i technologie.
 - Ukryto mylący przycisk „UKE online wyłączone”.
 - Dodano panel „Automatyczne uzupełnianie SI2PEM”.
 - Dodano zapis adresu własnego backendu SI2PEM.

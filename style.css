@@ -163,7 +163,13 @@ p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.35; }
   cursor: pointer;
 }
 .map-locate-btn svg { width: 25px; height: 25px; fill: currentColor; filter: drop-shadow(0 2px 5px rgba(15,23,42,.16)); }
+.map-locate-btn.tracking {
+  color: #fff;
+  background: #1d4ed8;
+  box-shadow: 0 16px 38px rgba(29, 78, 216, .34);
+}
 .dark .map-locate-btn { color: #bcd7ff; background: rgba(24,31,44,.38); }
+.dark .map-locate-btn.tracking { color: #fff; background: #2563eb; }
 .map-locate-btn:active { transform: scale(.96); }
 
 

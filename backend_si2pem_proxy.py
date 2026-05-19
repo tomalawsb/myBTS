@@ -47,7 +47,7 @@ SI2PEM_TIMEOUT = float(_env("SI2PEM_TIMEOUT", str(DEFAULT_TIMEOUT)) or DEFAULT_T
 SI2PEM_RADIUS_M = int(_env("SI2PEM_RADIUS_M", str(DEFAULT_RADIUS_M)) or DEFAULT_RADIUS_M)
 ALLOWED_ORIGINS = [x.strip() for x in _env("SI2PEM_ALLOWED_ORIGINS", "*").split(",") if x.strip()]
 
-app = FastAPI(title=APP_NAME, version="3.18")
+app = FastAPI(title=APP_NAME, version="3.19")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS or ["*"],
@@ -173,35 +173,80 @@ def extract_records(payload: Any) -> List[Dict[str, Any]]:
 
 def normalize_record_to_supplement(record: Dict[str, Any], station: StationLookup, source_url: str) -> Dict[str, Any]:
     flat = flatten_dict(record)
-    all_text = " ".join(str(v) for v in flat.values() if v is not None)
+    # Ważne: w tekście diagnostycznym trzymamy również nazwy pól, nie tylko wartości.
+    # Bez tego API zwracające np. {"azimuth": 120, "eirp_dbm": 45} było trudne do rozpoznania.
+    all_text = " ".join(f"{key}: {value}" for key, value in flat.items() if value is not None)
     lat, lon = extract_coordinates(flat)
+
+    bands_text = " ".join(str(x) for x in field_values(flat, [
+        "bands", "band", "pasma", "pasmo", "technology", "technologia", "system", "standard", "frequency", "czestotliwosc", "częstotliwość"
+    ]))
+    bands = merge_unique(extract_bands(bands_text), extract_bands(all_text))
+
+    azimuths = extract_azimuths_from_fields(flat)
+    if not azimuths:
+        azimuths = extract_azimuths(all_text)
+
+    power = normalize_power_from_fields(flat)
+    if not power:
+        power = extract_power(all_text)
+
+    eirp_dbm = normalize_eirp_dbm_from_fields(flat)
+    if not eirp_dbm:
+        eirp_dbm = extract_eirp_dbm(all_text)
+
+    antenna_height_m = number_from_fields(flat, [
+        "antenna_height_m", "height_m", "height", "wysokosc", "wysokość", "wysokoscanteny", "wysokość anteny",
+        "wysokosczawieszenia", "wysokość zawieszenia", "wysokosczawieszeniaanteny", "wysokość zawieszenia anteny"
+    ])
+    if antenna_height_m is None:
+        antenna_height_m = extract_number_by_labels(all_text, ["wysokość anteny", "wysokosc anteny", "wysokość zawieszenia", "height", "antenna height"])
+
+    tilt_deg = number_from_fields(flat, [
+        "tilt_deg", "antenna_tilt_deg", "tilt", "downtilt", "pochylenie", "pochylenieanteny", "kąt pochylenia", "katpochylenia"
+    ])
+    if tilt_deg is None:
+        tilt_deg = extract_number_by_labels(all_text, ["pochylenie", "tilt", "downtilt"])
+
     return {
         "station_id": first_value(flat, ["station_id", "stationid", "site_id", "siteid", "id_stacji", "idstacji", "id", "bt_id", "bts_id"]) or station.station_id,
-        "operator": first_value(flat, ["operator", "operator_name", "nazwa_operatora", "uzytkownik", "użytkownik", "podmiot"]) or station.operator,
+        "operator": first_value(flat, ["operator", "operator_name", "nazwa_operatora", "uzytkownik", "użytkownik", "podmiot", "network", "sieć", "siec"]) or station.operator,
         "city": first_value(flat, ["city", "miasto", "miejscowosc", "miejscowość", "gmina"]) or station.city,
         "address": first_value(flat, ["address", "adres", "lokalizacja", "location", "ulica"]) or station.address,
         "latitude": lat if lat is not None else station.latitude,
         "longitude": lon if lon is not None else station.longitude,
-        "bands": extract_bands(all_text),
-        "azimuths": extract_azimuths(all_text),
-        "power": extract_power(all_text),
-        "eirp_dbm": extract_eirp_dbm(all_text),
-        "antenna_height_m": extract_number_by_labels(all_text, ["wysokość anteny", "wysokosc anteny", "wysokość zawieszenia", "height", "antenna height"]),
-        "tilt_deg": extract_number_by_labels(all_text, ["pochylenie", "tilt", "downtilt"]),
+        "bands": bands,
+        "azimuths": azimuths,
+        "power": power,
+        "eirp_dbm": eirp_dbm,
+        "antenna_height_m": antenna_height_m,
+        "tilt_deg": tilt_deg,
         "range_km": None,
         "source": "SI2PEM API",
         "param_sources": [source_url],
     }
 
 
-def flatten_dict(data: Dict[str, Any], prefix: str = "") -> Dict[str, Any]:
+def flatten_dict(data: Any, prefix: str = "") -> Dict[str, Any]:
     out: Dict[str, Any] = {}
-    for key, value in data.items():
-        full_key = f"{prefix}_{key}" if prefix else str(key)
-        if isinstance(value, dict):
-            out.update(flatten_dict(value, full_key))
-        else:
-            out[normalize_key(full_key)] = value
+    if isinstance(data, dict):
+        for key, value in data.items():
+            full_key = f"{prefix}_{key}" if prefix else str(key)
+            if isinstance(value, (dict, list, tuple)):
+                out.update(flatten_dict(value, full_key))
+            else:
+                out[normalize_key(full_key)] = value
+    elif isinstance(data, (list, tuple)):
+        scalar_values: List[str] = []
+        for index, value in enumerate(data):
+            full_key = f"{prefix}_{index}" if prefix else str(index)
+            if isinstance(value, (dict, list, tuple)):
+                out.update(flatten_dict(value, full_key))
+            else:
+                out[normalize_key(full_key)] = value
+                scalar_values.append(str(value))
+        if prefix and scalar_values:
+            out[normalize_key(prefix)] = "; ".join(scalar_values)
     return out
 
 
@@ -210,11 +255,105 @@ def normalize_key(value: str) -> str:
 
 
 def first_value(flat: Dict[str, Any], aliases: Iterable[str]) -> str:
-    for alias in aliases:
-        key = normalize_key(alias)
-        if key in flat and flat[key] not in (None, ""):
-            return str(flat[key]).strip()
+    values = field_values(flat, aliases)
+    return str(values[0]).strip() if values else ""
+
+
+def field_values(flat: Dict[str, Any], aliases: Iterable[str]) -> List[Any]:
+    wanted = {normalize_key(alias) for alias in aliases}
+    values: List[Any] = []
+    for key, value in flat.items():
+        if value in (None, ""):
+            continue
+        if key in wanted:
+            values.append(value)
+            continue
+        # Dopasowanie częściowe tylko dla dłuższych aliasów. Krótkie aliasy typu x/y/lat/lon
+        # nie mogą łapać przypadkowych kluczy, np. geometrycoordinates.
+        if any(len(alias) >= 4 and alias in key for alias in wanted):
+            values.append(value)
+    return values
+
+
+def number_from_fields(flat: Dict[str, Any], aliases: Iterable[str]) -> Optional[float]:
+    for value in field_values(flat, aliases):
+        number = to_float(value)
+        if number is not None:
+            return number
+    return None
+
+
+def merge_unique(*lists: Iterable[Any]) -> List[Any]:
+    out: List[Any] = []
+    for values in lists:
+        for value in values or []:
+            if value not in out:
+                out.append(value)
+    return out
+
+
+def extract_azimuths_from_fields(flat: Dict[str, Any]) -> List[int]:
+    aliases = [
+        "azimuths", "azimuth", "azymuty", "azymut", "bearing", "kierunek", "kierunekanteny",
+        "azymutanteny", "azimuth_deg", "azimuthdeg", "azymutstopnie", "azymutdeg"
+    ]
+    values: List[int] = []
+    for raw_value in field_values(flat, aliases):
+        for raw in re.findall(r"\b\d{1,3}(?:[,.]\d+)?\b", str(raw_value)):
+            value = round(float(raw.replace(",", ".")))
+            if 0 <= value < 360 and value not in values:
+                values.append(value)
+    return sorted(values)[:18]
+
+
+def normalize_power_from_fields(flat: Dict[str, Any]) -> str:
+    power_aliases = [
+        "power", "power_w", "powerw", "moc", "mocw", "mocpromieniowana", "eirp", "eirp_w", "eirpw",
+        "erp", "max_eirp", "maxeirp", "max_eirp_dbm", "maksymalnamoc", "rownowaznamocpromieniowanaizotropowo"
+    ]
+    for key, value in ((k, v) for k, v in flat.items() if v not in (None, "")):
+        if not any(normalize_key(alias) in key for alias in power_aliases):
+            continue
+        text = str(value).strip()
+        if not text:
+            continue
+        lower_key = key.lower()
+        lower_text = text.lower()
+        if any(unit in lower_text for unit in ("dbm", "dbw", "kw", " w", "w")):
+            parsed = extract_power(f"{key}: {text}")
+            if parsed:
+                return parsed
+            return text
+        number = to_float(text)
+        if number is None:
+            continue
+        if "dbm" in lower_key:
+            return f"{format_float(number)} dBm"
+        if "dbw" in lower_key:
+            return f"{format_float(number)} dBW"
+        if "kw" in lower_key:
+            return f"{format_float(number)} kW"
+        return f"{format_float(number)} W"
     return ""
+
+
+def normalize_eirp_dbm_from_fields(flat: Dict[str, Any]) -> str:
+    for key, value in ((k, v) for k, v in flat.items() if v not in (None, "")):
+        if "eirp" not in key or "dbm" not in key:
+            continue
+        number = to_float(value)
+        if number is not None:
+            return f"{format_float(number)} dBm"
+        text = str(value).strip()
+        if text:
+            return text if "dbm" in text.lower() else f"{text} dBm"
+    return ""
+
+
+def format_float(value: float) -> str:
+    if float(value).is_integer():
+        return str(int(value))
+    return (f"{value:.3f}".rstrip("0").rstrip(".")).replace(".", ",")
 
 
 def extract_coordinates(flat: Dict[str, Any]) -> tuple[Optional[float], Optional[float]]:
