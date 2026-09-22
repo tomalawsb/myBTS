@@ -9,4 +9,5 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+      - run: npm install --no-save --silent xlsx@0.18.5
       - run: node tools/inspect-si2pem.mjs
