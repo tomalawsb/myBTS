@@ -36,15 +36,17 @@ jobs:
           test -s "$ASSETS/terrain-addon.js"
           test -s "$ASSETS/ui-addon.js"
           test -s "$ASSETS/radio13-core.js"
+          test -s "$ASSETS/radio13-fix.js"
           test -s "$ASSETS/radio13-ui.js"
           test -s "$ASSETS/radio13-events.js"
           node --check "$ASSETS/app.js"
           node --check "$ASSETS/terrain-addon.js"
           node --check "$ASSETS/ui-addon.js"
           node --check "$ASSETS/radio13-core.js"
+          node --check "$ASSETS/radio13-fix.js"
           node --check "$ASSETS/radio13-ui.js"
           node --check "$ASSETS/radio13-events.js"
-          python -c "import json; d=json.load(open('$ASSETS/stations.json',encoding='utf-8')); rich=sum(bool(x.get('radio_sectors')) for x in d); power=sum(any(s.get('eirp_dbm') is not None or s.get('erp_dbw') is not None for s in x.get('radio_sectors',[])) for x in d); print('Baza finalna:',len(d),'stacji; radio_sectors:',rich,'; z mocą:',power)"
+          python -c "import json; d=json.load(open('$ASSETS/stations.json',encoding='utf-8')); rich=sum(bool(x.get('radio_sectors')) for x in d); power=sum(any((s.get('eirp_dbm') is not None) or (s.get('erp_dbw') is not None) for s in x.get('radio_sectors',[])) for x in d); print('Baza finalna:',len(d),'stacji; radio_sectors:',rich,'; z rzeczywistą mocą:',power)"
 
       - name: Android SDK
         shell: bash
