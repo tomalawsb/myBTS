@@ -40,6 +40,7 @@ jobs:
           test -s "$ASSETS/radio13-ui.js"
           test -s "$ASSETS/radio13-events.js"
           test -s "$ASSETS/radio13-si2pem.js"
+          test -s "$ASSETS/radio14-ui.js"
           node --check "$ASSETS/app.js"
           node --check "$ASSETS/terrain-addon.js"
           node --check "$ASSETS/ui-addon.js"
@@ -48,7 +49,8 @@ jobs:
           node --check "$ASSETS/radio13-ui.js"
           node --check "$ASSETS/radio13-events.js"
           node --check "$ASSETS/radio13-si2pem.js"
-          python -c "import json; d=json.load(open('$ASSETS/stations.json',encoding='utf-8')); rich=sum(bool(x.get('radio_sectors')) for x in d); print('Baza finalna:',len(d),'stacji; rekordy sektorowe offline:',rich,'; SI2PEM: parametry dokładne pobierane na żądanie z publicznych raportów PDF')"
+          node --check "$ASSETS/radio14-ui.js"
+          python -c "import json; d=json.load(open('$ASSETS/stations.json',encoding='utf-8')); rich=sum(bool(x.get('radio_sectors')) for x in d); print('Baza finalna:',len(d),'stacji; rekordy sektorowe offline:',rich,'; SI2PEM: automatycznie dla wybranego operatora')"
 
       - name: Android SDK
         shell: bash
@@ -77,15 +79,15 @@ jobs:
         shell: bash
         run: |
           mkdir -p android-bts/dist
-          cp android-bts/app/build/outputs/apk/debug/app-debug.apk android-bts/dist/BTS-Asystent-PL-1.3.apk
-          sha256sum android-bts/dist/BTS-Asystent-PL-1.3.apk > android-bts/dist/SHA256SUMS.txt
-          ls -lh android-bts/dist/BTS-Asystent-PL-1.3.apk
+          cp android-bts/app/build/outputs/apk/debug/app-debug.apk android-bts/dist/BTS-Asystent-PL-1.4.apk
+          sha256sum android-bts/dist/BTS-Asystent-PL-1.4.apk > android-bts/dist/SHA256SUMS.txt
+          ls -lh android-bts/dist/BTS-Asystent-PL-1.4.apk
 
       - name: Wgraj APK
         uses: actions/upload-artifact@v4
         with:
-          name: BTS-Asystent-PL-1.3
+          name: BTS-Asystent-PL-1.4
           path: |
-            android-bts/dist/BTS-Asystent-PL-1.3.apk
+            android-bts/dist/BTS-Asystent-PL-1.4.apk
             android-bts/dist/SHA256SUMS.txt
           retention-days: 30
