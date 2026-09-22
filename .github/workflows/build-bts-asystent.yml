@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     steps:
       - name: Pobierz kod
         uses: actions/checkout@v4
@@ -39,6 +39,7 @@ jobs:
           test -s "$ASSETS/radio13-fix.js"
           test -s "$ASSETS/radio13-ui.js"
           test -s "$ASSETS/radio13-events.js"
+          test -s "$ASSETS/radio13-si2pem.js"
           node --check "$ASSETS/app.js"
           node --check "$ASSETS/terrain-addon.js"
           node --check "$ASSETS/ui-addon.js"
@@ -46,7 +47,8 @@ jobs:
           node --check "$ASSETS/radio13-fix.js"
           node --check "$ASSETS/radio13-ui.js"
           node --check "$ASSETS/radio13-events.js"
-          python -c "import json; d=json.load(open('$ASSETS/stations.json',encoding='utf-8')); rich=sum(bool(x.get('radio_sectors')) for x in d); power=sum(any((s.get('eirp_dbm') is not None) or (s.get('erp_dbw') is not None) for s in x.get('radio_sectors',[])) for x in d); print('Baza finalna:',len(d),'stacji; radio_sectors:',rich,'; z rzeczywistą mocą:',power)"
+          node --check "$ASSETS/radio13-si2pem.js"
+          python -c "import json; d=json.load(open('$ASSETS/stations.json',encoding='utf-8')); rich=sum(bool(x.get('radio_sectors')) for x in d); print('Baza finalna:',len(d),'stacji; rekordy sektorowe offline:',rich,'; SI2PEM: parametry dokładne pobierane na żądanie z publicznych raportów PDF')"
 
       - name: Android SDK
         shell: bash
