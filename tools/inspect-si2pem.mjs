@@ -1,7 +1,18 @@
-for(const ident of ['50101','51200','43413']){
- const q=new URLSearchParams({service:'WFS',version:'2.0.0',request:'GetFeature',typeNames:'public:extend_base_stations',outputFormat:'application/json',CQL_FILTER:`identity_name='${ident}'`,count:'5'});
- const url='https://si2pem.gov.pl/geoserver/public/wfs?'+q;
- const r=await fetch(url,{headers:{'user-agent':'Mozilla/5.0 BTS-Asystent-PL'}}),t=await r.text();
- console.log('\nWFS',ident,'STATUS',r.status,r.headers.get('content-type'));console.log(t.slice(0,10000));
- try{const j=JSON.parse(t);for(const f of j.features||[]){const id=String(f.id).split('.').pop();console.log('ID',id,'PROPS',JSON.stringify(f.properties));for(const u of [`https://si2pem.gov.pl/all_installation_info/?base_station_id=${id}`,`https://si2pem.gov.pl/base_station/${id}/report/`]){const rr=await fetch(u,{redirect:'follow',headers:{'user-agent':'Mozilla/5.0 BTS-Asystent-PL'}}),ct=rr.headers.get('content-type')||'';console.log('DETAIL',u,'STATUS',rr.status,'TYPE',ct,'URL',rr.url);const b=await rr.arrayBuffer();console.log('BYTES',b.byteLength,'HEAD',new TextDecoder().decode(b.slice(0,16000)).replace(/\s+/g,' ').slice(0,15000));}}}catch(e){console.log('PARSE',e.message)}
+import XLSX from 'xlsx';
+const ident='50101';
+const q=new URLSearchParams({service:'WFS',version:'2.0.0',request:'GetFeature',typeNames:'public:extend_base_stations',outputFormat:'application/json',CQL_FILTER:`identity_name='${ident}'`,count:'5'});
+const url='https://si2pem.gov.pl/geoserver/public/wfs?'+q;
+const j=await (await fetch(url,{headers:{'user-agent':'Mozilla/5.0 BTS-Asystent-PL'}})).json();
+const f=j.features?.[0];console.log('FEATURE',JSON.stringify(f));
+if(!f) process.exit(0);
+const id=String(f.id).split('.').pop();
+const rr=await fetch(`https://si2pem.gov.pl/base_station/${id}/report/`,{headers:{'user-agent':'Mozilla/5.0 BTS-Asystent-PL'}});
+console.log('REPORT',rr.status,rr.headers.get('content-type'));
+const ab=await rr.arrayBuffer();
+const wb=XLSX.read(new Uint8Array(ab),{type:'array',cellDates:false});
+console.log('SHEETS',wb.SheetNames);
+for(const sn of wb.SheetNames){
+ const m=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:'',raw:false});
+ console.log('\nSHEET',sn,'ROWS',m.length,'COLS',Math.max(0,...m.map(r=>r.length)));
+ for(let i=0;i<Math.min(30,m.length);i++) console.log(i,JSON.stringify(m[i]));
 }
