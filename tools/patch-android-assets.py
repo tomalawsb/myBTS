@@ -33,7 +33,7 @@ else:
 app.write_text(s, encoding='utf-8')
 
 html = index.read_text(encoding='utf-8')
-addons = ['terrain-addon.js', 'ui-addon.js', 'radio13-core.js', 'radio13-fix.js', 'radio13-ui.js', 'radio13-events.js', 'radio13-si2pem.js']
+addons = ['terrain-addon.js', 'ui-addon.js', 'radio13-core.js', 'radio13-fix.js', 'radio13-ui.js', 'radio13-events.js', 'radio13-si2pem.js', 'radio14-ui.js']
 for name in addons:
     html = html.replace(f'<script src="{name}"></script>', '')
     html = html.replace(f'<script src="{name}" defer></script>', '')
@@ -43,4 +43,4 @@ if anchor not in html:
 addon_html = '\n'.join(f'<script src="{name}" defer></script>' for name in addons)
 html = html.replace(anchor, anchor + '\n' + addon_html)
 index.write_text(html, encoding='utf-8')
-print('Patched app.js and index.html for BTS Asystent 1.3')
+print('Patched app.js and index.html for BTS Asystent 1.4')
