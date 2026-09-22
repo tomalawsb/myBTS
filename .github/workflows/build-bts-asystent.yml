@@ -29,6 +29,7 @@ jobs:
           python -m pip install --quiet brotli
           python -c "import brotli,pathlib; src=pathlib.Path('stations.json.br'); out=pathlib.Path('android-bts/app/src/main/assets/stations.json'); out.write_bytes(brotli.decompress(src.read_bytes())); print('stations.json:',out.stat().st_size,'bytes')"
           npm install --no-save --silent xlsx@0.18.5
+          node tools/inspect-uke.mjs
           node tools/enrich-uke.mjs "$ASSETS/stations.json" || true
           python tools/patch-android-assets.py "$ASSETS"
           test -s "$ASSETS/stations.json"
