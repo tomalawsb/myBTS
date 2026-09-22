@@ -15,6 +15,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Looper;
+import android.util.Base64;
 import android.view.Surface;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
@@ -30,6 +31,11 @@ import androidx.webkit.WebViewClientCompat;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 
@@ -77,7 +83,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             }
         });
         webView.addJavascriptInterface(new Bridge(), "AndroidNative");
-        webView.loadUrl("https://appassets.androidplatform.net/assets/index.html?v=12");
+        webView.loadUrl("https://appassets.androidplatform.net/assets/index.html?v=13");
     }
 
     private class Bridge {
@@ -105,6 +111,62 @@ public class MainActivity extends Activity implements SensorEventListener {
                 }
             } catch (Exception ignored) {}
             return out.toString();
+        }
+
+        @JavascriptInterface public String fetchText(String url) {
+            try { return new String(downloadBytes(url), StandardCharsets.UTF_8); }
+            catch (Exception e) { return ""; }
+        }
+
+        @JavascriptInterface public String fetchBase64(String url) {
+            try { return Base64.encodeToString(downloadBytes(url), Base64.NO_WRAP); }
+            catch (Exception e) { return ""; }
+        }
+
+        @JavascriptInterface public void fetchUrlAsync(String url, String requestId, boolean binary) {
+            final String safeId = requestId == null ? "" : requestId;
+            new Thread(() -> {
+                try {
+                    byte[] bytes = downloadBytes(url);
+                    String payload = binary
+                            ? Base64.encodeToString(bytes, Base64.NO_WRAP)
+                            : new String(bytes, StandardCharsets.UTF_8);
+                    String js = "window.onNativeFetch13&&window.onNativeFetch13(" +
+                            JSONObject.quote(safeId) + ",true," + JSONObject.quote(payload) + ",\"\")";
+                    sendJs(js);
+                } catch (Exception e) {
+                    String message = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+                    String js = "window.onNativeFetch13&&window.onNativeFetch13(" +
+                            JSONObject.quote(safeId) + ",false,\"\"," + JSONObject.quote(message) + ")";
+                    sendJs(js);
+                }
+            }, "bts-http").start();
+        }
+    }
+
+    private byte[] downloadBytes(String rawUrl) throws Exception {
+        if (rawUrl == null || !(rawUrl.startsWith("https://") || rawUrl.startsWith("http://"))) {
+            throw new IllegalArgumentException("Nieprawidłowy adres URL");
+        }
+        HttpURLConnection connection = (HttpURLConnection) new URL(rawUrl).openConnection();
+        connection.setInstanceFollowRedirects(true);
+        connection.setConnectTimeout(15000);
+        connection.setReadTimeout(35000);
+        connection.setRequestProperty("User-Agent", "BTS-Asystent-PL/1.3 Android");
+        connection.setRequestProperty("Accept", "*/*");
+        connection.connect();
+        int code = connection.getResponseCode();
+        if (code < 200 || code >= 300) {
+            connection.disconnect();
+            throw new IllegalStateException("HTTP " + code);
+        }
+        try (InputStream in = connection.getInputStream(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[32768];
+            int n;
+            while ((n = in.read(buffer)) >= 0) out.write(buffer, 0, n);
+            return out.toByteArray();
+        } finally {
+            connection.disconnect();
         }
     }
 
