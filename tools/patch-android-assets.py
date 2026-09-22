@@ -33,7 +33,7 @@ else:
 app.write_text(s, encoding='utf-8')
 
 html = index.read_text(encoding='utf-8')
-addons = ['terrain-addon.js', 'ui-addon.js', 'radio13-core.js', 'radio13-fix.js', 'radio13-ui.js', 'radio13-events.js', 'radio13-si2pem.js', 'radio14-ui.js']
+addons = ['terrain-addon.js', 'ui-addon.js', 'radio13-core.js', 'radio13-fix.js', 'radio13-ui.js', 'radio13-events.js', 'radio13-si2pem.js', 'radio14-ui.js', 'radio14-fix.js']
 for name in addons:
     html = html.replace(f'<script src="{name}"></script>', '')
     html = html.replace(f'<script src="{name}" defer></script>', '')
