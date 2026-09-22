@@ -1,0 +1,86 @@
+name: Build BTS Asystent PL APK
+
+on:
+  push:
+    branches: [bts-asystent-apk-1.0]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Pobierz kod
+        uses: actions/checkout@v4
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Przygotuj web app i bazę BTS
+        shell: bash
+        run: |
+          set -e
+          ASSETS=android-bts/app/src/main/assets
+          mkdir -p "$ASSETS"
+          cp index.html app.js data-worker.js style.css manifest.json service-worker.js icon-192.png icon-512.png icon.svg "$ASSETS"/
+          python -m pip install --quiet brotli
+          python - <<'PY'
+          import brotli, pathlib
+          src=pathlib.Path('stations.json.br')
+          out=pathlib.Path('android-bts/app/src/main/assets/stations.json')
+          out.write_bytes(brotli.decompress(src.read_bytes()))
+          print('stations.json:', out.stat().st_size, 'bytes')
+          PY
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('android-bts/app/src/main/assets/index.html')
+          s=p.read_text(encoding='utf-8')
+          if 'terrain-addon.js' not in s:
+              s=s.replace('</body>', '<script src="terrain-addon.js"></script>\n</body>')
+          p.write_text(s, encoding='utf-8')
+          PY
+          test -s "$ASSETS/stations.json"
+          grep -q 'terrain-addon.js' "$ASSETS/index.html"
+
+      - name: Android SDK
+        shell: bash
+        run: |
+          SDK_ROOT="$HOME/android-sdk"
+          mkdir -p "$SDK_ROOT/cmdline-tools"
+          curl -fsSL "https://dl.google.com/android/repository/commandlinetools-linux-12266719_latest.zip" -o /tmp/android-cmdline.zip
+          unzip -q /tmp/android-cmdline.zip -d "$SDK_ROOT/cmdline-tools"
+          mv "$SDK_ROOT/cmdline-tools/cmdline-tools" "$SDK_ROOT/cmdline-tools/latest"
+          SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses >/dev/null 2>&1 || true
+          "$SDKMANAGER" --sdk_root="$SDK_ROOT" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+
+      - name: Gradle 8.10.2
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Zbuduj APK
+        working-directory: android-bts
+        run: gradle --no-daemon :app:assembleDebug --stacktrace
+
+      - name: Przygotuj artefakt
+        shell: bash
+        run: |
+          mkdir -p android-bts/dist
+          cp android-bts/app/build/outputs/apk/debug/app-debug.apk android-bts/dist/BTS-Asystent-PL-1.0.apk
+          sha256sum android-bts/dist/BTS-Asystent-PL-1.0.apk > android-bts/dist/SHA256SUMS.txt
+          ls -lh android-bts/dist/BTS-Asystent-PL-1.0.apk
+
+      - name: Wgraj APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: BTS-Asystent-PL-1.0
+          path: |
+            android-bts/dist/BTS-Asystent-PL-1.0.apk
+            android-bts/dist/SHA256SUMS.txt
+          retention-days: 30
