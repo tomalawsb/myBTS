@@ -8,6 +8,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -25,6 +27,10 @@ import android.webkit.WebView;
 import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.WebViewClientCompat;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends Activity implements SensorEventListener {
@@ -35,6 +41,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     private SensorManager sensorManager;
     private Sensor rotationSensor;
     private boolean nativeTracking = false;
+    private Location bestLocation;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,13 +77,35 @@ public class MainActivity extends Activity implements SensorEventListener {
             }
         });
         webView.addJavascriptInterface(new Bridge(), "AndroidNative");
-        webView.loadUrl("https://appassets.androidplatform.net/assets/index.html");
+        webView.loadUrl("https://appassets.androidplatform.net/assets/index.html?v=12");
     }
 
     private class Bridge {
         @JavascriptInterface public void startNativeTracking() { runOnUiThread(() -> ensureLocationAndStart()); }
         @JavascriptInterface public void stopNativeTracking() { runOnUiThread(() -> stopNativeLocation()); }
         @JavascriptInterface public void startNativeCompass() { runOnUiThread(() -> startCompass()); }
+
+        @JavascriptInterface public String geocodeAddress(String query) {
+            JSONArray out = new JSONArray();
+            if (query == null || query.trim().length() < 2 || !Geocoder.isPresent()) return out.toString();
+            try {
+                String q = query.trim();
+                if (!q.toLowerCase(Locale.ROOT).contains("polska")) q += ", Polska";
+                Geocoder geocoder = new Geocoder(MainActivity.this, new Locale("pl", "PL"));
+                List<Address> results = geocoder.getFromLocationName(q, 5);
+                if (results == null) return out.toString();
+                for (Address a : results) {
+                    if (!a.hasLatitude() || !a.hasLongitude()) continue;
+                    JSONObject item = new JSONObject();
+                    item.put("lat", a.getLatitude());
+                    item.put("lon", a.getLongitude());
+                    String label = a.getMaxAddressLineIndex() >= 0 ? a.getAddressLine(0) : query.trim();
+                    item.put("label", label == null ? query.trim() : label);
+                    out.put(item);
+                }
+            } catch (Exception ignored) {}
+            return out.toString();
+        }
     }
 
     private void ensureLocationAndStart() {
@@ -88,22 +117,48 @@ public class MainActivity extends Activity implements SensorEventListener {
         startNativeLocation();
     }
 
+    private boolean isFresh(Location l, long maxAgeMs) {
+        return l != null && System.currentTimeMillis() - l.getTime() <= maxAgeMs;
+    }
+
+    private boolean shouldAccept(Location candidate) {
+        if (candidate == null) return false;
+        if (candidate.hasAccuracy() && candidate.getAccuracy() > 1200f) return false;
+        if (bestLocation == null) return true;
+        long dt = candidate.getTime() - bestLocation.getTime();
+        float ca = candidate.hasAccuracy() ? candidate.getAccuracy() : 9999f;
+        float ba = bestLocation.hasAccuracy() ? bestLocation.getAccuracy() : 9999f;
+        if (dt > 10000) return true;
+        if (dt < -15000) return false;
+        return ca <= ba + 25f || (dt > 2500 && ca < 250f);
+    }
+
+    private void acceptLocation(Location l) {
+        if (!shouldAccept(l)) return;
+        bestLocation = new Location(l);
+        pushLocation(bestLocation);
+    }
+
     private void startNativeLocation() {
         stopNativeLocation();
         nativeTracking = true;
+        bestLocation = null;
         locationListener = new LocationListener() {
-            @Override public void onLocationChanged(Location l) { pushLocation(l); }
+            @Override public void onLocationChanged(Location l) { acceptLocation(l); }
         };
+
         try {
-            Location last = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if (last == null) last = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            if (last != null) pushLocation(last);
+            Location gps = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            Location net = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            if (isFresh(gps, 120000)) acceptLocation(gps);
+            if (isFresh(net, 60000)) acceptLocation(net);
         } catch (Exception ignored) {}
+
         try {
             if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1200, 1.5f, locationListener, Looper.getMainLooper());
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 800, 0.5f, locationListener, Looper.getMainLooper());
             if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER))
-                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 2500, 5f, locationListener, Looper.getMainLooper());
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1500, 2f, locationListener, Looper.getMainLooper());
         } catch (Exception e) {
             sendJs("window.onNativeLocationError&&window.onNativeLocationError('Włącz lokalizację w telefonie')");
         }
@@ -120,16 +175,16 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     private void pushLocation(Location l) {
         String js = String.format(Locale.US,
-            "window.onNativeLocation&&window.onNativeLocation(%.8f,%.8f,%.1f,%.2f,%.2f)",
+            "window.onNativeLocation&&window.onNativeLocation(%.8f,%.8f,%.1f,%.2f,%.2f,%d)",
             l.getLatitude(), l.getLongitude(), l.hasAccuracy()?l.getAccuracy():-1f,
-            l.hasBearing()?l.getBearing():-1f, l.hasSpeed()?l.getSpeed():-1f);
+            l.hasBearing()?l.getBearing():-1f, l.hasSpeed()?l.getSpeed():-1f, l.getTime());
         sendJs(js);
     }
 
     private void startCompass() {
         if (rotationSensor != null) {
             sensorManager.unregisterListener(this);
-            sensorManager.registerListener(this, rotationSensor, SensorManager.SENSOR_DELAY_UI);
+            sensorManager.registerListener(this, rotationSensor, SensorManager.SENSOR_DELAY_GAME);
         } else {
             sendJs("window.onNativeCompassUnavailable&&window.onNativeCompassUnavailable()");
         }
