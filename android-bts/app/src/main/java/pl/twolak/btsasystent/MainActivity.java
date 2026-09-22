@@ -28,6 +28,10 @@ import android.webkit.WebView;
 import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.WebViewClientCompat;
 
+import com.tom_roush.pdfbox.android.PDFBoxResourceLoader;
+import com.tom_roush.pdfbox.pdmodel.PDDocument;
+import com.tom_roush.pdfbox.text.PDFTextStripper;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -51,6 +55,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        PDFBoxResourceLoader.init(getApplicationContext());
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
@@ -142,16 +147,48 @@ public class MainActivity extends Activity implements SensorEventListener {
                 }
             }, "bts-http").start();
         }
+
+        @JavascriptInterface public void fetchPdfTextAsync(String url, String requestId) {
+            final String safeId = requestId == null ? "" : requestId;
+            new Thread(() -> {
+                try {
+                    byte[] bytes = downloadBytes(url);
+                    if (bytes.length > 24 * 1024 * 1024) throw new IllegalStateException("Raport PDF jest zbyt duży");
+                    String text;
+                    try (PDDocument document = PDDocument.load(bytes)) {
+                        PDFTextStripper stripper = new PDFTextStripper();
+                        stripper.setSortByPosition(true);
+                        stripper.setLineSeparator("\n");
+                        text = stripper.getText(document);
+                    }
+                    if (text == null) text = "";
+                    if (text.length() > 420000) text = text.substring(0, 420000);
+                    String js = "window.onNativePdfText13&&window.onNativePdfText13(" +
+                            JSONObject.quote(safeId) + ",true," + JSONObject.quote(text) + ",\"\")";
+                    sendJs(js);
+                } catch (Exception e) {
+                    String message = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+                    String js = "window.onNativePdfText13&&window.onNativePdfText13(" +
+                            JSONObject.quote(safeId) + ",false,\"\"," + JSONObject.quote(message) + ")";
+                    sendJs(js);
+                }
+            }, "bts-pdf").start();
+        }
     }
 
     private byte[] downloadBytes(String rawUrl) throws Exception {
-        if (rawUrl == null || !(rawUrl.startsWith("https://") || rawUrl.startsWith("http://"))) {
+        if (rawUrl == null) throw new IllegalArgumentException("Brak adresu URL");
+        String normalized = rawUrl.trim();
+        if (normalized.startsWith("http://si2pem.gov.pl/")) {
+            normalized = "https://si2pem.gov.pl/" + normalized.substring("http://si2pem.gov.pl/".length());
+        }
+        if (!(normalized.startsWith("https://") || normalized.startsWith("http://"))) {
             throw new IllegalArgumentException("Nieprawidłowy adres URL");
         }
-        HttpURLConnection connection = (HttpURLConnection) new URL(rawUrl).openConnection();
+        HttpURLConnection connection = (HttpURLConnection) new URL(normalized).openConnection();
         connection.setInstanceFollowRedirects(true);
         connection.setConnectTimeout(15000);
-        connection.setReadTimeout(35000);
+        connection.setReadTimeout(45000);
         connection.setRequestProperty("User-Agent", "BTS-Asystent-PL/1.3 Android");
         connection.setRequestProperty("Accept", "*/*");
         connection.connect();
