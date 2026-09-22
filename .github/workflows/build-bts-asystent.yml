@@ -38,12 +38,20 @@ jobs:
           from pathlib import Path
           p=Path('android-bts/app/src/main/assets/index.html')
           s=p.read_text(encoding='utf-8')
+          scripts=[]
           if 'terrain-addon.js' not in s:
-              s=s.replace('</body>', '<script src="terrain-addon.js"></script>\n</body>')
+              scripts.append('<script src="terrain-addon.js"></script>')
+          if 'ui-addon.js' not in s:
+              scripts.append('<script src="ui-addon.js"></script>')
+          if scripts:
+              s=s.replace('</body>', '\n'.join(scripts)+'\n</body>')
           p.write_text(s, encoding='utf-8')
           PY
           test -s "$ASSETS/stations.json"
+          test -s "$ASSETS/terrain-addon.js"
+          test -s "$ASSETS/ui-addon.js"
           grep -q 'terrain-addon.js' "$ASSETS/index.html"
+          grep -q 'ui-addon.js' "$ASSETS/index.html"
 
       - name: Android SDK
         shell: bash
@@ -72,15 +80,15 @@ jobs:
         shell: bash
         run: |
           mkdir -p android-bts/dist
-          cp android-bts/app/build/outputs/apk/debug/app-debug.apk android-bts/dist/BTS-Asystent-PL-1.0.apk
-          sha256sum android-bts/dist/BTS-Asystent-PL-1.0.apk > android-bts/dist/SHA256SUMS.txt
-          ls -lh android-bts/dist/BTS-Asystent-PL-1.0.apk
+          cp android-bts/app/build/outputs/apk/debug/app-debug.apk android-bts/dist/BTS-Asystent-PL-1.1.apk
+          sha256sum android-bts/dist/BTS-Asystent-PL-1.1.apk > android-bts/dist/SHA256SUMS.txt
+          ls -lh android-bts/dist/BTS-Asystent-PL-1.1.apk
 
       - name: Wgraj APK
         uses: actions/upload-artifact@v4
         with:
-          name: BTS-Asystent-PL-1.0
+          name: BTS-Asystent-PL-1.1
           path: |
-            android-bts/dist/BTS-Asystent-PL-1.0.apk
+            android-bts/dist/BTS-Asystent-PL-1.1.apk
             android-bts/dist/SHA256SUMS.txt
           retention-days: 30
