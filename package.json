@@ -1,0 +1,14 @@
+{
+  "name": "dvbt-point",
+  "private": true,
+  "type": "module",
+  "description": "DVB-T/T2 Point â€” PWA dla instalatorĂłw anten",
+  "scripts": {
+    "test": "node --test \"tests/unit/*.test.mjs\"",
+    "test:e2e": "node tests/e2e/run.mjs",
+    "serve": "python -m http.server 8080"
+  },
+  "devDependencies": {
+    "playwright": "^1.48.0"
+  }
+}

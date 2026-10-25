@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F1B33">
+<meta name="description" content="DVB-T/T2 Point — azymut, polaryzacja i zapas sygnału telewizji naziemnej dla instalatorów.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://tile.openstreetmap.org https://*.tile.opentopomap.org https://server.arcgisonline.com; connect-src 'self' https://image.discomap.eea.europa.eu https://services.gugik.gov.pl https://s3.amazonaws.com https://nominatim.openstreetmap.org; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'">
+<title>DVB-T/T2 Point</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/layout.css">
+</head>
+<body data-tab="map">
+<a class="skip" href="#sheet">Przejdź do wyniku</a>
+<header class="topbar">
+ <div class="topbar-row">
+  <form id="search" class="search" role="search">
+    <label class="sr-only" for="search-input">Adres, miejscowość lub współrzędne</label>
+    <input id="search-input" type="search" autocomplete="off" placeholder="Adres, miejscowość lub „52.23, 21.01”" enterkeyhint="search">
+    <button type="submit" class="icon-btn" aria-label="Szukaj"><i data-icon="search" data-size="22"></i></button>
+    <ul id="search-results" class="search-results" hidden></ul>
+  </form>
+  <button id="btn-menu" type="button" class="icon-btn fab-sm" aria-label="Menu"><i data-icon="menu" data-size="24"></i></button>
+ </div>
+  <button id="btn-mux" type="button" class="mux-btn" aria-haspopup="dialog" aria-label="Wybrany multipleks. Zmień MUX"><i data-icon="list" data-size="20"></i><span>MUX:</span> <strong class="mux-val">MUX-3</strong> <span aria-hidden="true">▾</span></button>
+</header>
+<div id="offline" class="offline-banner" role="status" hidden>Offline — działają zapisane instalacje i pobrany teren. Wyszukiwanie i nowy teren niedostępne.</div>
+<main>
+  <div id="map" aria-label="Mapa — przytrzymaj, aby ustawić punkt instalacji"></div>
+  <div id="press-ring" class="press-ring" aria-hidden="true" hidden></div>
+  <div id="undo" class="undo-bar" role="status" hidden></div>
+  <button id="btn-compass" type="button" class="compass-fab" aria-label="Kompas — ustaw antenę" data-live="false">
+    <span class="cf-rose"><b>N</b><span class="cf-tick e"></span><span class="cf-tick s"></span><span class="cf-tick w"></span></span>
+    <span class="cf-target" aria-hidden="true"></span>
+    <span class="cf-needle" aria-hidden="true"></span>
+    <span class="cf-label" aria-hidden="true">—</span>
+  </button>
+  <div class="map-fabs">
+    <button id="btn-layers" type="button" class="fab" aria-label="Warstwy mapy"><i data-icon="layers" data-size="24"></i></button>
+    <button id="btn-locate" type="button" class="fab" aria-label="Moja lokalizacja"><i data-icon="locate" data-size="24"></i></button>
+  </div>
+  <div id="legend" class="legend" hidden></div>
+  <section id="sheet" class="sheet" aria-label="Wynik dla punktu">
+    <button id="sheet-toggle" type="button" class="sheet-handle" aria-label="Zwiń panel wyniku" aria-controls="sheet-body" aria-expanded="true"><span aria-hidden="true"></span></button>
+    <div id="sheet-head" class="sheet-headbar"></div>
+    <div id="jobs" class="jobs" hidden></div>
+    <div id="sheet-body" class="sheet-body" tabindex="-1"></div>
+  </section>
+  <section id="tab-tx" class="page" hidden aria-label="Nadajnik"></section>
+  <section id="tab-saved" class="page" hidden aria-label="Zapisane"></section>
+</main>
+<nav class="bottom-nav" aria-label="Główna nawigacja">
+  <button type="button" data-tab="map" aria-current="page"><i data-icon="map" data-size="24"></i><span>Mapa</span></button>
+  <button type="button" data-tab="tx"><i data-icon="tower" data-size="24"></i><span>Nadajnik</span></button>
+  <button type="button" data-tab="saved"><i data-icon="bookmark" data-size="24"></i><span>Zapisane</span></button>
+</nav>
+<div id="live" class="sr-only" aria-live="polite"></div>
+<div id="toast" class="toast" role="status" hidden></div>
+<span id="app-version" hidden></span>
+<noscript>Aplikacja wymaga JavaScript.</noscript>
+<script src="vendor/leaflet/leaflet.js"></script>
+<script type="module" src="js/app/main.js"></script>
+</body>
+</html>

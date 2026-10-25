@@ -1,0 +1,23 @@
+plugins { id 'com.android.application' }
+def webDir = file("$buildDir/webassets")
+task copyWeb(type: Sync) {
+    from(rootProject.file('..')) {
+        include 'index.html','manifest.json','service-worker.js','assets/**','css/**','data/**','js/**','vendor/**'
+    }
+    into "$webDir/www"
+}
+android {
+    namespace 'pl.tomalawsb.dvbtpoint'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'pl.tomalawsb.dvbtpoint'
+        minSdk 24
+        targetSdk 34
+        versionCode 9
+        versionName '3 v25.10.26.1235'
+    }
+    sourceSets { main { assets.srcDirs += webDir } }
+    buildTypes { debug { minifyEnabled false } }
+}
+preBuild.dependsOn copyWeb
+dependencies { implementation 'androidx.webkit:webkit:1.11.0' }

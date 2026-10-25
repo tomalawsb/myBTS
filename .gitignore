@@ -1,0 +1,17 @@
+node_modules/
+.cache/
+__pycache__/
+*.pyc
+*.log
+*.bak
+test-results/
+playwright-report/
+ETAP_*
+*.zip
+.DS_Store
+Thumbs.db
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+*.apk

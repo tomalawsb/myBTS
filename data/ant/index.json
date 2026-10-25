@@ -1,0 +1,4117 @@
+{
+ "version": "19.6",
+ "source": "Link_ANT z eksportu RadioPolska",
+ "count": 587,
+ "downloaded_count": 295,
+ "items": [
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Rzeszow - Kalnica Gora Wideta",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1547/MUX-3 Rzeszow - Stuposiany Wilcza Gora",
+   "ant_file_id": "1547",
+   "local_path": "data/ant/1547.ant",
+   "downloaded": true,
+   "note": "OK, min -12.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1540/MUX-3 Rzeszow - Majdan Gora Kiczarka",
+   "ant_file_id": "1540",
+   "local_path": "data/ant/1540.ant",
+   "downloaded": true,
+   "note": "OK, min -27.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1531/MUX-3 Rzeszow - Cisna Gora Potoczyszcze",
+   "ant_file_id": "1531",
+   "local_path": "data/ant/1531.ant",
+   "downloaded": true,
+   "note": "OK, min -21.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Rzeszow - Zatwarnica Gora Wierszek",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1539/MUX-3 Rzeszow - Lutowiska",
+   "ant_file_id": "1539",
+   "local_path": "data/ant/1539.ant",
+   "downloaded": true,
+   "note": "OK, min -27.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1542/MUX-3 Rzeszow - Polana Szeroka Laka",
+   "ant_file_id": "1542",
+   "local_path": "data/ant/1542.ant",
+   "downloaded": true,
+   "note": "OK, min -36.1 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/476/MUX-1 - Zakopane Gora Gubalowka",
+   "ant_file_id": "476",
+   "local_path": "data/ant/476.ant",
+   "downloaded": true,
+   "note": "OK, min -12.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1461/MUX-2 - Zakopane Gora Gubalowka",
+   "ant_file_id": "1461",
+   "local_path": "data/ant/1461.ant",
+   "downloaded": true,
+   "note": "OK, min -12.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1578/MUX-3 Krakow - Zakopane Gora Gubalowka",
+   "ant_file_id": "1578",
+   "local_path": "data/ant/1578.ant",
+   "downloaded": true,
+   "note": "OK, min -12.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2051/MUX-6 - Zakopane Gora Gubalowka",
+   "ant_file_id": "2051",
+   "local_path": "data/ant/2051.ant",
+   "downloaded": true,
+   "note": "OK, min -12.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1795/MUX-8 - Zakopane Gora Gubalowka",
+   "ant_file_id": "1795",
+   "local_path": "data/ant/1795.ant",
+   "downloaded": true,
+   "note": "OK, min -21.3 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1532/MUX-3 Rzeszow - Czarna",
+   "ant_file_id": "1532",
+   "local_path": "data/ant/1532.ant",
+   "downloaded": true,
+   "note": "OK, min -29.1 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Rzeszow - Wolkowyja Gora Czakow",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1537/MUX-3 Rzeszow - Komancza Gora Krymieniec",
+   "ant_file_id": "1537",
+   "local_path": "data/ant/1537.ant",
+   "downloaded": true,
+   "note": "OK, min -37.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1529/MUX-3 Rzeszow - Baligrod Gora Kiczera",
+   "ant_file_id": "1529",
+   "local_path": "data/ant/1529.ant",
+   "downloaded": true,
+   "note": "OK, min -20.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Krakow - Zegiestow-Zdroj Gora Kiczera",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1587/MUX-3 Krakow - Muszyna Gora Malnik",
+   "ant_file_id": "1587",
+   "local_path": "data/ant/1587.ant",
+   "downloaded": true,
+   "note": "OK, min -13.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1544/MUX-3 Rzeszow - Rzepedz Gora Sokoliska",
+   "ant_file_id": "1544",
+   "local_path": "data/ant/1544.ant",
+   "downloaded": true,
+   "note": "OK, min -41.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Krakow - Zegiestow Wies Gora Cypel",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Solina Gora Jawor h90",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Solina Gora Jawor h90",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Rzeszow - Solina Gora Jawor h90",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Solina Gora Jawor h90",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Solina Gora Jawor h90",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1746/MUX-8 - Solina Gora Jawor h90",
+   "ant_file_id": "1746",
+   "local_path": "data/ant/1746.ant",
+   "downloaded": true,
+   "note": "OK, min -2.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1593/MUX-3 Krakow - Tylicz Gora Horb",
+   "ant_file_id": "1593",
+   "local_path": "data/ant/1593.ant",
+   "downloaded": true,
+   "note": "OK, min -27.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Rzeszow - Zahoczewie Gora Szerokie",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1556/MUX-3 Rzeszow - Solina Gora Plasza",
+   "ant_file_id": "1556",
+   "local_path": "data/ant/1556.ant",
+   "downloaded": true,
+   "note": "OK, min -53.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1584/MUX-3 Krakow - Lapsze Wyzne Gora Grandeus",
+   "ant_file_id": "1584",
+   "local_path": "data/ant/1584.ant",
+   "downloaded": true,
+   "note": "OK, min -6.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1576/MUX-3 Krakow - Szczawnica Gora Jarmuta",
+   "ant_file_id": "1576",
+   "local_path": "data/ant/1576.ant",
+   "downloaded": true,
+   "note": "OK, min -37.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1583/MUX-3 Krakow - Krynica Gora Parkowa h65",
+   "ant_file_id": "1583",
+   "local_path": "data/ant/1583.ant",
+   "downloaded": true,
+   "note": "OK, min -26.2 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1400/MUX-3 Krakow - Krynica Gora Jaworzyna",
+   "ant_file_id": "1400",
+   "local_path": "data/ant/1400.ant",
+   "downloaded": true,
+   "note": "OK, min -12.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1588/MUX-3 Krakow - Niedzica Gora Biala",
+   "ant_file_id": "1588",
+   "local_path": "data/ant/1588.ant",
+   "downloaded": true,
+   "note": "OK, min -17.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Rzeszow - Ustrzyki Dolne Gora Gromadzyn",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1555/MUX-3 Rzeszow - Jasliska Posada Jasliska",
+   "ant_file_id": "1555",
+   "local_path": "data/ant/1555.ant",
+   "downloaded": true,
+   "note": "OK, min -16.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1635/MUX-3 Krakow - Piwniczna Gora Kicarz",
+   "ant_file_id": "1635",
+   "local_path": "data/ant/1635.ant",
+   "downloaded": true,
+   "note": "OK, min -4.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Rzeszow - Hoczew Czekaj",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1582/MUX-3 Krakow - Kroscienko Gora Stajkowa",
+   "ant_file_id": "1582",
+   "local_path": "data/ant/1582.ant",
+   "downloaded": true,
+   "note": "OK, min -13.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Rzeszow - Tylawa Gora Dzial h60",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1548/MUX-3 Rzeszow - Tarnawa Gora Makowka",
+   "ant_file_id": "1548",
+   "local_path": "data/ant/1548.ant",
+   "downloaded": true,
+   "note": "OK, min -25.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/466/MUX-1 - Szczawnica Gora Prehyba",
+   "ant_file_id": "466",
+   "local_path": "data/ant/466.ant",
+   "downloaded": true,
+   "note": "OK, min -22.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/486/MUX-2 - Szczawnica Gora Prehyba",
+   "ant_file_id": "486",
+   "local_path": "data/ant/486.ant",
+   "downloaded": true,
+   "note": "OK, min -22.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1577/MUX-3 Krakow - Szczawnica Gora Prehyba",
+   "ant_file_id": "1577",
+   "local_path": "data/ant/1577.ant",
+   "downloaded": true,
+   "note": "OK, min -23.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2047/MUX-6 - Szczawnica Gora Prehyba",
+   "ant_file_id": "2047",
+   "local_path": "data/ant/2047.ant",
+   "downloaded": true,
+   "note": "OK, min -22.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1808/MUX-8 - Szczawnica Gora Prehyba",
+   "ant_file_id": "1808",
+   "local_path": "data/ant/1808.ant",
+   "downloaded": true,
+   "note": "OK, min -4.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1594/MUX-3 Krakow - Tylmanowa Gora Matuszek",
+   "ant_file_id": "1594",
+   "local_path": "data/ant/1594.ant",
+   "downloaded": true,
+   "note": "OK, min -15.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Katowice - Ujsoly Gora Kubiesowka",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1541/MUX-3 Rzeszow - Olszanica Gora Kiczera",
+   "ant_file_id": "1541",
+   "local_path": "data/ant/1541.ant",
+   "downloaded": true,
+   "note": "OK, min -25.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Krakow - Jablonka Gora Oskwarkowa",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1393/MUX-3 Katowice - Rajcza Gora Hutyrow",
+   "ant_file_id": "1393",
+   "local_path": "data/ant/1393.ant",
+   "downloaded": true,
+   "note": "OK, min -29.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Krakow - Rytro Gora Cycowka",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Krakow - Ochotnica Gorna Gora Utocze",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1621/MUX-3 Krakow - Ochotnica Dolna Gora Koci Zamek",
+   "ant_file_id": "1621",
+   "local_path": "data/ant/1621.ant",
+   "downloaded": true,
+   "note": "OK, min -26.3 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Krakow - Lacko Gora Cebulowka",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Katowice - Koniakow Gora Ochodzita",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1543/MUX-3 Rzeszow - Rymanow Gora Zamczyska",
+   "ant_file_id": "1543",
+   "local_path": "data/ant/1543.ant",
+   "downloaded": true,
+   "note": "OK, min -16.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Rzeszow - Iwonicz-Zdroj Sanatorium Excelsior",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1545/MUX-3 Rzeszow - Sanok Gora Parkowa",
+   "ant_file_id": "1545",
+   "local_path": "data/ant/1545.ant",
+   "downloaded": true,
+   "note": "OK, min -5.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1559/MUX-3 Katowice - Istebna Gora Zloty Gron",
+   "ant_file_id": "1559",
+   "local_path": "data/ant/1559.ant",
+   "downloaded": true,
+   "note": "OK, min -35.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1553/MUX-3 Rzeszow - Dukla Teodorowka",
+   "ant_file_id": "1553",
+   "local_path": "data/ant/1553.ant",
+   "downloaded": true,
+   "note": "OK, min -20.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1581/MUX-3 Krakow - Kamionka Wielka Gora Dybowka",
+   "ant_file_id": "1581",
+   "local_path": "data/ant/1581.ant",
+   "downloaded": true,
+   "note": "OK, min -15.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1560/MUX-3 Katowice - Jelesnia Gora Krzyzowa",
+   "ant_file_id": "1560",
+   "local_path": "data/ant/1560.ant",
+   "downloaded": true,
+   "note": "OK, min -46.1 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Krakow - Grybow Gora Kamienna",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1591/MUX-3 Krakow - Poreba Wielka Nowa Wies",
+   "ant_file_id": "1591",
+   "local_path": "data/ant/1591.ant",
+   "downloaded": true,
+   "note": "OK, min -15.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1562/MUX-3 Katowice - Koszarawa Gora Czolo [628m]",
+   "ant_file_id": "1562",
+   "local_path": "data/ant/1562.ant",
+   "downloaded": true,
+   "note": "OK, min -35.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1571/MUX-3 Katowice - Wisla Gora Kozince",
+   "ant_file_id": "1571",
+   "local_path": "data/ant/1571.ant",
+   "downloaded": true,
+   "note": "OK, min -6.3 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1570/MUX-3 Katowice - Wegierska Gorka Gora Przybedza",
+   "ant_file_id": "1570",
+   "local_path": "data/ant/1570.ant",
+   "downloaded": true,
+   "note": "OK, min -6.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1639/MUX-3 Krakow - Zawoja Gora Kolisty Gron",
+   "ant_file_id": "1639",
+   "local_path": "data/ant/1639.ant",
+   "downloaded": true,
+   "note": "OK, min -15.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1590/MUX-3 Krakow - Nowy Sacz Chruslice",
+   "ant_file_id": "1590",
+   "local_path": "data/ant/1590.ant",
+   "downloaded": true,
+   "note": "OK, min -37.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1495/MUX-1 - Gorlice Maslana Gora",
+   "ant_file_id": "1495",
+   "local_path": "data/ant/1495.ant",
+   "downloaded": true,
+   "note": "OK, min -13.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1488/MUX-2 - Gorlice Maslana Gora",
+   "ant_file_id": "1488",
+   "local_path": "data/ant/1488.ant",
+   "downloaded": true,
+   "note": "OK, min -13.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1579/MUX-3 Krakow - Gorlice Maslana Gora",
+   "ant_file_id": "1579",
+   "local_path": "data/ant/1579.ant",
+   "downloaded": true,
+   "note": "OK, min -13.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2057/MUX-6 - Gorlice Maslana Gora",
+   "ant_file_id": "2057",
+   "local_path": "data/ant/2057.ant",
+   "downloaded": true,
+   "note": "OK, min -13.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1798/MUX-8 - Gorlice Maslana Gora",
+   "ant_file_id": "1798",
+   "local_path": "data/ant/1798.ant",
+   "downloaded": true,
+   "note": "OK, min -35.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Krakow - Nowy Sacz Wysokie h64",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Rabka Gora Lubon Wielki",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Rabka Gora Lubon Wielki",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Krakow - Rabka Gora Lubon Wielki",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Rabka Gora Lubon Wielki",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1770/MUX-8 - Rabka Gora Lubon Wielki",
+   "ant_file_id": "1770",
+   "local_path": "data/ant/1770.ant",
+   "downloaded": true,
+   "note": "OK, min -5.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1640/MUX-3 Krakow - Zawoja Gora Miskowcow Gron",
+   "ant_file_id": "1640",
+   "local_path": "data/ant/1640.ant",
+   "downloaded": true,
+   "note": "OK, min -55.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1572/MUX-3 Katowice - Zywiec Gora Grojec",
+   "ant_file_id": "1572",
+   "local_path": "data/ant/1572.ant",
+   "downloaded": true,
+   "note": "OK, min -5.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Rzeszow - Trojca Gora Jaworow",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Katowice - Ustron Gora Czantoria",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/477/MUX-1 - Wisla Gora Skrzyczne h87",
+   "ant_file_id": "477",
+   "local_path": "data/ant/477.ant",
+   "downloaded": true,
+   "note": "OK, min -15.2 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/482/MUX-2 - Wisla Gora Skrzyczne h87",
+   "ant_file_id": "482",
+   "local_path": "data/ant/482.ant",
+   "downloaded": true,
+   "note": "OK, min -15.2 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1527/MUX-3 Katowice - Wisla Gora Skrzyczne h87",
+   "ant_file_id": "1527",
+   "local_path": "data/ant/1527.ant",
+   "downloaded": true,
+   "note": "OK, min -20.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/519/MUX-4 - Wisla Gora Skrzyczne h87",
+   "ant_file_id": "519",
+   "local_path": "data/ant/519.ant",
+   "downloaded": true,
+   "note": "OK, min -15.2 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2049/MUX-6 - Wisla Gora Skrzyczne h87",
+   "ant_file_id": "2049",
+   "local_path": "data/ant/2049.ant",
+   "downloaded": true,
+   "note": "OK, min -15.2 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1778/MUX-8 - Wisla Gora Skrzyczne h87",
+   "ant_file_id": "1778",
+   "local_path": "data/ant/1778.ant",
+   "downloaded": true,
+   "note": "OK, min -23.3 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1530/MUX-3 Rzeszow - Bircza Gora Kamienna",
+   "ant_file_id": "1530",
+   "local_path": "data/ant/1530.ant",
+   "downloaded": true,
+   "note": "OK, min -28.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1538/MUX-3 Rzeszow - Krzemienna Gora Maly Dzial",
+   "ant_file_id": "1538",
+   "local_path": "data/ant/1538.ant",
+   "downloaded": true,
+   "note": "OK, min -14.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1567/MUX-3 Katowice - Szczyrk ul. Salmopolska",
+   "ant_file_id": "1567",
+   "local_path": "data/ant/1567.ant",
+   "downloaded": true,
+   "note": "OK, min -35.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1632/MUX-3 Krakow - Dobra Gora Nad Kiwajami",
+   "ant_file_id": "1632",
+   "local_path": "data/ant/1632.ant",
+   "downloaded": true,
+   "note": "OK, min -22.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1634/MUX-3 Krakow - Limanowa Gora Lipowe",
+   "ant_file_id": "1634",
+   "local_path": "data/ant/1634.ant",
+   "downloaded": true,
+   "note": "OK, min -26.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Krakow - Stryszawa Gora Czepelowka",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1641/MUX-3 Krakow - Tymbark Gora Podlopien",
+   "ant_file_id": "1641",
+   "local_path": "data/ant/1641.ant",
+   "downloaded": true,
+   "note": "OK, min -34.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1566/MUX-3 Katowice - Szczyrk Hotel Panorama Centrum",
+   "ant_file_id": "1566",
+   "local_path": "data/ant/1566.ant",
+   "downloaded": true,
+   "note": "OK, min -37.3 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1565/MUX-3 Katowice - Szczyrk Bila",
+   "ant_file_id": "1565",
+   "local_path": "data/ant/1565.ant",
+   "downloaded": true,
+   "note": "OK, min -15.3 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Katowice - Brenna Wzgorze Jatny",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1592/MUX-3 Krakow - Sucha Beskidzka Gora Sumerowka",
+   "ant_file_id": "1592",
+   "local_path": "data/ant/1592.ant",
+   "downloaded": true,
+   "note": "OK, min -5.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1558/MUX-3 Katowice - Cieszyn ul. Mickiewicza",
+   "ant_file_id": "1558",
+   "local_path": "data/ant/1558.ant",
+   "downloaded": true,
+   "note": "OK, min -40.3 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1793/MUX-8 - Cieszyn ul. Mickiewicza",
+   "ant_file_id": "1793",
+   "local_path": "data/ant/1793.ant",
+   "downloaded": true,
+   "note": "OK, min -8.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Krosno Sucha Gora",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Krosno Sucha Gora",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Rzeszow - Krosno Sucha Gora",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Krosno Sucha Gora",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Krosno Sucha Gora",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1742/MUX-8 - Krosno Sucha Gora",
+   "ant_file_id": "1742",
+   "local_path": "data/ant/1742.ant",
+   "downloaded": true,
+   "note": "OK, min -13.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1724/MUX-3 Katowice - Bielsko-Biala Gora Szyndzielnia h23",
+   "ant_file_id": "1724",
+   "local_path": "data/ant/1724.ant",
+   "downloaded": true,
+   "note": "OK, min -35.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/469/MUX-1 - Przemysl Tatarska Gora",
+   "ant_file_id": "469",
+   "local_path": "data/ant/469.ant",
+   "downloaded": true,
+   "note": "OK, min -9.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/506/MUX-2 - Przemysl Tatarska Gora",
+   "ant_file_id": "506",
+   "local_path": "data/ant/506.ant",
+   "downloaded": true,
+   "note": "OK, min -11.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1666/MUX-3 Rzeszow - Przemysl Tatarska Gora",
+   "ant_file_id": "1666",
+   "local_path": "data/ant/1666.ant",
+   "downloaded": true,
+   "note": "OK, min -9.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Przemysl Tatarska Gora",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1768/MUX-8 - Przemysl Tatarska Gora",
+   "ant_file_id": "1768",
+   "local_path": "data/ant/1768.ant",
+   "downloaded": true,
+   "note": "OK, min -22.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1573/MUX-3 Krakow - Miedzybrodzie Gora Zar",
+   "ant_file_id": "1573",
+   "local_path": "data/ant/1573.ant",
+   "downloaded": true,
+   "note": "OK, min -20.2 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1533/MUX-3 Rzeszow - Dynow Gora Winnica",
+   "ant_file_id": "1533",
+   "local_path": "data/ant/1533.ant",
+   "downloaded": true,
+   "note": "OK, min -15.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Krakow - Gromnik ul. Widok",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1638/MUX-3 Krakow - Stryszow Potoczek",
+   "ant_file_id": "1638",
+   "local_path": "data/ant/1638.ant",
+   "downloaded": true,
+   "note": "OK, min -15.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1546/MUX-3 Rzeszow - Strzyzow ul. Dzialy",
+   "ant_file_id": "1546",
+   "local_path": "data/ant/1546.ant",
+   "downloaded": true,
+   "note": "OK, min -43.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1642/MUX-3 Krakow - Winiary",
+   "ant_file_id": "1642",
+   "local_path": "data/ant/1642.ant",
+   "downloaded": true,
+   "note": "OK, min -29.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Rzeszow - Pruchnik Wzniesienie Na Zadach",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Krakow Choragwica",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Krakow Choragwica",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Krakow - Krakow Choragwica",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Krakow Choragwica",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Krakow Choragwica",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1740/MUX-8 - Krakow Choragwica",
+   "ant_file_id": "1740",
+   "local_path": "data/ant/1740.ant",
+   "downloaded": true,
+   "note": "OK, min -7.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1788/MUX-8 - Debica Globikowa",
+   "ant_file_id": "1788",
+   "local_path": "data/ant/1788.ant",
+   "downloaded": true,
+   "note": "OK, min -38.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Tarnow Gora Sw. Marcina h102",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1459/MUX-2 - Tarnow Gora Sw. Marcina h102",
+   "ant_file_id": "1459",
+   "local_path": "data/ant/1459.ant",
+   "downloaded": true,
+   "note": "OK, min -14.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1878/MUX-2 - Tarnow Gora Sw. Marcina h102",
+   "ant_file_id": "1878",
+   "local_path": "data/ant/1878.ant",
+   "downloaded": true,
+   "note": "OK, min -29.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Krakow - Tarnow Gora Sw. Marcina h102",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1706/MUX-3 Rzeszow - Tarnow Gora Sw. Marcina h102",
+   "ant_file_id": "1706",
+   "local_path": "data/ant/1706.ant",
+   "downloaded": true,
+   "note": "OK, min -31.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Tarnow Gora Sw. Marcina h102",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Tarnow Gora Sw. Marcina h102",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1787/MUX-8 - Tarnow Gora Sw. Marcina h102",
+   "ant_file_id": "1787",
+   "local_path": "data/ant/1787.ant",
+   "downloaded": true,
+   "note": "OK, min -6.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Krakow - Krakow Krzemionki",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Rzeszow - Rzeszow Baranowka",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1563/MUX-3 Katowice - Raciborz ul. Cmentarna",
+   "ant_file_id": "1563",
+   "local_path": "data/ant/1563.ant",
+   "downloaded": true,
+   "note": "OK, min -35.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-L2 TVT - Rybnik Komin E Rybnik h260",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Katowice - Rybnik Komin E Rybnik h300",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-L2 TVT - Ornontowice Komin KWK Budryk",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Katowice Kosztowy",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Katowice Kosztowy",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1725/MUX-3 Krakow - Katowice Kosztowy",
+   "ant_file_id": "1725",
+   "local_path": "data/ant/1725.ant",
+   "downloaded": true,
+   "note": "OK, min -60.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1417/MUX-3 Katowice - Katowice Kosztowy",
+   "ant_file_id": "1417",
+   "local_path": "data/ant/1417.ant",
+   "downloaded": true,
+   "note": "OK, min -19.3 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Katowice Kosztowy",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Katowice Kosztowy",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1739/MUX-8 - Katowice Kosztowy",
+   "ant_file_id": "1739",
+   "local_path": "data/ant/1739.ant",
+   "downloaded": true,
+   "note": "OK, min -13.1 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1636/MUX-3 Krakow - Przeginia Raclawice",
+   "ant_file_id": "1636",
+   "local_path": "data/ant/1636.ant",
+   "downloaded": true,
+   "note": "OK, min -29.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1656/MUX-3 Kielce - Kazimierza Wielka Plechow",
+   "ant_file_id": "1656",
+   "local_path": "data/ant/1656.ant",
+   "downloaded": true,
+   "note": "OK, min -13.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Lezajsk Giedlarowa",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Lezajsk Giedlarowa",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Rzeszow - Lezajsk Giedlarowa",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1674/MUX-4 - Lezajsk Giedlarowa",
+   "ant_file_id": "1674",
+   "local_path": "data/ant/1674.ant",
+   "downloaded": true,
+   "note": "OK, min -1.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Lezajsk Giedlarowa",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1805/MUX-8 - Lezajsk Giedlarowa",
+   "ant_file_id": "1805",
+   "local_path": "data/ant/1805.ant",
+   "downloaded": true,
+   "note": "OK, min -5.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/472/MUX-1 - Klodzko Czarna Gora",
+   "ant_file_id": "472",
+   "local_path": "data/ant/472.ant",
+   "downloaded": true,
+   "note": "OK, min -23.1 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/505/MUX-2 - Klodzko Czarna Gora",
+   "ant_file_id": "505",
+   "local_path": "data/ant/505.ant",
+   "downloaded": true,
+   "note": "OK, min -38.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1605/MUX-3 Wroclaw - Klodzko Czarna Gora",
+   "ant_file_id": "1605",
+   "local_path": "data/ant/1605.ant",
+   "downloaded": true,
+   "note": "OK, min -38.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1515/MUX-4 - Klodzko Czarna Gora",
+   "ant_file_id": "1515",
+   "local_path": "data/ant/1515.ant",
+   "downloaded": true,
+   "note": "OK, min -39.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2052/MUX-6 - Klodzko Czarna Gora",
+   "ant_file_id": "2052",
+   "local_path": "data/ant/2052.ant",
+   "downloaded": true,
+   "note": "OK, min -39.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1760/MUX-8 - Klodzko Czarna Gora",
+   "ant_file_id": "1760",
+   "local_path": "data/ant/1760.ant",
+   "downloaded": true,
+   "note": "OK, min -35.1 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1692/MUX-3 Rzeszow - Cieszanow ul. Kosciuszki",
+   "ant_file_id": "1692",
+   "local_path": "data/ant/1692.ant",
+   "downloaded": true,
+   "note": "OK, min -13.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1612/MUX-3 Wroclaw - Stronie Slaskie Osiedle Morawka",
+   "ant_file_id": "1612",
+   "local_path": "data/ant/1612.ant",
+   "downloaded": true,
+   "note": "OK, min -30.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1714/MUX-3 Katowice - Katowice Bytkow",
+   "ant_file_id": "1714",
+   "local_path": "data/ant/1714.ant",
+   "downloaded": true,
+   "note": "OK, min -25.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1716/MUX-3 Katowice - Zabrze Komin EC Zabrze",
+   "ant_file_id": "1716",
+   "local_path": "data/ant/1716.ant",
+   "downloaded": true,
+   "note": "OK, min -20.2 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1610/MUX-3 Wroclaw - Ladek-Zdroj Gora Dzielec",
+   "ant_file_id": "1610",
+   "local_path": "data/ant/1610.ant",
+   "downloaded": true,
+   "note": "OK, min -21.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1729/MUX-3 Krakow - Wolbrom Zasepiec",
+   "ant_file_id": "1729",
+   "local_path": "data/ant/1729.ant",
+   "downloaded": true,
+   "note": "OK, min -25.2 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1608/MUX-3 Wroclaw - Duszniki-Zdroj Podgorze",
+   "ant_file_id": "1608",
+   "local_path": "data/ant/1608.ant",
+   "downloaded": true,
+   "note": "OK, min -21.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1796/MUX-8 - Miechow Strzezow I",
+   "ant_file_id": "1796",
+   "local_path": "data/ant/1796.ant",
+   "downloaded": true,
+   "note": "OK, min -4.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1614/MUX-3 Wroclaw - Szczytna Szklana Gora",
+   "ant_file_id": "1614",
+   "local_path": "data/ant/1614.ant",
+   "downloaded": true,
+   "note": "OK, min -22.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1613/MUX-3 Wroclaw - Szczytna Gora Szczytnik",
+   "ant_file_id": "1613",
+   "local_path": "data/ant/1613.ant",
+   "downloaded": true,
+   "note": "OK, min -15.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Kulin Klodzki Gora Grodziec",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1399/MUX-3 Wroclaw - Kudowa-Zdroj Gora Parkowa",
+   "ant_file_id": "1399",
+   "local_path": "data/ant/1399.ant",
+   "downloaded": true,
+   "note": "OK, min -4.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1589/MUX-3 Opole - Opole Gora Sw. Anny h83",
+   "ant_file_id": "1589",
+   "local_path": "data/ant/1589.ant",
+   "downloaded": true,
+   "note": "OK, min -13.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1780/MUX-8 - Opole Gora Sw. Anny h83",
+   "ant_file_id": "1780",
+   "local_path": "data/ant/1780.ant",
+   "downloaded": true,
+   "note": "OK, min -9.2 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1728/MUX-3 Katowice - Ogrodzieniec Gieblo",
+   "ant_file_id": "1728",
+   "local_path": "data/ant/1728.ant",
+   "downloaded": true,
+   "note": "OK, min -13.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Kielce - Busko-Zdroj ul. Mickiewicza",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1711/MUX-3 Lublin - Bilgoraj Rogale",
+   "ant_file_id": "1711",
+   "local_path": "data/ant/1711.ant",
+   "downloaded": true,
+   "note": "OK, min -13.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Opole Chrzelice",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Opole Chrzelice",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Opole - Opole Chrzelice",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Opole Chrzelice",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Opole Chrzelice",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Radkow Gora Guzowata",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Bardo Slaskie Wzgorze Rozancowe",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Zamosc Tarnawatka",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Zamosc Tarnawatka",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Lublin - Zamosc Tarnawatka",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Zamosc Tarnawatka",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Zamosc Tarnawatka",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1781/MUX-8 - Zamosc Tarnawatka",
+   "ant_file_id": "1781",
+   "local_path": "data/ant/1781.ant",
+   "downloaded": true,
+   "note": "OK, min -10.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/460/MUX-1 - Tarnobrzeg Komin ZCh Siarkopol",
+   "ant_file_id": "460",
+   "local_path": "data/ant/460.ant",
+   "downloaded": true,
+   "note": "OK, min -13.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1996/MUX-2 - Tarnobrzeg Komin ZCh Siarkopol",
+   "ant_file_id": "1996",
+   "local_path": "data/ant/1996.ant",
+   "downloaded": true,
+   "note": "OK, min -13.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1712/MUX-3 Rzeszow - Tarnobrzeg Komin ZCh Siarkopol",
+   "ant_file_id": "1712",
+   "local_path": "data/ant/1712.ant",
+   "downloaded": true,
+   "note": "OK, min -13.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2080/MUX-6 - Tarnobrzeg Komin ZCh Siarkopol",
+   "ant_file_id": "2080",
+   "local_path": "data/ant/2080.ant",
+   "downloaded": true,
+   "note": "OK, min -13.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1799/MUX-8 - Tarnobrzeg Komin ZCh Siarkopol",
+   "ant_file_id": "1799",
+   "local_path": "data/ant/1799.ant",
+   "downloaded": true,
+   "note": "OK, min -40.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Nowa Ruda Slupiec",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Nowa Ruda Gora Krepiec",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1654/MUX-3 Kielce - Jedrzejow Skroniow",
+   "ant_file_id": "1654",
+   "local_path": "data/ant/1654.ant",
+   "downloaded": true,
+   "note": "OK, min -13.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1710/MUX-3 Opole - Opole Korfantego",
+   "ant_file_id": "1710",
+   "local_path": "data/ant/1710.ant",
+   "downloaded": true,
+   "note": "OK, min -15.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Mieroszow Wzgorze Cmentarne",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Sokolowsko Polana h42",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Gluszyca ul. Lesna",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1616/MUX-3 Wroclaw - Walim Gora Ostra",
+   "ant_file_id": "1616",
+   "local_path": "data/ant/1616.ant",
+   "downloaded": true,
+   "note": "OK, min -16.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Kielce - Sandomierz ul. Mokoszynska",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1611/MUX-3 Wroclaw - Lubawka Ulanowice",
+   "ant_file_id": "1611",
+   "local_path": "data/ant/1611.ant",
+   "downloaded": true,
+   "note": "OK, min -19.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Lubawka Gora Swieta",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Jedlina-Zdroj Gora Kawiniec",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1679/MUX-3 Wroclaw - Kowary Gora Rudnik",
+   "ant_file_id": "1679",
+   "local_path": "data/ant/1679.ant",
+   "downloaded": true,
+   "note": "OK, min -16.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Sciegny Gora Pohulanka",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Sciegny Gora Pohulanka",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Sciegny Gora Pohulanka",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Katowice - Czestochowa Bleszno",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Kamienna Gora Gora Parkowa",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/468/MUX-1 - Jelenia Gora Sniezne Kotly",
+   "ant_file_id": "468",
+   "local_path": "data/ant/468.ant",
+   "downloaded": true,
+   "note": "OK, min -43.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1522/MUX-2 - Jelenia Gora Sniezne Kotly",
+   "ant_file_id": "1522",
+   "local_path": "data/ant/1522.ant",
+   "downloaded": true,
+   "note": "OK, min -40.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1677/MUX-3 Wroclaw - Jelenia Gora Sniezne Kotly",
+   "ant_file_id": "1677",
+   "local_path": "data/ant/1677.ant",
+   "downloaded": true,
+   "note": "OK, min -40.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1907/MUX-4 - Jelenia Gora Sniezne Kotly",
+   "ant_file_id": "1907",
+   "local_path": "data/ant/1907.ant",
+   "downloaded": true,
+   "note": "OK, min -40.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1912/MUX-6 - Jelenia Gora Sniezne Kotly",
+   "ant_file_id": "1912",
+   "local_path": "data/ant/1912.ant",
+   "downloaded": true,
+   "note": "OK, min -40.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1757/MUX-8 - Jelenia Gora Sniezne Kotly",
+   "ant_file_id": "1757",
+   "local_path": "data/ant/1757.ant",
+   "downloaded": true,
+   "note": "OK, min -40.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Walbrzych Gora Chelmiec h70",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Walbrzych Gora Chelmiec h70",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1606/MUX-3 Wroclaw - Walbrzych Gora Chelmiec h70",
+   "ant_file_id": "1606",
+   "local_path": "data/ant/1606.ant",
+   "downloaded": true,
+   "note": "OK, min -40.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Walbrzych Gora Chelmiec h70",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1777/MUX-8 - Walbrzych Gora Chelmiec h70",
+   "ant_file_id": "1777",
+   "local_path": "data/ant/1777.ant",
+   "downloaded": true,
+   "note": "OK, min -18.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1609/MUX-3 Wroclaw - Karpacz Gorny ul. Spokojna",
+   "ant_file_id": "1609",
+   "local_path": "data/ant/1609.ant",
+   "downloaded": true,
+   "note": "OK, min -26.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/562/MUX-3 Lublin - Hrubieszow Nieledew",
+   "ant_file_id": "562",
+   "local_path": "data/ant/562.ant",
+   "downloaded": true,
+   "note": "OK, min -13.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-L3 MWE Broadcast - Czestochowa Komin b. CSM Mleczgal",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-L4 MWE Teleport - Swidnica ul. Sklodowskiej-Curie",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/453/MUX-1 - Czestochowa Wreczyca",
+   "ant_file_id": "453",
+   "local_path": "data/ant/453.ant",
+   "downloaded": true,
+   "note": "OK, min -9.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/483/MUX-2 - Czestochowa Wreczyca",
+   "ant_file_id": "483",
+   "local_path": "data/ant/483.ant",
+   "downloaded": true,
+   "note": "OK, min -9.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1623/MUX-3 Katowice - Czestochowa Wreczyca",
+   "ant_file_id": "1623",
+   "local_path": "data/ant/1623.ant",
+   "downloaded": true,
+   "note": "OK, min -9.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1923/MUX-4 - Czestochowa Wreczyca",
+   "ant_file_id": "1923",
+   "local_path": "data/ant/1923.ant",
+   "downloaded": true,
+   "note": "OK, min -9.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2054/MUX-6 - Czestochowa Wreczyca",
+   "ant_file_id": "2054",
+   "local_path": "data/ant/2054.ant",
+   "downloaded": true,
+   "note": "OK, min -9.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1750/MUX-8 - Czestochowa Wreczyca",
+   "ant_file_id": "1750",
+   "local_path": "data/ant/1750.ant",
+   "downloaded": true,
+   "note": "OK, min -24.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Piechowice Gorzyniec",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Kielce Swiety Krzyz",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Kielce Swiety Krzyz",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Kielce - Kielce Swiety Krzyz",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Kielce Swiety Krzyz",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Kielce Swiety Krzyz",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1759/MUX-8 - Kielce Swiety Krzyz",
+   "ant_file_id": "1759",
+   "local_path": "data/ant/1759.ant",
+   "downloaded": true,
+   "note": "OK, min -8.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Wroclaw Gora Sleza",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Wroclaw Gora Sleza",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Wroclaw Gora Sleza",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Wroclaw Gora Sleza",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Wroclaw Gora Sleza",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1744/MUX-8 - Wroclaw Gora Sleza",
+   "ant_file_id": "1744",
+   "local_path": "data/ant/1744.ant",
+   "downloaded": true,
+   "note": "OK, min -24.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Bogatynia Gora Wysoka",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1747/MUX-8 - Bogatynia Gora Wysoka",
+   "ant_file_id": "1747",
+   "local_path": "data/ant/1747.ant",
+   "downloaded": true,
+   "note": "OK, min -31.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1574/MUX-3 Opole - Olesno ul. Lesna",
+   "ant_file_id": "1574",
+   "local_path": "data/ant/1574.ant",
+   "downloaded": true,
+   "note": "OK, min -13.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Kielce - Kielce Komin EC",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Swieradow-Zdroj Gora Zajecznik",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Lublin - Krasnik ul. Lubelska",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Wojcieszow Gora Milek",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1734/MUX-L1 MWE Teleport - Jelenia Gora Lysa Gora h69",
+   "ant_file_id": "1734",
+   "local_path": "data/ant/1734.ant",
+   "downloaded": true,
+   "note": "OK, min -3.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1812/MUX-1 - Namyslow Swierczow",
+   "ant_file_id": "1812",
+   "local_path": "data/ant/1812.ant",
+   "downloaded": true,
+   "note": "OK, min -20.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1882/MUX-2 - Namyslow Swierczow",
+   "ant_file_id": "1882",
+   "local_path": "data/ant/1882.ant",
+   "downloaded": true,
+   "note": "OK, min -16.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1972/MUX-3 Opole - Namyslow Swierczow",
+   "ant_file_id": "1972",
+   "local_path": "data/ant/1972.ant",
+   "downloaded": true,
+   "note": "OK, min -17.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2079/MUX-6 - Namyslow Swierczow",
+   "ant_file_id": "2079",
+   "local_path": "data/ant/2079.ant",
+   "downloaded": true,
+   "note": "OK, min -18.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1676/MUX-3 Wroclaw - Dzialoszyn Centrum METEO",
+   "ant_file_id": "1676",
+   "local_path": "data/ant/1676.ant",
+   "downloaded": true,
+   "note": "OK, min -19.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/502/MUX-3 Wroclaw - Wroclaw Zorawina",
+   "ant_file_id": "502",
+   "local_path": "data/ant/502.ant",
+   "downloaded": true,
+   "note": "OK, min -35.3 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Wloszczowa Dobromierz",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Wloszczowa Dobromierz",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Kielce - Wloszczowa Dobromierz",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Wloszczowa Dobromierz",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1752/MUX-8 - Wloszczowa Dobromierz",
+   "ant_file_id": "1752",
+   "local_path": "data/ant/1752.ant",
+   "downloaded": true,
+   "note": "OK, min -22.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Lublin - Lublin Bozy Dar",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1792/MUX-8 - Lublin Bozy Dar",
+   "ant_file_id": "1792",
+   "local_path": "data/ant/1792.ant",
+   "downloaded": true,
+   "note": "OK, min -21.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Swierzawa ul. Mickiewicza",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1685/MUX-3 Wroclaw - Wlen Modrzewie",
+   "ant_file_id": "1685",
+   "local_path": "data/ant/1685.ant",
+   "downloaded": true,
+   "note": "OK, min -15.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Lesna Gora Lesna",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Kielce - Starachowice ul. Martenowska",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Lodz - Przedborz ul. Radomszczanska",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/EXP MUX BCAST Wroclaw - Wroclaw Budynek Sky Tower",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-L4 MWE Teleport - Wroclaw Budynek Sky Tower",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Lublin Piaski",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Lublin Piaski",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Lublin - Lublin Piaski",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Lublin Piaski",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Lublin Piaski",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1764/MUX-8 - Lublin Piaski",
+   "ant_file_id": "1764",
+   "local_path": "data/ant/1764.ant",
+   "downloaded": true,
+   "note": "OK, min -13.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Luban Nowa Karczma",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Warszawa - Lipsko Spacerowa",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1687/MUX-3 Wroclaw - Zgorzelec Wieza Cisnien",
+   "ant_file_id": "1687",
+   "local_path": "data/ant/1687.ant",
+   "downloaded": true,
+   "note": "OK, min -14.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1391/MUX-3 Lodz - Wielun Kamionka",
+   "ant_file_id": "1391",
+   "local_path": "data/ant/1391.ant",
+   "downloaded": true,
+   "note": "OK, min -12.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Kamiensk Gora Kamienska h75",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Kamiensk Gora Kamienska h75",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Lodz - Kamiensk Gora Kamienska h75",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Kamiensk Gora Kamienska h75",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1804/MUX-8 - Kamiensk Gora Kamienska h75",
+   "ant_file_id": "1804",
+   "local_path": "data/ant/1804.ant",
+   "downloaded": true,
+   "note": "OK, min -16.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Wroclaw - Legnica Piastowska",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Lublin - Lublin Raabego",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1776/MUX-8 - Trzebnica Gora Farna",
+   "ant_file_id": "1776",
+   "local_path": "data/ant/1776.ant",
+   "downloaded": true,
+   "note": "OK, min -35.1 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1425/MUX-3 Lodz - Wieruszow Tyble",
+   "ant_file_id": "1425",
+   "local_path": "data/ant/1425.ant",
+   "downloaded": true,
+   "note": "OK, min -12.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1405/MUX-3 Lublin - Kazimierz Dolny Gory",
+   "ant_file_id": "1405",
+   "local_path": "data/ant/1405.ant",
+   "downloaded": true,
+   "note": "OK, min -13.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/540/MUX-3 Wroclaw - Sycow Droltowice",
+   "ant_file_id": "540",
+   "local_path": "data/ant/540.ant",
+   "downloaded": true,
+   "note": "OK, min -13.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1789/MUX-8 - Kobyla Gora Kobyla Gora",
+   "ant_file_id": "1789",
+   "local_path": "data/ant/1789.ant",
+   "downloaded": true,
+   "note": "OK, min -26.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Przysucha Kozlowiec",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Przysucha Kozlowiec",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Lodz - Przysucha Kozlowiec",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2100/MUX-3 Kielce - Przysucha Kozlowiec",
+   "ant_file_id": "2100",
+   "local_path": "data/ant/2100.ant",
+   "downloaded": true,
+   "note": "OK, min -37.3 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Przysucha Kozlowiec",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Przysucha Kozlowiec",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1769/MUX-8 - Przysucha Kozlowiec",
+   "ant_file_id": "1769",
+   "local_path": "data/ant/1769.ant",
+   "downloaded": true,
+   "note": "OK, min -31.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1732/MUX-L7 TVL - Lubin Komin MPEC Termal",
+   "ant_file_id": "1732",
+   "local_path": "data/ant/1732.ant",
+   "downloaded": true,
+   "note": "OK, min -2.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Warszawa - Radom Wacyn h164",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1771/MUX-8 - Radom Wacyn h164",
+   "ant_file_id": "1771",
+   "local_path": "data/ant/1771.ant",
+   "downloaded": true,
+   "note": "OK, min -5.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Lodz - Tomaszow Mazowiecki ul. Moscickiego",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Kalisz Mikstat",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Kalisz Mikstat",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Poznan - Kalisz Mikstat",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Kalisz Mikstat",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Kalisz Mikstat",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-L3 MWE Broadcast - Tomaszow Mazowiecki Komin b. ZWCh Wistom",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/557/MUX-1 - Wlodawa Zolnierzy WiN",
+   "ant_file_id": "557",
+   "local_path": "data/ant/557.ant",
+   "downloaded": true,
+   "note": "OK, min -13.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/556/MUX-2 - Wlodawa Zolnierzy WiN",
+   "ant_file_id": "556",
+   "local_path": "data/ant/556.ant",
+   "downloaded": true,
+   "note": "OK, min -13.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/558/MUX-3 Lublin - Wlodawa Zolnierzy WiN",
+   "ant_file_id": "558",
+   "local_path": "data/ant/558.ant",
+   "downloaded": true,
+   "note": "OK, min -13.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2082/MUX-6 - Wlodawa Zolnierzy WiN",
+   "ant_file_id": "2082",
+   "local_path": "data/ant/2082.ant",
+   "downloaded": true,
+   "note": "OK, min -13.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/507/MUX-3 Wroclaw - Glogow Jakubow h63",
+   "ant_file_id": "507",
+   "local_path": "data/ant/507.ant",
+   "downloaded": true,
+   "note": "OK, min -35.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1802/MUX-8 - Glogow Jakubow h63",
+   "ant_file_id": "1802",
+   "local_path": "data/ant/1802.ant",
+   "downloaded": true,
+   "note": "OK, min -37.1 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1733/MUX-L7 TVL - Glogow Jakubow h70",
+   "ant_file_id": "1733",
+   "local_path": "data/ant/1733.ant",
+   "downloaded": true,
+   "note": "OK, min -2.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Ryki Janiszewska",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Ryki Janiszewska",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1700/MUX-3 Warszawa - Ryki Janiszewska",
+   "ant_file_id": "1700",
+   "local_path": "data/ant/1700.ant",
+   "downloaded": false,
+   "note": "same zera (brak charakterystyki)"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Lublin - Ryki Janiszewska",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Ryki Janiszewska",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Ryki Janiszewska",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1751/MUX-8 - Ryki Janiszewska",
+   "ant_file_id": "1751",
+   "local_path": "data/ant/1751.ant",
+   "downloaded": true,
+   "note": "OK, min -11.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1811/MUX-8 - Zduny Komin BM Kobylin",
+   "ant_file_id": "1811",
+   "local_path": "data/ant/1811.ant",
+   "downloaded": true,
+   "note": "OK, min -28.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Poznan - Kalisz Chelmce",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1758/MUX-8 - Kalisz Chelmce",
+   "ant_file_id": "1758",
+   "local_path": "data/ant/1758.ant",
+   "downloaded": true,
+   "note": "OK, min -7.1 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Zagan Wichow",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Zagan Wichow",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Gorzow Wielkopolski - Zagan Wichow",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Zagan Wichow",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Zagan Wichow",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1783/MUX-8 - Zagan Wichow",
+   "ant_file_id": "1783",
+   "local_path": "data/ant/1783.ant",
+   "downloaded": true,
+   "note": "OK, min -16.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1909/MUX-1 - Lodz Zygry",
+   "ant_file_id": "1909",
+   "local_path": "data/ant/1909.ant",
+   "downloaded": true,
+   "note": "OK, min -13.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1911/MUX-2 - Lodz Zygry",
+   "ant_file_id": "1911",
+   "local_path": "data/ant/1911.ant",
+   "downloaded": true,
+   "note": "OK, min -13.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1719/MUX-3 Lodz - Lodz Zygry",
+   "ant_file_id": "1719",
+   "local_path": "data/ant/1719.ant",
+   "downloaded": true,
+   "note": "OK, min -13.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1504/MUX-4 - Lodz Zygry",
+   "ant_file_id": "1504",
+   "local_path": "data/ant/1504.ant",
+   "downloaded": true,
+   "note": "OK, min -13.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1976/MUX-6 - Lodz Zygry",
+   "ant_file_id": "1976",
+   "local_path": "data/ant/1976.ant",
+   "downloaded": true,
+   "note": "OK, min -13.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1741/MUX-8 - Lodz Zygry",
+   "ant_file_id": "1741",
+   "local_path": "data/ant/1741.ant",
+   "downloaded": true,
+   "note": "OK, min -20.3 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Lublin - Wisznice Dubica Dolna",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Lodz Wzgorze Radary",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Lodz Wzgorze Radary",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Lodz - Lodz Wzgorze Radary",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Lodz Wzgorze Radary",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Lodz Wzgorze Radary",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Lublin - Lukow Celiny Szlacheckie",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Gorzow Wielkopolski - Zielona Gora Ptasia",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/544/MUX-3 Gorzow Wielkopolski - Gubin ul. Wolynska",
+   "ant_file_id": "544",
+   "local_path": "data/ant/544.ant",
+   "downloaded": true,
+   "note": "OK, min -9.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/567/MUX-1 - Skierniewice Bartniki",
+   "ant_file_id": "567",
+   "local_path": "data/ant/567.ant",
+   "downloaded": true,
+   "note": "OK, min -14.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1880/MUX-2 - Skierniewice Bartniki",
+   "ant_file_id": "1880",
+   "local_path": "data/ant/1880.ant",
+   "downloaded": true,
+   "note": "OK, min -14.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1702/MUX-3 Lodz - Skierniewice Bartniki",
+   "ant_file_id": "1702",
+   "local_path": "data/ant/1702.ant",
+   "downloaded": true,
+   "note": "OK, min -14.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2078/MUX-6 - Skierniewice Bartniki",
+   "ant_file_id": "2078",
+   "local_path": "data/ant/2078.ant",
+   "downloaded": true,
+   "note": "OK, min -14.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1786/MUX-8 - Skierniewice Bartniki",
+   "ant_file_id": "1786",
+   "local_path": "data/ant/1786.ant",
+   "downloaded": true,
+   "note": "OK, min -3.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/565/MUX-3 Lublin - Terespol Dobryn Duzy",
+   "ant_file_id": "565",
+   "local_path": "data/ant/565.ant",
+   "downloaded": true,
+   "note": "OK, min -13.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Warszawa Raszyn",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Warszawa Raszyn",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Warszawa - Warszawa Raszyn",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Warszawa Raszyn",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Warszawa Raszyn",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-8 - Warszawa Raszyn",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Poznan Srem",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Poznan Srem",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Poznan - Poznan Srem",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Poznan Srem",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Poznan Srem",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1767/MUX-8 - Poznan Srem",
+   "ant_file_id": "1767",
+   "local_path": "data/ant/1767.ant",
+   "downloaded": true,
+   "note": "OK, min -11.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1797/MUX-8 - Siedlce Blonie",
+   "ant_file_id": "1797",
+   "local_path": "data/ant/1797.ant",
+   "downloaded": true,
+   "note": "OK, min -30.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Siedlce Losice",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Siedlce Losice",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1709/MUX-3 Warszawa - Siedlce Losice",
+   "ant_file_id": "1709",
+   "local_path": "data/ant/1709.ant",
+   "downloaded": true,
+   "note": "OK, min -13.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Lublin - Siedlce Losice",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Siedlce Losice",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Siedlce Losice",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1772/MUX-8 - Siedlce Losice",
+   "ant_file_id": "1772",
+   "local_path": "data/ant/1772.ant",
+   "downloaded": true,
+   "note": "OK, min -19.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Warszawa Palac Kultury i Nauki",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Warszawa Palac Kultury i Nauki",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Warszawa - Warszawa Palac Kultury i Nauki",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Warszawa Palac Kultury i Nauki",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Warszawa Palac Kultury i Nauki",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1743/MUX-8 - Warszawa Palac Kultury i Nauki",
+   "ant_file_id": "1743",
+   "local_path": "data/ant/1743.ant",
+   "downloaded": true,
+   "note": "OK, min -7.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/EXP MUX BCAST Gdansk. Warszawa - Warszawa Budynek WTT",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1624/MUX-1 - Kutno Sieciechow",
+   "ant_file_id": "1624",
+   "local_path": "data/ant/1624.ant",
+   "downloaded": true,
+   "note": "OK, min -12.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1705/MUX-2 - Kutno Sieciechow",
+   "ant_file_id": "1705",
+   "local_path": "data/ant/1705.ant",
+   "downloaded": true,
+   "note": "OK, min -12.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1704/MUX-3 Lodz - Kutno Sieciechow",
+   "ant_file_id": "1704",
+   "local_path": "data/ant/1704.ant",
+   "downloaded": true,
+   "note": "OK, min -12.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2077/MUX-6 - Kutno Sieciechow",
+   "ant_file_id": "2077",
+   "local_path": "data/ant/2077.ant",
+   "downloaded": true,
+   "note": "OK, min -12.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Bialystok - Mielnik Komin ZGK",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Zielona Gora Jemiolow",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Zielona Gora Jemiolow",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Gorzow Wielkopolski - Zielona Gora Jemiolow",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Zielona Gora Jemiolow",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Zielona Gora Jemiolow",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1782/MUX-8 - Zielona Gora Jemiolow",
+   "ant_file_id": "1782",
+   "local_path": "data/ant/1782.ant",
+   "downloaded": true,
+   "note": "OK, min -15.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Konin Zolwieniec",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Konin Zolwieniec",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Poznan - Konin Zolwieniec",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1648/MUX-3 Bydgoszcz - Konin Zolwieniec",
+   "ant_file_id": "1648",
+   "local_path": "data/ant/1648.ant",
+   "downloaded": true,
+   "note": "OK, min -23.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Konin Zolwieniec",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Konin Zolwieniec",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1761/MUX-8 - Konin Zolwieniec",
+   "ant_file_id": "1761",
+   "local_path": "data/ant/1761.ant",
+   "downloaded": true,
+   "note": "OK, min -16.3 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1523/MUX-3 Poznan - Nowy Tomysl Bolewice",
+   "ant_file_id": "1523",
+   "local_path": "data/ant/1523.ant",
+   "downloaded": true,
+   "note": "OK, min -20.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-8 - Poznan Collegium Altum",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Poznan - Poznan Piatkowo h128",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Warszawa - Plock Komin b. mleczarni Mitex",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Plock Komin b. mleczarni Mitex",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Plock Komin b. mleczarni Mitex",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1806/MUX-8 - Plock Komin b. mleczarni Mitex",
+   "ant_file_id": "1806",
+   "local_path": "data/ant/1806.ant",
+   "downloaded": true,
+   "note": "OK, min -6.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/570/MUX-3 Bialystok - Kleszczele Czeremcha-Wies",
+   "ant_file_id": "570",
+   "local_path": "data/ant/570.ant",
+   "downloaded": true,
+   "note": "OK, min -13.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Sokolow Podlaski Chruszczewka",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Sokolow Podlaski Chruszczewka",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Warszawa - Sokolow Podlaski Chruszczewka",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Sokolow Podlaski Chruszczewka",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1748/MUX-8 - Sokolow Podlaski Chruszczewka",
+   "ant_file_id": "1748",
+   "local_path": "data/ant/1748.ant",
+   "downloaded": true,
+   "note": "OK, min -11.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1663/MUX-3 Bialystok - Siemiatycze Makarki",
+   "ant_file_id": "1663",
+   "local_path": "data/ant/1663.ant",
+   "downloaded": true,
+   "note": "OK, min -14.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Gniezno Strzyzewo Koscielne",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Gniezno Strzyzewo Koscielne",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1514/MUX-3 Poznan - Gniezno Strzyzewo Koscielne",
+   "ant_file_id": "1514",
+   "local_path": "data/ant/1514.ant",
+   "downloaded": true,
+   "note": "OK, min -7.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Gniezno Strzyzewo Koscielne",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1810/MUX-8 - Oborniki Uscikowo-Folwark",
+   "ant_file_id": "1810",
+   "local_path": "data/ant/1810.ant",
+   "downloaded": true,
+   "note": "OK, min -4.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1779/MUX-8 - Wloclawek pl. Wolnosci",
+   "ant_file_id": "1779",
+   "local_path": "data/ant/1779.ant",
+   "downloaded": true,
+   "note": "OK, min -4.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1698/MUX-3 Bydgoszcz - Wloclawek Komin Cieplowni Zazamcze",
+   "ant_file_id": "1698",
+   "local_path": "data/ant/1698.ant",
+   "downloaded": true,
+   "note": "OK, min -13.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/501/MUX-3 Gorzow Wielkopolski - Gorzow Wielkopolski Podmiejska",
+   "ant_file_id": "501",
+   "local_path": "data/ant/501.ant",
+   "downloaded": true,
+   "note": "OK, min -25.2 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1662/MUX-3 Bialystok - Czyze Srebrna Gorka",
+   "ant_file_id": "1662",
+   "local_path": "data/ant/1662.ant",
+   "downloaded": true,
+   "note": "OK, min -13.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1800/MUX-8 - Czyze Srebrna Gorka",
+   "ant_file_id": "1800",
+   "local_path": "data/ant/1800.ant",
+   "downloaded": true,
+   "note": "OK, min -26.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/512/MUX-3 Poznan - Wagrowiec ul. Mickiewicza",
+   "ant_file_id": "512",
+   "local_path": "data/ant/512.ant",
+   "downloaded": true,
+   "note": "OK, min -15.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1658/MUX-3 Warszawa - Ostrow Mazowiecka Podborze h77",
+   "ant_file_id": "1658",
+   "local_path": "data/ant/1658.ant",
+   "downloaded": true,
+   "note": "OK, min -23.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Ciechanow Monte Cassino",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Ciechanow Monte Cassino",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Warszawa - Ciechanow Monte Cassino",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Ciechanow Monte Cassino",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1749/MUX-8 - Ciechanow Monte Cassino",
+   "ant_file_id": "1749",
+   "local_path": "data/ant/1749.ant",
+   "downloaded": true,
+   "note": "OK, min -6.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Ostroleka Rozan",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Ostroleka Rozan",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Warszawa - Ostroleka Rozan",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Ostroleka Rozan",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Ostroleka Rozan",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Plock Rachocin",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Plock Rachocin",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2144/MUX-3 Bydgoszcz - Plock Rachocin",
+   "ant_file_id": "2144",
+   "local_path": "data/ant/2144.ant",
+   "downloaded": true,
+   "note": "OK, min -13.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Warszawa - Plock Rachocin",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Plock Rachocin",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Plock Rachocin",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1790/MUX-8 - Plock Rachocin",
+   "ant_file_id": "1790",
+   "local_path": "data/ant/1790.ant",
+   "downloaded": true,
+   "note": "OK, min -8.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1701/MUX-3 Gorzow Wielkopolski - Dobiegniew ul. Lesna",
+   "ant_file_id": "1701",
+   "local_path": "data/ant/1701.ant",
+   "downloaded": true,
+   "note": "OK, min -39.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Poznan - Chodziez ul. Strzelecka",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Golancz Chojna",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Golancz Chojna",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Poznan - Golancz Chojna",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Golancz Chojna",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Golancz Chojna",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1755/MUX-8 - Golancz Chojna",
+   "ant_file_id": "1755",
+   "local_path": "data/ant/1755.ant",
+   "downloaded": true,
+   "note": "OK, min -10.3 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1627/MUX-3 Bydgoszcz - Torun Komin PGE Torun",
+   "ant_file_id": "1627",
+   "local_path": "data/ant/1627.ant",
+   "downloaded": true,
+   "note": "OK, min -13.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1809/MUX-8 - Torun Komin PGE Torun",
+   "ant_file_id": "1809",
+   "local_path": "data/ant/1809.ant",
+   "downloaded": true,
+   "note": "OK, min -37.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Ostroleka Lawy",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Ostroleka Lawy",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Warszawa - Ostroleka Lawy",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Ostroleka Lawy",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1766/MUX-8 - Ostroleka Kopernika",
+   "ant_file_id": "1766",
+   "local_path": "data/ant/1766.ant",
+   "downloaded": true,
+   "note": "OK, min -23.1 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/569/MUX-3 Warszawa - Przasnysz Jastrzebiec",
+   "ant_file_id": "569",
+   "local_path": "data/ant/569.ant",
+   "downloaded": true,
+   "note": "OK, min -13.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Bydgoszcz - Bydgoszcz Chodkiewicza",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1484/MUX-1 - Lomza Szosa Zambrowska",
+   "ant_file_id": "1484",
+   "local_path": "data/ant/1484.ant",
+   "downloaded": true,
+   "note": "OK, min -21.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1520/MUX-2 - Lomza Szosa Zambrowska",
+   "ant_file_id": "1520",
+   "local_path": "data/ant/1520.ant",
+   "downloaded": true,
+   "note": "OK, min -20.2 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1690/MUX-3 Bialystok - Lomza Szosa Zambrowska",
+   "ant_file_id": "1690",
+   "local_path": "data/ant/1690.ant",
+   "downloaded": true,
+   "note": "OK, min -20.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2074/MUX-6 - Lomza Szosa Zambrowska",
+   "ant_file_id": "2074",
+   "local_path": "data/ant/2074.ant",
+   "downloaded": true,
+   "note": "OK, min -20.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1765/MUX-8 - Lomza Szosa Zambrowska",
+   "ant_file_id": "1765",
+   "local_path": "data/ant/1765.ant",
+   "downloaded": true,
+   "note": "OK, min -14.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Walcz Rusinowo",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Walcz Rusinowo",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Poznan - Walcz Rusinowo",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Szczecin - Walcz Rusinowo",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Walcz Rusinowo",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Walcz Rusinowo",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1794/MUX-8 - Walcz Rusinowo",
+   "ant_file_id": "1794",
+   "local_path": "data/ant/1794.ant",
+   "downloaded": true,
+   "note": "OK, min -11.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Bialystok Krynice h332",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Bialystok Krynice h332",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1661/MUX-3 Bialystok - Bialystok Krynice h332",
+   "ant_file_id": "1661",
+   "local_path": "data/ant/1661.ant",
+   "downloaded": true,
+   "note": "OK, min -9.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1940/MUX-4 - Bialystok Krynice h332",
+   "ant_file_id": "1940",
+   "local_path": "data/ant/1940.ant",
+   "downloaded": true,
+   "note": "OK, min -9.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2014/MUX-6 - Bialystok Krynice h332",
+   "ant_file_id": "2014",
+   "local_path": "data/ant/2014.ant",
+   "downloaded": true,
+   "note": "OK, min -7.2 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1791/MUX-8 - Bialystok Krynice h332",
+   "ant_file_id": "1791",
+   "local_path": "data/ant/1791.ant",
+   "downloaded": true,
+   "note": "OK, min -20.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Bydgoszcz Trzeciewiec",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Bydgoszcz Trzeciewiec",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1625/MUX-3 Bydgoszcz - Bydgoszcz Trzeciewiec",
+   "ant_file_id": "1625",
+   "local_path": "data/ant/1625.ant",
+   "downloaded": true,
+   "note": "OK, min -3.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Bydgoszcz Trzeciewiec",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Bydgoszcz Trzeciewiec",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1784/MUX-8 - Bydgoszcz Trzeciewiec",
+   "ant_file_id": "1784",
+   "local_path": "data/ant/1784.ant",
+   "downloaded": true,
+   "note": "OK, min -4.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/463/MUX-1 - Szczecin Kolowo",
+   "ant_file_id": "463",
+   "local_path": "data/ant/463.ant",
+   "downloaded": true,
+   "note": "OK, min -8.2 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1434/MUX-2 - Szczecin Kolowo",
+   "ant_file_id": "1434",
+   "local_path": "data/ant/1434.ant",
+   "downloaded": true,
+   "note": "OK, min -8.1 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1428/MUX-3 Szczecin - Szczecin Kolowo",
+   "ant_file_id": "1428",
+   "local_path": "data/ant/1428.ant",
+   "downloaded": true,
+   "note": "OK, min -8.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/568/MUX-4 - Szczecin Kolowo",
+   "ant_file_id": "568",
+   "local_path": "data/ant/568.ant",
+   "downloaded": true,
+   "note": "OK, min -8.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2048/MUX-6 - Szczecin Kolowo",
+   "ant_file_id": "2048",
+   "local_path": "data/ant/2048.ant",
+   "downloaded": true,
+   "note": "OK, min -8.2 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1774/MUX-8 - Szczecin Kolowo",
+   "ant_file_id": "1774",
+   "local_path": "data/ant/1774.ant",
+   "downloaded": true,
+   "note": "OK, min -10.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1664/MUX-3 Bialystok - Kolno Zaskrodzie",
+   "ant_file_id": "1664",
+   "local_path": "data/ant/1664.ant",
+   "downloaded": true,
+   "note": "OK, min -13.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1644/MUX-3 Olsztyn - Nowe Miasto Lubawskie Kurzetnik",
+   "ant_file_id": "1644",
+   "local_path": "data/ant/1644.ant",
+   "downloaded": true,
+   "note": "OK, min -34.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1626/MUX-3 Bydgoszcz - Grudziadz ul. Nad Torem",
+   "ant_file_id": "1626",
+   "local_path": "data/ant/1626.ant",
+   "downloaded": false,
+   "note": "same zera (brak charakterystyki)"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1722/MUX-3 Szczecin - Szczecin Warszewo",
+   "ant_file_id": "1722",
+   "local_path": "data/ant/1722.ant",
+   "downloaded": true,
+   "note": "OK, min -41.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2060/MUX-3 Olsztyn - Ostroda Dylewska Gora",
+   "ant_file_id": "2060",
+   "local_path": "data/ant/2060.ant",
+   "downloaded": true,
+   "note": "OK, min -34.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/571/MUX-3 Bialystok - Szczuczyn Bzury",
+   "ant_file_id": "571",
+   "local_path": "data/ant/571.ant",
+   "downloaded": true,
+   "note": "OK, min -13.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Ilawa Kisielice",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Ilawa Kisielice",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Gdansk - Ilawa Kisielice",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Olsztyn - Ilawa Kisielice",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Bydgoszcz - Ilawa Kisielice",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Ilawa Kisielice",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Ilawa Kisielice",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1756/MUX-8 - Ilawa Kisielice",
+   "ant_file_id": "1756",
+   "local_path": "data/ant/1756.ant",
+   "downloaded": true,
+   "note": "OK, min -3.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Szczecin - Lobez ul. Podgorna",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Gdansk - Czluchow Szkolna",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1801/MUX-8 - Czluchow Szkolna",
+   "ant_file_id": "1801",
+   "local_path": "data/ant/1801.ant",
+   "downloaded": true,
+   "note": "OK, min -7.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/572/MUX-3 Bialystok - Lipsk Jermakowicza",
+   "ant_file_id": "572",
+   "local_path": "data/ant/572.ant",
+   "downloaded": true,
+   "note": "OK, min -13.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Olsztyn Pieczewo",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Olsztyn Pieczewo",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Olsztyn - Olsztyn Pieczewo",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Olsztyn Pieczewo",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Olsztyn Pieczewo",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1785/MUX-8 - Olsztyn Pieczewo",
+   "ant_file_id": "1785",
+   "local_path": "data/ant/1785.ant",
+   "downloaded": true,
+   "note": "OK, min -17.4 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Olsztyn - Mragowo Spacerowa",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Bialogard Slawoborze",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Bialogard Slawoborze",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Szczecin - Bialogard Slawoborze",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Bialogard Slawoborze",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Bialogard Slawoborze",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1745/MUX-8 - Bialogard Slawoborze",
+   "ant_file_id": "1745",
+   "local_path": "data/ant/1745.ant",
+   "downloaded": true,
+   "note": "OK, min -12.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Szczecin - Gryfice Trzyglowska",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2135/MUX-3 Szczecin - Swinoujscie Chrobrego",
+   "ant_file_id": "2135",
+   "local_path": "data/ant/2135.ant",
+   "downloaded": true,
+   "note": "OK, min -31.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1478/MUX-1 - Gizycko Milki",
+   "ant_file_id": "1478",
+   "local_path": "data/ant/1478.ant",
+   "downloaded": true,
+   "note": "OK, min -11.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1517/MUX-2 - Gizycko Milki",
+   "ant_file_id": "1517",
+   "local_path": "data/ant/1517.ant",
+   "downloaded": true,
+   "note": "OK, min -11.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Olsztyn - Gizycko Milki",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Gizycko Milki",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Gizycko Milki",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1754/MUX-8 - Gizycko Milki",
+   "ant_file_id": "1754",
+   "local_path": "data/ant/1754.ant",
+   "downloaded": true,
+   "note": "OK, min -19.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/473/MUX-1 - Miedzyzdroje Gora Grzywacz",
+   "ant_file_id": "473",
+   "local_path": "data/ant/473.ant",
+   "downloaded": true,
+   "note": "OK, min -10.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/481/MUX-2 - Miedzyzdroje Gora Grzywacz",
+   "ant_file_id": "481",
+   "local_path": "data/ant/481.ant",
+   "downloaded": true,
+   "note": "OK, min -10.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1427/MUX-3 Szczecin - Miedzyzdroje Gora Grzywacz",
+   "ant_file_id": "1427",
+   "local_path": "data/ant/1427.ant",
+   "downloaded": true,
+   "note": "OK, min -10.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2021/MUX-6 - Miedzyzdroje Gora Grzywacz",
+   "ant_file_id": "2021",
+   "local_path": "data/ant/2021.ant",
+   "downloaded": true,
+   "note": "OK, min -10.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1803/MUX-8 - Miedzyzdroje Gora Grzywacz",
+   "ant_file_id": "1803",
+   "local_path": "data/ant/1803.ant",
+   "downloaded": true,
+   "note": "OK, min -22.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Koszalin Gologora h271",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Koszalin Gologora h271",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1721/MUX-3 Szczecin - Koszalin Gologora h271",
+   "ant_file_id": "1721",
+   "local_path": "data/ant/1721.ant",
+   "downloaded": true,
+   "note": "OK, min -13.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1652/MUX-3 Gdansk - Koszalin Gologora h271",
+   "ant_file_id": "1652",
+   "local_path": "data/ant/1652.ant",
+   "downloaded": true,
+   "note": "OK, min -13.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Koszalin Gologora h271",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Koszalin Gologora h271",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1762/MUX-8 - Koszalin Gologora h271",
+   "ant_file_id": "1762",
+   "local_path": "data/ant/1762.ant",
+   "downloaded": true,
+   "note": "OK, min -12.9 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Szczecin - Trzebiatow ul. Wodna",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1813/MUX-3 Szczecin - Rewal Trzesacz",
+   "ant_file_id": "1813",
+   "local_path": "data/ant/1813.ant",
+   "downloaded": true,
+   "note": "OK, min -8.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1421/MUX-3 Olsztyn - Ketrzyn ul. Lokietka",
+   "ant_file_id": "1421",
+   "local_path": "data/ant/1421.ant",
+   "downloaded": true,
+   "note": "OK, min -30.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2003/MUX LRT - Suwalki Gora Krzemianucha",
+   "ant_file_id": "2003",
+   "local_path": "data/ant/2003.ant",
+   "downloaded": true,
+   "note": "OK, min -13.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1877/MUX-1 - Suwalki Gora Krzemianucha",
+   "ant_file_id": "1877",
+   "local_path": "data/ant/1877.ant",
+   "downloaded": true,
+   "note": "OK, min -2.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1458/MUX-2 - Suwalki Gora Krzemianucha",
+   "ant_file_id": "1458",
+   "local_path": "data/ant/1458.ant",
+   "downloaded": true,
+   "note": "OK, min -11.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Bialystok - Suwalki Gora Krzemianucha",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Suwalki Gora Krzemianucha",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Suwalki Gora Krzemianucha",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1773/MUX-8 - Suwalki Gora Krzemianucha",
+   "ant_file_id": "1773",
+   "local_path": "data/ant/1773.ant",
+   "downloaded": true,
+   "note": "OK, min -17.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Szczecin - Koszalin Gora Chelmska",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Elblag Jagodnik",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Elblag Jagodnik",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Olsztyn - Elblag Jagodnik",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-4 - Elblag Jagodnik",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Elblag Jagodnik",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1753/MUX-8 - Elblag Jagodnik",
+   "ant_file_id": "1753",
+   "local_path": "data/ant/1753.ant",
+   "downloaded": true,
+   "note": "OK, min -33.2 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/508/MUX-3 Gdansk - Kartuzy Szymbark",
+   "ant_file_id": "508",
+   "local_path": "data/ant/508.ant",
+   "downloaded": true,
+   "note": "OK, min -19.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1775/MUX-8 - Kartuzy Szymbark",
+   "ant_file_id": "1775",
+   "local_path": "data/ant/1775.ant",
+   "downloaded": true,
+   "note": "OK, min -5.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1713/MUX-3 Gdansk - Gdansk Jaskowa Kopa",
+   "ant_file_id": "1713",
+   "local_path": "data/ant/1713.ant",
+   "downloaded": true,
+   "note": "OK, min -11.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Gdansk Jaskowa Kopa",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/520/EXP MUX BCAST Gdansk. Warszawa - Gdansk Budynek Olivia Star",
+   "ant_file_id": "520",
+   "local_path": "data/ant/520.ant",
+   "downloaded": true,
+   "note": "OK, min -2.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/478/MUX-1 - Gdansk Chwaszczyno",
+   "ant_file_id": "478",
+   "local_path": "data/ant/478.ant",
+   "downloaded": true,
+   "note": "OK, min -13.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1433/MUX-2 - Gdansk Chwaszczyno",
+   "ant_file_id": "1433",
+   "local_path": "data/ant/1433.ant",
+   "downloaded": true,
+   "note": "OK, min -13.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/504/MUX-3 Gdansk - Gdansk Chwaszczyno",
+   "ant_file_id": "504",
+   "local_path": "data/ant/504.ant",
+   "downloaded": true,
+   "note": "OK, min -26.6 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1512/MUX-4 - Gdansk Chwaszczyno",
+   "ant_file_id": "1512",
+   "local_path": "data/ant/1512.ant",
+   "downloaded": true,
+   "note": "OK, min -24.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2009/MUX-6 - Gdansk Chwaszczyno",
+   "ant_file_id": "2009",
+   "local_path": "data/ant/2009.ant",
+   "downloaded": true,
+   "note": "OK, min -24.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1738/MUX-8 - Gdansk Chwaszczyno",
+   "ant_file_id": "1738",
+   "local_path": "data/ant/1738.ant",
+   "downloaded": true,
+   "note": "OK, min -12.1 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1643/MUX-3 Gdansk - Slupsk Bierkowo",
+   "ant_file_id": "1643",
+   "local_path": "data/ant/1643.ant",
+   "downloaded": true,
+   "note": "OK, min -13.5 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-1 - Lebork Skorowo Nowe",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-2 - Lebork Skorowo Nowe",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-3 Gdansk - Lebork Skorowo Nowe",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/0/MUX-6 - Lebork Skorowo Nowe",
+   "ant_file_id": "",
+   "local_path": null,
+   "downloaded": false,
+   "note": "Link /0/ — RadioPolska nie ma charakterystyki tej emisji."
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1763/MUX-8 - Lebork Skorowo Nowe",
+   "ant_file_id": "1763",
+   "local_path": "data/ant/1763.ant",
+   "downloaded": true,
+   "note": "OK, min -5.7 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/1525/MUX-3 Gdansk - Gdynia Oksywie h70",
+   "ant_file_id": "1525",
+   "local_path": "data/ant/1525.ant",
+   "downloaded": true,
+   "note": "OK, min -17.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/2143/MUX-6 - Gdynia Oksywie h70",
+   "ant_file_id": "2143",
+   "local_path": "data/ant/2143.ant",
+   "downloaded": true,
+   "note": "OK, min -16.8 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/511/MUX-3 Gdansk - Wejherowo Komin Cieplowni Nanice",
+   "ant_file_id": "511",
+   "local_path": "data/ant/511.ant",
+   "downloaded": true,
+   "note": "OK, min -60.0 dB"
+  },
+  {
+   "url": "http://mapy.radiopolska.pl/files/ant_file/510/MUX-3 Gdansk - Choczewo Zelazno",
+   "ant_file_id": "510",
+   "local_path": "data/ant/510.ant",
+   "downloaded": true,
+   "note": "OK, min -60.0 dB"
+  }
+ ]
+}
